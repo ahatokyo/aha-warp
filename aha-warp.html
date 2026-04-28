@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AHA WARP — あなたの分身が、世界へ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@300;400;700;900&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pink:        #f9c8db;
+    --pink-mid:    #f0a0c0;
+    --pink-deep:   #d4607e;
+    --pink-btn:    #c84f72;
+    --purple:      #c4b5fd;
+    --purple-deep: #7c5fe0;
+    --deep:        #2d1020;
+    --glass:       rgba(255,240,248,0.06);
+    --border:      rgba(255,180,210,0.18);
+    --text:        #3d1428;
+    --text-light:  #7a3050;
+    --muted:       rgba(160,60,100,0.6);
+    --card-bg:     rgba(255,255,255,0.55);
+    --input-bg:    rgba(255,255,255,0.7);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+
+  body {
+    /* ペールピンク — とても薄く明るい */
+    background: linear-gradient(160deg, #fce8f0 0%, #f8dde9 40%, #f5d5e5 100%);
+    color: var(--text);
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  .cursor {
+    position:fixed; width:10px; height:10px;
+    background:var(--pink-deep); border-radius:50%;
+    pointer-events:none; z-index:9999;
+    transform:translate(-50%,-50%);
+    transition:width .2s,height .2s;
+    mix-blend-mode:multiply;
+  }
+  .cursor-ring {
+    position:fixed; width:32px; height:32px;
+    border:1px solid rgba(200,80,120,.3); border-radius:50%;
+    pointer-events:none; z-index:9998;
+    transform:translate(-50%,-50%);
+    transition:width .3s,height .3s;
+  }
+
+  /* 背景の淡いオーブ */
+  .bg-orbs { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
+  .orb {
+    position:absolute; border-radius:50%;
+    filter:blur(120px); opacity:.18;
+    animation:drift 26s ease-in-out infinite;
+  }
+  .orb-1 { width:800px;height:800px; background:#f9a8c9; top:-300px;left:-200px; animation-delay:0s; }
+  .orb-2 { width:600px;height:600px; background:#ddd6fe; bottom:-200px;right:-150px; animation-delay:-10s; }
+  .orb-3 { width:450px;height:450px; background:#fbc8d8; top:40%;left:38%; animation-delay:-18s; }
+
+  @keyframes drift {
+    0%,100%{transform:translate(0,0) scale(1);}
+    33%{transform:translate(40px,-28px) scale(1.06);}
+    66%{transform:translate(-28px,44px) scale(.95);}
+  }
+
+  .grid-overlay {
+    position:fixed; inset:0; pointer-events:none; z-index:0;
+    background-image:
+      linear-gradient(rgba(200,100,140,.04) 1px, transparent 1px),
+      linear-gradient(90deg,rgba(200,100,140,.04) 1px, transparent 1px);
+    background-size:56px 56px;
+  }
+
+  /* Nav */
+  nav {
+    position:fixed; top:0;left:0;right:0; z-index:100;
+    padding:22px 48px;
+    display:flex; justify-content:space-between; align-items:center;
+    backdrop-filter:blur(28px);
+    border-bottom:1px solid rgba(220,150,180,.2);
+    background:rgba(252,232,240,.7);
+  }
+  .logo {
+    font-family:'Syne',sans-serif; font-size:21px; font-weight:800; letter-spacing:.12em;
+    background:linear-gradient(135deg,#c84f72 0%,#9d6fcc 100%);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  }
+  .nav-badge {
+    font-size:10px; letter-spacing:.22em; color:var(--muted);
+    border:1px solid rgba(200,100,140,.25); padding:6px 16px; border-radius:100px;
+    background:rgba(255,255,255,.4);
+  }
+
+  /* Hero */
+  .hero {
+    position:relative; z-index:1;
+    min-height:100vh;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding:130px 24px 80px;
+    overflow:hidden;
+  }
+  .hero-video-wrap {
+    position:absolute; inset:0; z-index:0; overflow:hidden;
+  }
+  .hero-video-wrap video {
+    width:100%; height:100%;
+    object-fit:cover;
+    opacity:.2;
+    filter:saturate(1.1) brightness(1.05);
+  }
+  .hero-video-wrap::after {
+    content:''; position:absolute; inset:0;
+    background:linear-gradient(
+      180deg,
+      rgba(252,232,240,.65) 0%,
+      rgba(248,221,233,.45) 50%,
+      rgba(245,213,229,.8) 100%
+    );
+  }
+  .hero > *:not(.hero-video-wrap) { position:relative; z-index:1; }
+  .hero-eyebrow {
+    font-size:11px; letter-spacing:.42em; color:var(--pink-deep);
+    margin-bottom:28px; opacity:0; animation:fadeUp .8s ease .2s forwards;
+  }
+  .hero-title {
+    font-family:'Syne',sans-serif;
+    font-size:clamp(44px,7.5vw,92px); font-weight:800; line-height:1.05;
+    margin-bottom:28px; opacity:0; animation:fadeUp .8s ease .4s forwards;
+  }
+  .hero-title .line-1 {
+    display:block;
+    background:linear-gradient(135deg,#3d1428 0%,#8b3060 100%);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  }
+  .hero-title .line-2 {
+    display:block;
+    background:linear-gradient(135deg,var(--pink-deep) 0%,var(--purple-deep) 100%);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  }
+  .hero-sub {
+    font-size:clamp(15px,1.8vw,19px); color:var(--text-light); max-width:520px;
+    line-height:2; margin-bottom:56px; font-weight:300;
+    opacity:0; animation:fadeUp .8s ease .6s forwards;
+  }
+
+  @keyframes fadeUp {
+    from{opacity:0;transform:translateY(22px);}
+    to{opacity:1;transform:translateY(0);}
+  }
+
+  .pipeline {
+    display:flex; align-items:center; justify-content:center;
+    gap:0; flex-wrap:wrap;
+    opacity:0; animation:fadeUp .8s ease .75s forwards;
+  }
+  .pipe-node {
+    padding:7px 16px; border:1px solid rgba(200,100,140,.25); border-radius:100px;
+    font-size:11px; letter-spacing:.1em; color:var(--text-light);
+    background:rgba(255,255,255,.5); white-space:nowrap;
+  }
+  .pipe-node.highlight { border-color:rgba(200,80,120,.4); color:var(--pink-deep); background:rgba(255,255,255,.7); }
+  .pipe-arrow {
+    width:28px; height:1px; margin:0 4px;
+    background:linear-gradient(90deg,var(--pink-deep),var(--purple-deep));
+    position:relative;
+  }
+  .pipe-arrow::after {
+    content:'▶'; position:absolute; right:-5px; top:-7px;
+    font-size:8px; color:var(--purple-deep);
+  }
+
+  /* App card */
+  .app-section {
+    position:relative; z-index:1;
+    width:100%; max-width:700px;
+    margin:0 auto; padding:0 24px 120px;
+    opacity:0; animation:fadeUp .8s ease .9s forwards;
+  }
+  .card {
+    background:var(--card-bg);
+    border:1px solid rgba(220,150,180,.25);
+    border-radius:28px; padding:40px;
+    backdrop-filter:blur(40px); position:relative; overflow:hidden;
+    box-shadow:0 20px 80px rgba(200,80,120,.1), 0 4px 20px rgba(200,80,120,.06);
+  }
+  .card::before {
+    content:''; position:absolute; inset:0;
+    background:linear-gradient(145deg,rgba(255,220,235,.3) 0%,rgba(220,200,255,.15) 100%);
+    pointer-events:none;
+  }
+  .card-label {
+    font-size:10px; letter-spacing:.35em; color:var(--pink-deep);
+    margin-bottom:22px; display:flex; align-items:center; gap:10px;
+  }
+  .card-label::before { content:''; width:18px; height:1px; background:var(--pink-deep); }
+
+  .field-label {
+    font-size:10px; letter-spacing:.22em; color:var(--muted);
+    margin-bottom:7px; display:block;
+  }
+
+  .prompt-area {
+    width:100%; background:var(--input-bg);
+    border:1px solid rgba(200,130,160,.25); border-radius:18px;
+    padding:20px; color:var(--text);
+    font-family:'Zen Kaku Gothic New',sans-serif;
+    font-size:15px; line-height:1.85;
+    resize:none; min-height:118px;
+    transition:border-color .3s,box-shadow .3s; outline:none;
+    box-shadow:inset 0 2px 8px rgba(200,100,140,.05);
+  }
+  .prompt-area:focus {
+    border-color:rgba(200,80,120,.4);
+    box-shadow:0 0 0 3px rgba(200,80,120,.08),inset 0 2px 8px rgba(200,100,140,.05);
+  }
+  .prompt-area::placeholder { color:rgba(160,80,110,.4); }
+
+  /* Camera angle */
+  .camera-row { margin-top:14px; }
+  .select-wrapper { position:relative; }
+  .select-wrapper::after {
+    content:'▾'; position:absolute; right:16px; top:50%; transform:translateY(-50%);
+    color:var(--pink-deep); font-size:14px; pointer-events:none;
+  }
+  .camera-select {
+    width:100%; background:var(--input-bg);
+    border:1px solid rgba(200,130,160,.25); border-radius:14px;
+    padding:13px 40px 13px 16px; color:var(--text);
+    font-family:'Zen Kaku Gothic New',sans-serif; font-size:14px;
+    outline:none; appearance:none; -webkit-appearance:none;
+    cursor:none; transition:border-color .3s,box-shadow .3s;
+    box-shadow:inset 0 2px 8px rgba(200,100,140,.05);
+  }
+  .camera-select:focus {
+    border-color:rgba(200,80,120,.4);
+    box-shadow:0 0 0 3px rgba(200,80,120,.08);
+  }
+  .camera-select option { background:#fff5f8; color:var(--text); }
+
+  /* その他の自由記入欄 */
+  .camera-custom {
+    margin-top:10px;
+    overflow:hidden;
+    max-height:0;
+    opacity:0;
+    transition:max-height .35s ease, opacity .3s ease;
+  }
+  .camera-custom.visible {
+    max-height:100px;
+    opacity:1;
+  }
+  .camera-custom-input {
+    width:100%; background:var(--input-bg);
+    border:1px solid rgba(200,130,160,.25); border-radius:14px;
+    padding:13px 16px; color:var(--text);
+    font-family:'Zen Kaku Gothic New',sans-serif; font-size:14px;
+    outline:none; transition:border-color .3s,box-shadow .3s;
+    box-shadow:inset 0 2px 8px rgba(200,100,140,.05);
+  }
+  .camera-custom-input:focus {
+    border-color:rgba(200,80,120,.4);
+    box-shadow:0 0 0 3px rgba(200,80,120,.08);
+  }
+  .camera-custom-input::placeholder { color:rgba(160,80,110,.4); }
+
+  /* Asset IDs */
+  .asset-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:14px; }
+  .input-group { display:flex; flex-direction:column; gap:7px; }
+  .input-field {
+    background:var(--input-bg); border:1px solid rgba(200,130,160,.25); border-radius:12px;
+    padding:11px 15px; color:var(--text);
+    font-family:'Zen Kaku Gothic New',sans-serif; font-size:13px;
+    outline:none; width:100%; transition:border-color .3s,box-shadow .3s;
+    box-shadow:inset 0 2px 8px rgba(200,100,140,.05);
+  }
+  .input-field:focus {
+    border-color:rgba(200,80,120,.4);
+    box-shadow:0 0 0 3px rgba(200,80,120,.08);
+  }
+  .input-field::placeholder { color:rgba(160,80,110,.4); }
+
+  .generate-btn {
+    width:100%; margin-top:22px; padding:18px; border:none; border-radius:16px;
+    background:linear-gradient(135deg,var(--pink-btn) 0%,var(--purple-deep) 100%);
+    color:white; font-family:'Zen Kaku Gothic New',sans-serif;
+    font-size:15px; font-weight:700; letter-spacing:.1em;
+    cursor:none; position:relative; overflow:hidden;
+    transition:transform .2s,box-shadow .2s,opacity .2s;
+    box-shadow:0 8px 32px rgba(200,79,114,.25);
+  }
+  .generate-btn:hover { transform:translateY(-2px); box-shadow:0 16px 50px rgba(200,79,114,.35); }
+  .generate-btn:active { transform:translateY(0); }
+  .generate-btn::before {
+    content:''; position:absolute; inset:0;
+    background:linear-gradient(135deg,rgba(255,255,255,.18) 0%,transparent 55%);
+    pointer-events:none;
+  }
+  .generate-btn:disabled { opacity:.5; cursor:not-allowed; transform:none; box-shadow:none; }
+
+  /* Status */
+  .status-panel { margin-top:22px; display:none; }
+  .status-panel.active { display:block; }
+  .status-inner {
+    background:rgba(255,255,255,.5); border:1px solid rgba(200,130,160,.2);
+    border-radius:18px; padding:24px;
+    box-shadow:0 4px 20px rgba(200,80,120,.06);
+  }
+  .status-header { display:flex; align-items:center; gap:12px; margin-bottom:18px; }
+  .status-dot {
+    width:9px; height:9px; border-radius:50%; background:var(--pink-deep);
+    animation:pulse 1.6s ease-in-out infinite;
+  }
+  .status-dot.done  { background:#22c55e; animation:none; }
+  .status-dot.error { background:#ef4444; animation:none; }
+  @keyframes pulse {
+    0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(200,80,120,.4);}
+    50%{opacity:.6;box-shadow:0 0 0 7px rgba(200,80,120,0);}
+  }
+  .status-text { font-size:13px; color:var(--text-light); }
+  .progress-bar {
+    height:2px; background:rgba(200,130,160,.2); border-radius:2px;
+    overflow:hidden; margin-bottom:18px;
+  }
+  .progress-fill {
+    height:100%; background:linear-gradient(90deg,var(--pink-deep),var(--purple-deep));
+    border-radius:2px; width:0%; transition:width .6s ease;
+  }
+  .steps-list { display:flex; flex-direction:column; gap:10px; }
+  .step-item {
+    display:flex; align-items:center; gap:12px;
+    font-size:13px; color:rgba(160,80,110,.35); transition:color .3s;
+  }
+  .step-item.active { color:var(--text); }
+  .step-item.done   { color:#16a34a; }
+  .step-icon {
+    width:20px; height:20px; border-radius:50%;
+    border:1px solid currentColor;
+    display:flex; align-items:center; justify-content:center;
+    font-size:10px; flex-shrink:0;
+  }
+
+  /* Result */
+  .result-panel { margin-top:22px; display:none; }
+  .result-panel.active { display:block; }
+  .result-inner {
+    background:rgba(255,255,255,.6); border:1px solid rgba(34,197,94,.3);
+    border-radius:18px; padding:28px; text-align:center;
+    box-shadow:0 4px 20px rgba(34,197,94,.08);
+  }
+  .result-title { font-size:12px; letter-spacing:.25em; color:#16a34a; margin-bottom:20px; }
+  .video-preview {
+    width:100%; border-radius:12px; background:#fce8f0;
+    max-height:300px; margin-bottom:20px; display:none;
+  }
+  .video-preview.active { display:block; }
+  .download-btn {
+    display:inline-flex; align-items:center; gap:10px; padding:13px 30px;
+    background:linear-gradient(135deg,rgba(34,197,94,.12),rgba(34,197,94,.06));
+    border:1px solid rgba(34,197,94,.35); border-radius:12px; color:#16a34a;
+    font-family:'Zen Kaku Gothic New',sans-serif; font-size:13px; font-weight:700;
+    letter-spacing:.1em; cursor:none; text-decoration:none; transition:all .3s;
+  }
+  .download-btn:hover { box-shadow:0 10px 36px rgba(34,197,94,.15); transform:translateY(-2px); }
+
+  .error-msg {
+    margin-top:14px; padding:15px;
+    background:rgba(239,68,68,.06); border:1px solid rgba(239,68,68,.2);
+    border-radius:12px; color:#dc2626; font-size:13px; display:none;
+  }
+  .error-msg.active { display:block; }
+
+  /* Features */
+  .features {
+    position:relative; z-index:1; padding:80px 48px;
+    border-top:1px solid rgba(220,150,180,.2);
+  }
+  .features-grid {
+    max-width:900px; margin:0 auto;
+    display:grid; grid-template-columns:repeat(3,1fr); gap:24px;
+  }
+  .feature-item {
+    padding:28px; border:1px solid rgba(220,150,180,.25); border-radius:22px;
+    background:rgba(255,255,255,.5); backdrop-filter:blur(20px);
+    transition:border-color .3s,transform .3s,box-shadow .3s;
+    box-shadow:0 4px 20px rgba(200,80,120,.05);
+  }
+  .feature-item:hover {
+    border-color:rgba(200,80,120,.3);
+    transform:translateY(-4px);
+    box-shadow:0 12px 40px rgba(200,80,120,.1);
+  }
+  .feature-icon { font-size:26px; margin-bottom:14px; }
+  .feature-title { font-size:15px; font-weight:700; margin-bottom:10px; color:var(--text); }
+  .feature-desc { font-size:13px; color:var(--text-light); line-height:1.85; font-weight:300; }
+
+  /* Footer */
+  footer {
+    position:relative; z-index:1; padding:36px 48px;
+    border-top:1px solid rgba(220,150,180,.2);
+    display:flex; justify-content:space-between; align-items:center;
+    background:rgba(255,255,255,.2);
+  }
+  .footer-logo {
+    font-family:'Syne',sans-serif; font-weight:800; font-size:15px;
+    background:linear-gradient(135deg,var(--pink-deep),var(--purple-deep));
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  }
+  .footer-text { font-size:11px; color:var(--muted); letter-spacing:.1em; }
+
+  @media(max-width:768px){
+    nav{padding:18px 20px;}
+    .features{padding:60px 20px;}
+    .features-grid{grid-template-columns:1fr;gap:16px;}
+    .asset-row{grid-template-columns:1fr;}
+    footer{flex-direction:column;gap:14px;text-align:center;}
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+<div class="bg-orbs">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+<div class="grid-overlay"></div>
+
+<nav>
+  <div class="logo">AHA WARP</div>
+  <div class="nav-badge">BETA — AI VIDEO GENERATOR</div>
+</nav>
+
+<section class="hero">
+  <div class="hero-video-wrap">
+    <video autoplay muted loop playsinline>
+      <source src="https://drive.google.com/uc?export=download&id=1rVOxuXv11N0WAR9BQaCDIpR1FQY0rwT7" type="video/mp4">
+    </video>
+  </div>
+  <div class="hero-eyebrow">"あなた"が、世界へ</div>
+  <h1 class="hero-title">
+    <span class="line-1">撮影しなくても、</span>
+    <span class="line-2">あなたが世界中に。</span>
+  </h1>
+  <p class="hero-sub">投稿が止まらない。撮影コストはゼロ。<br>プロンプト一つで、<strong style="color:var(--pink-deep);font-weight:700;">"あなた"</strong>が世界中に現れる。</p>
+  <div class="pipeline">
+    <div class="pipe-node">あなたのプロンプト</div>
+    <div class="pipe-arrow"></div>
+    <div class="pipe-node">AIがシーンを最適化</div>
+    <div class="pipe-arrow"></div>
+    <div class="pipe-node">動画を自動生成</div>
+    <div class="pipe-arrow"></div>
+    <div class="pipe-node highlight">完成動画をダウンロード</div>
+  </div>
+</section>
+
+<section class="app-section">
+  <div class="card">
+    <div class="card-label">動画生成</div>
+
+    <textarea class="prompt-area" id="promptInput"
+      placeholder="どんな動画を作りたいですか？&#10;例：パリのカフェでコーヒーを飲みながら微笑んでいる場面" rows="4"></textarea>
+
+    <!-- カメラアングル -->
+    <div class="camera-row">
+      <label class="field-label" for="cameraAngle">CAMERA ANGLE</label>
+      <div class="select-wrapper">
+        <select class="camera-select" id="cameraAngle" onchange="onCameraChange()">
+          <option value="">選択してください</option>
+          <option value="front_shot">フロントショット — 正面・定番の安定感</option>
+          <option value="three_quarter">スリークォーター — 斜め45°・おしゃれ見え</option>
+          <option value="bust_shot">バストショット — 上半身・表情を引き立てる</option>
+          <option value="full_body">フルボディショット — 全身・コーデ・スタイル重視</option>
+          <option value="walking_shot">ウォーキングショット — 歩きながら追う・動き感</option>
+          <option value="low_angle">ローアングル — 見上げ・迫力と存在感</option>
+          <option value="drone_shot">ドローンショット — 空撮・場所の壮大さを演出</option>
+          <option value="close_up">クローズアップ — 顔・感情と細部の表現</option>
+          <option value="custom">その他（自由記入）</option>
+        </select>
+      </div>
+      <!-- その他の自由記入欄 -->
+      <div class="camera-custom" id="cameraCustomWrap">
+        <input
+          type="text"
+          class="camera-custom-input"
+          id="cameraCustomInput"
+          placeholder="例：肩越しのショット、回転しながら引くカメラ など"
+        >
+      </div>
+    </div>
+
+    <div class="asset-row">
+      <div class="input-group">
+        <label class="field-label" for="faceAssetId">FACE ASSET ID</label>
+        <input type="text" class="input-field" id="faceAssetId" placeholder="登録済みの顔アセットID">
+      </div>
+      <div class="input-group">
+        <label class="field-label" for="bodyAssetId">BODY ASSET ID（任意）</label>
+        <input type="text" class="input-field" id="bodyAssetId" placeholder="体のアセットID">
+      </div>
+    </div>
+
+    <button class="generate-btn" id="generateBtn" onclick="startGeneration()">✦ "あなた"を生成する</button>
+
+    <div class="status-panel" id="statusPanel">
+      <div class="status-inner">
+        <div class="status-header">
+          <div class="status-dot" id="statusDot"></div>
+          <div class="status-text" id="statusText">リクエストを送信中...</div>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="steps-list">
+          <div class="step-item" id="step1"><div class="step-icon">1</div><span>リクエストを送信</span></div>
+          <div class="step-item" id="step2"><div class="step-icon">2</div><span>AIがシーンを最適化中</span></div>
+          <div class="step-item" id="step3"><div class="step-icon">3</div><span>動画を生成中（数分かかる場合があります）</span></div>
+          <div class="step-item" id="step4"><div class="step-icon">4</div><span>保存完了</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="error-msg" id="errorMsg"></div>
+
+    <div class="result-panel" id="resultPanel">
+      <div class="result-inner">
+        <div class="result-title">✦ 動画の生成が完了しました</div>
+        <video class="video-preview" id="videoPreview" controls></video>
+        <a class="download-btn" id="downloadBtn" href="#" download="aha-warp.mp4">↓ 動画をダウンロード</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="features">
+  <div class="features-grid">
+    <div class="feature-item">
+      <div class="feature-icon">🎭</div>
+      <div class="feature-title">完全な顔の再現</div>
+      <div class="feature-desc">登録した顔データから、"あなた"を高精度で動画に再現します。撮影は一切不要です。</div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon">🌍</div>
+      <div class="feature-title">世界中どこへでも</div>
+      <div class="feature-desc">プロンプト一つで、パリでも東京でも、砂漠でも宇宙でも。"あなた"がそこに現れます。</div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon">⚡</div>
+      <div class="feature-title">フル自動で完結</div>
+      <div class="feature-desc">入力からダウンロードまで、すべてAIが自動で処理。SNS発信のコストと手間をゼロにします。</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">AHA WARP</div>
+  <div class="footer-text">© 2025 AHA WARP — Powered by AI</div>
+</footer>
+
+<script>
+  // Cursor
+  const cursor = document.getElementById('cursor');
+  const cursorRing = document.getElementById('cursorRing');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;});
+  (function loop(){
+    cursor.style.left=mx+'px'; cursor.style.top=my+'px';
+    rx+=(mx-rx)*.12; ry+=(my-ry)*.12;
+    cursorRing.style.left=rx+'px'; cursorRing.style.top=ry+'px';
+    requestAnimationFrame(loop);
+  })();
+  document.querySelectorAll('button,a,textarea,input,select').forEach(el=>{
+    el.addEventListener('mouseenter',()=>{cursor.style.width='18px';cursor.style.height='18px';cursorRing.style.width='50px';cursorRing.style.height='50px';});
+    el.addEventListener('mouseleave',()=>{cursor.style.width='10px';cursor.style.height='10px';cursorRing.style.width='32px';cursorRing.style.height='32px';});
+  });
+
+  // カメラアングル「その他」の表示制御
+  function onCameraChange() {
+    const sel = document.getElementById('cameraAngle');
+    const wrap = document.getElementById('cameraCustomWrap');
+    const inp  = document.getElementById('cameraCustomInput');
+    if (sel.value === 'custom') {
+      wrap.classList.add('visible');
+      inp.focus();
+    } else {
+      wrap.classList.remove('visible');
+    }
+  }
+
+  // カメラアングルの値を取得（その他の場合は自由記入内容を返す）
+  function getCameraAngleValue() {
+    const sel = document.getElementById('cameraAngle');
+    if (sel.value === 'custom') {
+      return document.getElementById('cameraCustomInput').value.trim() || 'custom';
+    }
+    return sel.value || 'front_shot';
+  }
+
+  // Generation
+  const WEBHOOK_URL = 'https://hook.us2.make.com/o78j0hj9nbug2zy41gv92we0godd4o5f';
+
+  function setStep(n,state){
+    const el=document.getElementById('step'+n);
+    el.className='step-item '+state;
+    el.querySelector('.step-icon').textContent=state==='done'?'✓':n;
+  }
+  function setProgress(p){document.getElementById('progressFill').style.width=p+'%';}
+
+  function showError(msg){
+    const el=document.getElementById('errorMsg');
+    el.textContent=msg; el.classList.add('active');
+    document.getElementById('statusDot').className='status-dot error';
+    document.getElementById('statusText').textContent='エラーが発生しました';
+    document.getElementById('generateBtn').disabled=false;
+    document.getElementById('generateBtn').textContent='✦ "あなた"を生成する';
+  }
+
+  async function startGeneration(){
+    const prompt = document.getElementById('promptInput').value.trim();
+    const faceId = document.getElementById('faceAssetId').value.trim();
+    const bodyId = document.getElementById('bodyAssetId').value.trim();
+    const camera = getCameraAngleValue();
+
+    const hl = id => {
+      const el=document.getElementById(id);
+      el.style.borderColor='rgba(200,80,120,.6)'; el.focus();
+      setTimeout(()=>el.style.borderColor='',2000);
+    };
+    if (!prompt) { hl('promptInput'); return; }
+    if (!faceId) { hl('faceAssetId'); return; }
+
+    // 「その他」で記入がない場合
+    if (document.getElementById('cameraAngle').value === 'custom' && !document.getElementById('cameraCustomInput').value.trim()) {
+      hl('cameraCustomInput'); return;
+    }
+
+    // Reset UI
+    document.getElementById('errorMsg').classList.remove('active');
+    document.getElementById('resultPanel').classList.remove('active');
+    document.getElementById('statusPanel').classList.add('active');
+    document.getElementById('generateBtn').disabled=true;
+    document.getElementById('generateBtn').textContent='生成中...';
+    document.getElementById('statusDot').className='status-dot';
+    [1,2,3,4].forEach(n=>setStep(n,''));
+    setProgress(0);
+    setStep(1,'active');
+    document.getElementById('statusText').textContent='リクエストを送信中...';
+
+    try {
+      const payload = {
+        rough_prompt_ja: prompt,
+        reference_face_asset_id: faceId,
+        camera_angle: camera,   // プリセット値 or 自由記入テキストをそのまま送信
+      };
+      if (bodyId) payload.reference_body_asset_id = bodyId;
+
+      const res = await fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error('送信エラー: ' + res.status);
+
+      setStep(1,'done'); setProgress(22);
+      setStep(2,'active');
+      document.getElementById('statusText').textContent='AIがシーンを最適化中...';
+      setTimeout(()=>{
+        setStep(2,'done'); setProgress(45);
+        setStep(3,'active');
+        document.getElementById('statusText').textContent='動画を生成中... しばらくお待ちください';
+        setProgress(62);
+      }, 4000);
+
+    } catch(err) { showError(err.message); }
+  }
+
+  window.onVideoReady = function(videoUrl){
+    setStep(3,'done'); setStep(4,'done'); setProgress(100);
+    document.getElementById('statusDot').className='status-dot done';
+    document.getElementById('statusText').textContent='生成完了！';
+    const v=document.getElementById('videoPreview');
+    v.src=videoUrl; v.classList.add('active');
+    document.getElementById('downloadBtn').href=videoUrl;
+    document.getElementById('resultPanel').classList.add('active');
+    document.getElementById('generateBtn').disabled=false;
+    document.getElementById('generateBtn').textContent='✦ "あなた"を生成する';
+  };
+</script>
+</body>
+</html>
