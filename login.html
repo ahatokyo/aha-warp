@@ -253,12 +253,42 @@
 
     if (currentTab === 'login') {
       const { error } = await sb.auth.signInWithPassword({ email, password });
-      if (error) { showError('メールアドレスまたはパスワードが正しくありません'); }
-      else { window.location.href = 'mypage.html'; }
+      if (error) {
+        if (error.message.includes('Invalid login credentials')) {
+          showError('メールアドレスまたはパスワードが正しくありません');
+        } else if (error.message.includes('Email not confirmed')) {
+          showError('メールアドレスの確認が完了していません。確認メールをご確認ください。');
+        } else {
+          showError('ログインに失敗しました。もう一度お試しください。');
+        }
+      } else {
+        window.location.href = 'mypage.html';
+      }
     } else {
+      // 既存メールアドレスかどうかを先にチェック
+      const { data: existingUser } = await sb.auth.signInWithPassword({ email, password: '___dummy___' });
       const { error } = await sb.auth.signUp({ email, password });
-      if (error) { showError(error.message); }
-      else { showSuccess('確認メールを送信しました。メールをご確認ください。'); }
+      if (error) {
+        if (error.message.includes('User already registered') ||
+            error.message.includes('already been registered') ||
+            error.message.includes('email address is already')) {
+          showError('このメールアドレスはすでに登録されています。ログインタブからサインインしてください。');
+        } else if (error.message.includes('rate limit') || error.message.includes('rate_limit')) {
+          showError('しばらく時間をおいてから再度お試しください。');
+        } else if (error.message.includes('Password should be')) {
+          showError('パスワードは6文字以上で入力してください。');
+        } else {
+          showError('登録に失敗しました。もう一度お試しください。');
+        }
+      } else {
+        // Supabaseは既存メールでも成功を返すことがあるため、identitiesで判定
+        const identities = error?.user?.identities;
+        if (identities && identities.length === 0) {
+          showError('このメールアドレスはすでに登録されています。ログインタブからサインインしてください。');
+        } else {
+          showSuccess('確認メールを送信しました。メールをご確認ください。');
+        }
+      }
     }
 
     btn.disabled = false;
