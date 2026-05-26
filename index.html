@@ -630,16 +630,22 @@
           <label class="field-label" for="faceAssetId" style="margin-bottom:0;">FACE ASSET ID</label>
           <span id="faceAssetSavedBadge" style="display:none;font-size:10px;color:#16a34a;letter-spacing:.1em;">✓ 保存済み</span>
         </div>
-        <input type="text" class="input-field" id="faceAssetId" placeholder="登録済みの顔アセットID"
-          oninput="onAssetInput('faceAssetId','faceAssetSavedBadge')">
+        <div style="display:flex;align-items:center;background:var(--input-bg);border:1px solid rgba(200,130,160,.25);border-radius:12px;overflow:hidden;box-shadow:inset 0 2px 8px rgba(200,100,140,.05);">
+          <span style="padding:11px 8px 11px 15px;font-size:13px;color:var(--muted);white-space:nowrap;user-select:none;">asset://</span>
+          <input type="text" style="flex:1;background:none;border:none;padding:11px 15px 11px 0;color:var(--text);font-family:'Zen Kaku Gothic New',sans-serif;font-size:13px;outline:none;" id="faceAssetId" placeholder="asset-XXXXXXXXX"
+            oninput="onAssetInput('faceAssetId','faceAssetSavedBadge')">
+        </div>
       </div>
       <div class="input-group">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
           <label class="field-label" for="bodyAssetId" style="margin-bottom:0;">BODY ASSET ID（任意）</label>
           <span id="bodyAssetSavedBadge" style="display:none;font-size:10px;color:#16a34a;letter-spacing:.1em;">✓ 保存済み</span>
         </div>
-        <input type="text" class="input-field" id="bodyAssetId" placeholder="体のアセットID"
-          oninput="onAssetInput('bodyAssetId','bodyAssetSavedBadge')">
+        <div style="display:flex;align-items:center;background:var(--input-bg);border:1px solid rgba(200,130,160,.25);border-radius:12px;overflow:hidden;box-shadow:inset 0 2px 8px rgba(200,100,140,.05);">
+          <span style="padding:11px 8px 11px 15px;font-size:13px;color:var(--muted);white-space:nowrap;user-select:none;">asset://</span>
+          <input type="text" style="flex:1;background:none;border:none;padding:11px 15px 11px 0;color:var(--text);font-family:'Zen Kaku Gothic New',sans-serif;font-size:13px;outline:none;" id="bodyAssetId" placeholder="asset-XXXXXXXXX"
+            oninput="onAssetInput('bodyAssetId','bodyAssetSavedBadge')">
+        </div>
       </div>
     </div>
     <div style="text-align:right;margin-top:6px;">
@@ -840,11 +846,11 @@
       window.__credits = data.credits_remaining;
       // Supabase上のAsset IDを自動入力
       if (data.face_asset_id && !document.getElementById('faceAssetId').value) {
-        document.getElementById('faceAssetId').value = data.face_asset_id;
+        document.getElementById('faceAssetId').value = toShortAssetId(data.face_asset_id);
         document.getElementById('faceAssetSavedBadge').style.display = 'inline';
       }
       if (data.body_asset_id && !document.getElementById('bodyAssetId').value) {
-        document.getElementById('bodyAssetId').value = data.body_asset_id;
+        document.getElementById('bodyAssetId').value = toShortAssetId(data.body_asset_id);
         document.getElementById('bodyAssetSavedBadge').style.display = 'inline';
       }
     }
@@ -860,15 +866,27 @@
     return true;
   }
 
+  // asset-XXXX → asset://asset-XXXX に変換
+  function toFullAssetId(val) {
+    if (!val) return '';
+    val = val.trim();
+    if (val.startsWith('asset://')) return val;
+    return 'asset://' + val;
+  }
+  function toShortAssetId(val) {
+    if (!val) return '';
+    return val.replace(/^asset:\/\//, '');
+  }
+
   function loadAssetIds() {
     const face = localStorage.getItem('aha_face_asset_id');
     const body = localStorage.getItem('aha_body_asset_id');
     if (face) {
-      document.getElementById('faceAssetId').value = face;
+      document.getElementById('faceAssetId').value = toShortAssetId(face);
       document.getElementById('faceAssetSavedBadge').style.display = 'inline';
     }
     if (body) {
-      document.getElementById('bodyAssetId').value = body;
+      document.getElementById('bodyAssetId').value = toShortAssetId(body);
       document.getElementById('bodyAssetSavedBadge').style.display = 'inline';
     }
   }
@@ -883,7 +901,7 @@
     const badge = document.getElementById(badgeId);
     if (val) {
       const key = inputId === 'faceAssetId' ? 'aha_face_asset_id' : 'aha_body_asset_id';
-      localStorage.setItem(key, val);
+      localStorage.setItem(key, toFullAssetId(val));
       badge.style.display = 'inline';
     } else {
       badge.style.display = 'none';
