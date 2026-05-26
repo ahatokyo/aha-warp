@@ -926,7 +926,9 @@
   }
 
   // Generation
-  const WEBHOOK_URL = 'https://hook.us2.make.com/o78j0hj9nbug2zy41gv92we0godd4o5f';
+  const WEBHOOK_URL = 'https://hook.us2.make.com/7sd9spdm0cwl2dar73lhm6o6yp0eicvh';
+
+  let pollingTimer = null;
 
   function setStep(n,state){
     const el=document.getElementById('step'+n);
@@ -942,6 +944,48 @@
     document.getElementById('statusText').textContent='エラーが発生しました';
     document.getElementById('generateBtn').disabled=false;
     document.getElementById('generateBtn').textContent='✦ "あなた"を生成する';
+    if (pollingTimer) { clearInterval(pollingTimer); pollingTimer = null; }
+  }
+
+  // ポーリング：Supabaseのjobsテーブルをチェック
+  async function startPolling(jobId) {
+    let elapsed = 0;
+    const maxWait = 600; // 最大10分
+
+    pollingTimer = setInterval(async () => {
+      elapsed += 5;
+
+      // プログレスバーをゆっくり進める（62%〜95%）
+      const progress = Math.min(95, 62 + (elapsed / maxWait) * 33);
+      setProgress(progress);
+
+      if (elapsed >= maxWait) {
+        clearInterval(pollingTimer);
+        showError('タイムアウトしました。しばらく後に再度お試しください。');
+        return;
+      }
+
+      try {
+        const { data, error } = await window.__supabase
+          .from('jobs')
+          .select('status, video_url')
+          .eq('id', jobId)
+          .single();
+
+        if (error || !data) return;
+
+        if (data.status === 'completed' && data.video_url) {
+          clearInterval(pollingTimer);
+          pollingTimer = null;
+          onVideoReady(data.video_url);
+        } else if (data.status === 'failed') {
+          clearInterval(pollingTimer);
+          pollingTimer = null;
+          showError('動画の生成に失敗しました。もう一度お試しください。');
+        }
+      } catch(e) { console.error('polling error:', e); }
+
+    }, 5000); // 5秒ごとにチェック
   }
 
   async function startGeneration(){
@@ -958,7 +1002,6 @@
     if (!prompt) { hl('promptInput'); return; }
     if (!faceId) { hl('faceAssetId'); return; }
 
-    // 「その他」で記入がない場合
     if (document.getElementById('cameraAngle').value === 'custom' && !document.getElementById('cameraCustomInput').value.trim()) {
       hl('cameraCustomInput'); return;
     }
@@ -980,12 +1023,33 @@
     if (!ok) return;
 
     try {
+      // Supabaseにjobを作成してjob_idを取得
+      const { data: jobData, error: jobError } = await window.__supabase
+        .from('jobs')
+        .insert({
+          user_id: window.__user.id,
+          status: 'pending',
+          prompt: prompt,
+          camera_angle: camera,
+          outfit_style: getOutfitValue(),
+          outfit_color: getColorValue(),
+        })
+        .select('id')
+        .single();
+
+      if (jobError || !jobData) throw new Error('ジョブの作成に失敗しました');
+
+      const jobId = jobData.id;
+
       const payload = {
         rough_prompt_ja: prompt,
         reference_face_asset_id: faceId,
         camera_angle: camera,
         outfit_style: getOutfitValue(),
         outfit_color: getColorValue(),
+        user_id: window.__user.id,
+        email: window.__user.email,
+        job_id: jobId,
       };
       if (bodyId) payload.reference_body_asset_id = bodyId;
 
@@ -999,20 +1063,29 @@
       });
       if (!res.ok) throw new Error('送信エラー: ' + res.status);
 
+      // Supabaseのjobをprocessingに更新
+      await window.__supabase
+        .from('jobs')
+        .update({ status: 'processing' })
+        .eq('id', jobId);
+
       setStep(1,'done'); setProgress(22);
       setStep(2,'active');
       document.getElementById('statusText').textContent='AIがシーンを最適化中...';
+
       setTimeout(()=>{
         setStep(2,'done'); setProgress(45);
         setStep(3,'active');
-        document.getElementById('statusText').textContent='動画を生成中... しばらくお待ちください';
+        document.getElementById('statusText').textContent='動画を生成中... しばらくお待ちください（数分かかります）';
         setProgress(62);
+        // ポーリング開始
+        startPolling(jobId);
       }, 4000);
 
     } catch(err) { showError(err.message); }
   }
 
-  window.onVideoReady = function(videoUrl){
+  function onVideoReady(videoUrl){
     setStep(3,'done'); setStep(4,'done'); setProgress(100);
     document.getElementById('statusDot').className='status-dot done';
     document.getElementById('statusText').textContent='生成完了！';
