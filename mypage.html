@@ -176,7 +176,51 @@
   }
   .save-asset-btn:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(200,79,114,.3); }
 
-  /* Generate button */
+  /* オンボーディングバナー */
+  .onboarding-banner {
+    background:linear-gradient(135deg,rgba(200,79,114,.08),rgba(124,95,224,.08));
+    border:1px solid rgba(200,79,114,.25);
+    border-radius:24px; padding:28px 32px;
+    margin-bottom:20px; display:none;
+    position:relative; overflow:hidden;
+    opacity:0; animation:fadeUp .8s ease .1s forwards;
+  }
+  .onboarding-banner.active { display:block; }
+  .onboarding-banner::before {
+    content:''; position:absolute; inset:0;
+    background:linear-gradient(135deg,rgba(255,220,235,.2) 0%,rgba(220,200,255,.1) 100%);
+    pointer-events:none;
+  }
+  .banner-step {
+    display:flex; align-items:flex-start; gap:16px;
+    margin-bottom:16px;
+  }
+  .banner-step:last-child { margin-bottom:0; }
+  .banner-step-num {
+    width:28px; height:28px; border-radius:50%; flex-shrink:0;
+    background:linear-gradient(135deg,var(--pink-btn),var(--purple-deep));
+    color:white; font-size:12px; font-weight:700;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 4px 12px rgba(200,79,114,.3);
+  }
+  .banner-step-content { flex:1; }
+  .banner-step-title { font-size:14px; font-weight:700; color:var(--text); margin-bottom:4px; }
+  .banner-step-desc { font-size:13px; color:var(--text-light); line-height:1.7; font-weight:300; }
+  .banner-step-link {
+    display:inline-flex; align-items:center; gap:6px;
+    margin-top:8px; padding:8px 16px;
+    background:linear-gradient(135deg,var(--pink-btn),var(--purple-deep));
+    color:white; text-decoration:none; border-radius:10px;
+    font-size:12px; font-weight:700; letter-spacing:.08em;
+    transition:all .2s; box-shadow:0 4px 12px rgba(200,79,114,.25);
+  }
+  .banner-step-link:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(200,79,114,.35); }
+  .banner-title {
+    font-family:'Syne',sans-serif; font-size:16px; font-weight:800;
+    color:var(--text); margin-bottom:20px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .banner-title::before { content:''; width:18px; height:1px; background:var(--pink-deep); }
   .generate-link {
     display:block; width:100%; padding:18px; border:none; border-radius:16px;
     background:linear-gradient(135deg,var(--pink-btn) 0%,var(--purple-deep) 100%);
@@ -227,6 +271,54 @@
 
 <main>
   <div class="page-title" id="pageTitle">マイページ</div>
+
+  <!-- オンボーディングバナー（Asset ID未登録のユーザーのみ表示） -->
+  <div class="onboarding-banner" id="onboardingBanner">
+    <div class="banner-title">🎬 動画生成を始めるための準備</div>
+
+    <!-- STEP 1：必須 -->
+    <div class="banner-step">
+      <div class="banner-step-num">1</div>
+      <div class="banner-step-content">
+        <div class="banner-step-title">顔認証に進む <span style="font-size:11px;background:rgba(200,79,114,.15);color:var(--pink-deep);padding:2px 8px;border-radius:100px;margin-left:6px;font-weight:700;">必須</span></div>
+        <div class="banner-step-desc">
+          以下のリンクから顔認証を完了してください。<br>
+          画面の指示（英語）の対訳：<br>
+          Blink your eyes → 目を瞬きして　／　Nod your head → 頭を縦に振って<br>
+          Turn left/right → 顔を左右に向けて　／　Open your mouth → 口を開けて
+          <br><br>
+          <span style="font-size:11px;color:var(--muted);">※ 顔認証にはBytePlusへの登録が必須です（Googleアカウントで1〜2分）</span>
+        </div>
+        <a href="https://www.byteplus.com/en/liveness-face-manage/index?uuid=dce020a6-51af-4836-8c8d-38f8cc3ec329" target="_blank" class="banner-step-link">顔認証を開始する →</a>
+      </div>
+    </div>
+
+    <!-- STEP 2：必須 -->
+    <div class="banner-step">
+      <div class="banner-step-num">2</div>
+      <div class="banner-step-content">
+        <div class="banner-step-title">顔のAsset IDを登録する <span style="font-size:11px;background:rgba(200,79,114,.15);color:var(--pink-deep);padding:2px 8px;border-radius:100px;margin-left:6px;font-weight:700;">必須</span></div>
+        <div class="banner-step-desc">
+          顔認証完了後、以下からFace Asset IDを確認できます。<br>
+          グループ名をクリック →「asset-XXXXXXXXX」をコピーして下のFACE ASSET IDに貼り付けてください。
+        </div>
+        <a href="https://console.byteplus.com/ark/region:ark+ap-southeast-1/experience/vision?modelId=dreamina-seedance-2-0-fast-260128&tab=ManageAssets" target="_blank" class="banner-step-link">Asset IDを確認する →</a>
+      </div>
+    </div>
+
+    <!-- STEP 3：任意 -->
+    <div class="banner-step">
+      <div class="banner-step-num">3</div>
+      <div class="banner-step-content">
+        <div class="banner-step-title">動きのリファレンス動画を登録する <span style="font-size:11px;background:rgba(124,95,224,.12);color:var(--purple-deep);padding:2px 8px;border-radius:100px;margin-left:6px;font-weight:700;">任意・後から追加可</span></div>
+        <div class="banner-step-desc">
+          自分が動いている動画（スマホ撮影でOK）をBytePlusに追加登録すると、生成される動画のクオリティが大幅に向上します。<br>
+          まずは静止画だけで動画生成を試してみて、後から追加してもOKです。
+        </div>
+      </div>
+    </div>
+
+  </div>
 
   <!-- プランカード -->
   <div class="card">
@@ -356,7 +448,12 @@
     };
     document.getElementById('creditsNote').textContent = noteMap[data.plan] || noteMap.free;
 
-    // Asset IDs
+    // Asset ID未登録の場合はオンボーディングバナーを表示
+    if (!data.face_asset_id) {
+      document.getElementById('onboardingBanner').classList.add('active');
+    }
+
+    // Asset IDをフォームに反映
     if (data.face_asset_id) {
       document.getElementById('faceAssetInput').value = data.face_asset_id;
       document.getElementById('faceSavedBadge').style.display = 'inline';
