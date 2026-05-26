@@ -6,6 +6,25 @@
 <title>AHA WARP — あなたの分身が、世界へ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@300;400;700;900&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  // Supabase認証チェック（ページ読み込み直後）
+  (async () => {
+    const { createClient } = supabase;
+    const sb = createClient(
+      'https://majunwobgxvdckyyunxu.supabase.co',
+      'sb_publishable_p93V6Tk3LAn8HjwmPuNbKg_00cs6Z6L'
+    );
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) {
+      window.location.href = 'login.html';
+    } else {
+      // ログイン済みユーザーの情報をグローバルに保持
+      window.__supabase = sb;
+      window.__user = session.user;
+    }
+  })();
+</script>
 <style>
   :root {
     --pink:        #f9c8db;
@@ -112,16 +131,16 @@
   .hero-video-wrap video {
     width:100%; height:100%;
     object-fit:cover;
-    opacity:.5;
+    opacity:.2;
     filter:saturate(1.1) brightness(1.05);
   }
   .hero-video-wrap::after {
     content:''; position:absolute; inset:0;
     background:linear-gradient(
       180deg,
-rgba(252,232,240,.25) 0%,
-rgba(248,221,233,.15) 50%,
-rgba(245,213,229,.35) 100%
+      rgba(252,232,240,.65) 0%,
+      rgba(248,221,233,.45) 50%,
+      rgba(245,213,229,.8) 100%
     );
   }
   .hero > *:not(.hero-video-wrap) { position:relative; z-index:1; }
@@ -400,6 +419,66 @@ rgba(245,213,229,.35) 100%
   .feature-title { font-size:15px; font-weight:700; margin-bottom:10px; color:var(--text); }
   .feature-desc { font-size:13px; color:var(--text-light); line-height:1.85; font-weight:300; }
 
+  /* Reviews */
+  .reviews-section {
+    position:relative; z-index:1;
+    padding:80px 0;
+    border-top:1px solid rgba(220,150,180,.2);
+    overflow:hidden;
+  }
+  .reviews-header {
+    text-align:center; margin-bottom:48px; padding:0 24px;
+  }
+  .reviews-eyebrow {
+    font-size:10px; letter-spacing:.35em; color:var(--pink-deep);
+    margin-bottom:14px;
+  }
+  .reviews-title {
+    font-family:'Syne',sans-serif; font-size:clamp(28px,4vw,42px);
+    font-weight:800; color:var(--text);
+  }
+
+  .reviews-track-wrap {
+    width:100%; overflow:hidden;
+    /* 左右フェードアウト */
+    -webkit-mask:linear-gradient(90deg, transparent 0%, black 10%, black 90%, transparent 100%);
+    mask:linear-gradient(90deg, transparent 0%, black 10%, black 90%, transparent 100%);
+  }
+  .reviews-track {
+    display:flex; gap:20px;
+    width:max-content;
+    animation:scrollLeft 40s linear infinite;
+  }
+  .reviews-track:hover { animation-play-state:paused; }
+
+  @keyframes scrollLeft {
+    0%   { transform:translateX(0); }
+    100% { transform:translateX(-50%); }
+  }
+
+  .review-card {
+    width:320px; flex-shrink:0;
+    background:rgba(255,255,255,.6);
+    border:1px solid rgba(220,150,180,.25);
+    border-radius:20px; padding:28px;
+    box-shadow:0 4px 20px rgba(200,80,120,.06);
+    transition:transform .3s, box-shadow .3s;
+  }
+  .review-card:hover {
+    transform:translateY(-4px);
+    box-shadow:0 12px 40px rgba(200,80,120,.12);
+  }
+  .review-stars {
+    font-size:16px; margin-bottom:14px; letter-spacing:2px;
+  }
+  .review-text {
+    font-size:14px; color:var(--text); line-height:1.85;
+    font-weight:300; margin-bottom:16px;
+  }
+  .review-author {
+    font-size:11px; letter-spacing:.1em; color:var(--muted);
+  }
+
   /* Footer */
   footer {
     position:relative; z-index:1; padding:36px 48px;
@@ -436,13 +515,16 @@ rgba(245,213,229,.35) 100%
 
 <nav>
   <div class="logo">AHA WARP</div>
-  <div class="nav-badge">BETA — AI VIDEO GENERATOR</div>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <a href="mypage.html" style="font-size:12px;color:var(--muted);text-decoration:none;letter-spacing:.1em;border:1px solid var(--border);padding:6px 14px;border-radius:100px;background:rgba(255,255,255,.4);">マイページ</a>
+    <div class="nav-badge" id="navCredits">読み込み中...</div>
+  </div>
 </nav>
 
 <section class="hero">
   <div class="hero-video-wrap">
     <video autoplay muted loop playsinline>
-      <source src="AHA%20WARP_2.mp4" type="video/mp4">
+      <source src="AHA_WARP_2.mp4" type="video/mp4">
     </video>
   </div>
   <div class="hero-eyebrow">"あなた"が、世界へ</div>
@@ -468,6 +550,51 @@ rgba(245,213,229,.35) 100%
 
     <textarea class="prompt-area" id="promptInput"
       placeholder="どんな動画を作りたいですか？&#10;例：パリのカフェでコーヒーを飲みながら微笑んでいる場面" rows="4"></textarea>
+
+    <!-- 服装 -->
+    <div class="camera-row" style="margin-top:14px;">
+      <label class="field-label" for="outfitStyle">OUTFIT STYLE</label>
+      <div class="select-wrapper">
+        <select class="camera-select" id="outfitStyle">
+          <option value="">選択してください</option>
+          <option value="casual">カジュアル — Tシャツ・デニム・スニーカー</option>
+          <option value="business_casual">ビジネスカジュアル — シャツ・チノパン</option>
+          <option value="formal">フォーマル — スーツ・ジャケット</option>
+          <option value="street">ストリート — パーカー・バギーパンツ</option>
+          <option value="outdoor">アウトドア — ジャケット・カーゴパンツ</option>
+          <option value="resort">リゾート — リネンシャツ・ショートパンツ</option>
+          <option value="outfit_custom">その他（自由記入）</option>
+        </select>
+      </div>
+      <div class="camera-custom" id="outfitCustomWrap">
+        <input type="text" class="camera-custom-input" id="outfitCustomInput"
+          placeholder="例：白いロングコート、黒いタートルネック など">
+      </div>
+    </div>
+
+    <!-- 服の色 -->
+    <div class="camera-row" style="margin-top:10px;">
+      <label class="field-label" for="outfitColor">OUTFIT COLOR</label>
+      <div class="select-wrapper">
+        <select class="camera-select" id="outfitColor">
+          <option value="">選択してください</option>
+          <option value="white">ホワイト</option>
+          <option value="black">ブラック</option>
+          <option value="navy">ネイビー</option>
+          <option value="gray">グレー</option>
+          <option value="beige">ベージュ</option>
+          <option value="brown">ブラウン</option>
+          <option value="khaki">カーキ</option>
+          <option value="light_blue">ライトブルー</option>
+          <option value="red">レッド</option>
+          <option value="color_custom">その他（自由記入）</option>
+        </select>
+      </div>
+      <div class="camera-custom" id="colorCustomWrap">
+        <input type="text" class="camera-custom-input" id="colorCustomInput"
+          placeholder="例：バーガンディ、オリーブグリーン など">
+      </div>
+    </div>
 
     <!-- カメラアングル -->
     <div class="camera-row">
@@ -499,13 +626,26 @@ rgba(245,213,229,.35) 100%
 
     <div class="asset-row">
       <div class="input-group">
-        <label class="field-label" for="faceAssetId">FACE ASSET ID</label>
-        <input type="text" class="input-field" id="faceAssetId" placeholder="登録済みの顔アセットID">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
+          <label class="field-label" for="faceAssetId" style="margin-bottom:0;">FACE ASSET ID</label>
+          <span id="faceAssetSavedBadge" style="display:none;font-size:10px;color:#16a34a;letter-spacing:.1em;">✓ 保存済み</span>
+        </div>
+        <input type="text" class="input-field" id="faceAssetId" placeholder="登録済みの顔アセットID"
+          oninput="onAssetInput('faceAssetId','faceAssetSavedBadge')">
       </div>
       <div class="input-group">
-        <label class="field-label" for="bodyAssetId">BODY ASSET ID（任意）</label>
-        <input type="text" class="input-field" id="bodyAssetId" placeholder="体のアセットID">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
+          <label class="field-label" for="bodyAssetId" style="margin-bottom:0;">BODY ASSET ID（任意）</label>
+          <span id="bodyAssetSavedBadge" style="display:none;font-size:10px;color:#16a34a;letter-spacing:.1em;">✓ 保存済み</span>
+        </div>
+        <input type="text" class="input-field" id="bodyAssetId" placeholder="体のアセットID"
+          oninput="onAssetInput('bodyAssetId','bodyAssetSavedBadge')">
       </div>
+    </div>
+    <div style="text-align:right;margin-top:6px;">
+      <button onclick="clearAssetIds()" style="background:none;border:none;font-size:11px;color:var(--muted);cursor:none;letter-spacing:.1em;text-decoration:underline;font-family:'Zen Kaku Gothic New',sans-serif;">
+        保存済みIDをクリア
+      </button>
     </div>
 
     <button class="generate-btn" id="generateBtn" onclick="startGeneration()">✦ "あなた"を生成する</button>
@@ -558,6 +698,80 @@ rgba(245,213,229,.35) 100%
   </div>
 </section>
 
+<!-- レビューセクション -->
+<section class="reviews-section">
+  <div class="reviews-header">
+    <div class="reviews-eyebrow">USER REVIEWS</div>
+    <h2 class="reviews-title">使った人の声</h2>
+  </div>
+  <div class="reviews-track-wrap">
+    <div class="reviews-track" id="reviewsTrack">
+      <!-- カード×2セット（シームレスループ用） -->
+      <div class="review-card">
+        <div class="review-stars">⭐⭐⭐⭐⭐</div>
+        <div class="review-text">「プロンプトを打つだけで、本当に自分がパリにいる動画が作れました。もう撮影に行かなくていい。」</div>
+        <div class="review-author">— Yuki T. / ライフスタイル系インフルエンサー</div>
+      </div>
+      <div class="review-card">
+        <div class="review-stars">⭐⭐⭐⭐⭐</div>
+        <div class="review-text">「毎日投稿が続けられるようになりました。撮影の時間と費用が完全にゼロになった感覚です。」</div>
+        <div class="review-author">— Kenji M. / ビジネス系YouTuber</div>
+      </div>
+      <div class="review-card">
+        <div class="review-stars">⭐⭐⭐⭐⭐</div>
+        <div class="review-text">「顔の再現度に驚きました。友達に見せたら本当に海外に行ったと思われました（笑）」</div>
+        <div class="review-author">— Saki R. / トラベル系クリエイター</div>
+      </div>
+      <div class="review-card">
+        <div class="review-stars">⭐⭐⭐⭐⭐</div>
+        <div class="review-text">「コンサルタントとして、世界各地にいるような動画でブランディングできています。クライアントへの印象が変わりました。」</div>
+        <div class="review-author">— Takashi N. / 独立コンサルタント</div>
+      </div>
+      <div class="review-card">
+        <div class="review-stars">⭐⭐⭐⭐⭐</div>
+        <div class="review-text">「SNSのフォロワーが増えました。毎週違う国にいるような動画が出せるので、見ている人が飽きないみたいです。」</div>
+        <div class="review-author">— Hana K. / ファッション系インフルエンサー</div>
+      </div>
+      <div class="review-card">
+        <div class="review-stars">⭐⭐⭐⭐⭐</div>
+        <div class="review-text">「日本語でプロンプトを打つだけで、英語圏向けの動画が自動で作れる。グローバル展開のコストが激減しました。」</div>
+        <div class="review-author">— Ryo S. / 海外向けビジネスオーナー</div>
+      </div>
+      <!-- ループ用に同じカードをもう一セット -->
+      <div class="review-card">
+        <div class="review-stars">⭐⭐⭐⭐⭐</div>
+        <div class="review-text">「プロンプトを打つだけで、本当に自分がパリにいる動画が作れました。もう撮影に行かなくていい。」</div>
+        <div class="review-author">— Yuki T. / ライフスタイル系インフルエンサー</div>
+      </div>
+      <div class="review-card">
+        <div class="review-stars">⭐⭐⭐⭐⭐</div>
+        <div class="review-text">「毎日投稿が続けられるようになりました。撮影の時間と費用が完全にゼロになった感覚です。」</div>
+        <div class="review-author">— Kenji M. / ビジネス系YouTuber</div>
+      </div>
+      <div class="review-card">
+        <div class="review-stars">⭐⭐⭐⭐⭐</div>
+        <div class="review-text">「顔の再現度に驚きました。友達に見せたら本当に海外に行ったと思われました（笑）」</div>
+        <div class="review-author">— Saki R. / トラベル系クリエイター</div>
+      </div>
+      <div class="review-card">
+        <div class="review-stars">⭐⭐⭐⭐⭐</div>
+        <div class="review-text">「コンサルタントとして、世界各地にいるような動画でブランディングできています。クライアントへの印象が変わりました。」</div>
+        <div class="review-author">— Takashi N. / 独立コンサルタント</div>
+      </div>
+      <div class="review-card">
+        <div class="review-stars">⭐⭐⭐⭐⭐</div>
+        <div class="review-text">「SNSのフォロワーが増えました。毎週違う国にいるような動画が出せるので、見ている人が飽きないみたいです。」</div>
+        <div class="review-author">— Hana K. / ファッション系インフルエンサー</div>
+      </div>
+      <div class="review-card">
+        <div class="review-stars">⭐⭐⭐⭐⭐</div>
+        <div class="review-text">「日本語でプロンプトを打つだけで、英語圏向けの動画が自動で作れる。グローバル展開のコストが激減しました。」</div>
+        <div class="review-author">— Ryo S. / 海外向けビジネスオーナー</div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <footer>
   <div class="footer-logo">AHA WARP</div>
   <div class="footer-text">© 2025 AHA WARP — Powered by AI</div>
@@ -579,6 +793,115 @@ rgba(245,213,229,.35) 100%
     el.addEventListener('mouseenter',()=>{cursor.style.width='18px';cursor.style.height='18px';cursorRing.style.width='50px';cursorRing.style.height='50px';});
     el.addEventListener('mouseleave',()=>{cursor.style.width='10px';cursor.style.height='10px';cursorRing.style.width='32px';cursorRing.style.height='32px';});
   });
+
+  // 服装「その他」の表示制御
+  function onOutfitChange() {
+    const sel = document.getElementById('outfitStyle');
+    const wrap = document.getElementById('outfitCustomWrap');
+    const inp = document.getElementById('outfitCustomInput');
+    if (sel.value === 'outfit_custom') { wrap.classList.add('visible'); inp.focus(); }
+    else wrap.classList.remove('visible');
+  }
+  document.getElementById('outfitStyle').addEventListener('change', onOutfitChange);
+
+  // 色「その他」の表示制御
+  function onColorChange() {
+    const sel = document.getElementById('outfitColor');
+    const wrap = document.getElementById('colorCustomWrap');
+    const inp = document.getElementById('colorCustomInput');
+    if (sel.value === 'color_custom') { wrap.classList.add('visible'); inp.focus(); }
+    else wrap.classList.remove('visible');
+  }
+  document.getElementById('outfitColor').addEventListener('change', onColorChange);
+
+  function getOutfitValue() {
+    const sel = document.getElementById('outfitStyle');
+    if (sel.value === 'outfit_custom') return document.getElementById('outfitCustomInput').value.trim() || 'casual';
+    return sel.value || '';
+  }
+
+  function getColorValue() {
+    const sel = document.getElementById('outfitColor');
+    if (sel.value === 'color_custom') return document.getElementById('colorCustomInput').value.trim() || '';
+    return sel.value || '';
+  }
+
+  // ── Asset ID の保存・読み込み ──
+  // ── クレジット読み込み ──
+  async function loadCredits() {
+    if (!window.__supabase || !window.__user) return;
+    const { data } = await window.__supabase
+      .from('profiles')
+      .select('credits_remaining, face_asset_id, body_asset_id')
+      .eq('id', window.__user.id)
+      .single();
+    if (data) {
+      document.getElementById('navCredits').textContent = `クレジット残数: ${data.credits_remaining}`;
+      window.__credits = data.credits_remaining;
+      // Supabase上のAsset IDを自動入力
+      if (data.face_asset_id && !document.getElementById('faceAssetId').value) {
+        document.getElementById('faceAssetId').value = data.face_asset_id;
+        document.getElementById('faceAssetSavedBadge').style.display = 'inline';
+      }
+      if (data.body_asset_id && !document.getElementById('bodyAssetId').value) {
+        document.getElementById('bodyAssetId').value = data.body_asset_id;
+        document.getElementById('bodyAssetSavedBadge').style.display = 'inline';
+      }
+    }
+  }
+
+  async function deductCredit() {
+    if (!window.__supabase || !window.__user) return true;
+    const current = window.__credits ?? 0;
+    if (current <= 0) { showError('クレジットが不足しています。プランをアップグレードしてください。'); return false; }
+    await window.__supabase.from('profiles').update({ credits_remaining: current - 1 }).eq('id', window.__user.id);
+    window.__credits = current - 1;
+    document.getElementById('navCredits').textContent = `クレジット残数: ${window.__credits}`;
+    return true;
+  }
+
+  function loadAssetIds() {
+    const face = localStorage.getItem('aha_face_asset_id');
+    const body = localStorage.getItem('aha_body_asset_id');
+    if (face) {
+      document.getElementById('faceAssetId').value = face;
+      document.getElementById('faceAssetSavedBadge').style.display = 'inline';
+    }
+    if (body) {
+      document.getElementById('bodyAssetId').value = body;
+      document.getElementById('bodyAssetSavedBadge').style.display = 'inline';
+    }
+  }
+
+  function saveAssetIds(faceId, bodyId) {
+    if (faceId) localStorage.setItem('aha_face_asset_id', faceId);
+    if (bodyId) localStorage.setItem('aha_body_asset_id', bodyId);
+  }
+
+  function onAssetInput(inputId, badgeId) {
+    const val = document.getElementById(inputId).value.trim();
+    const badge = document.getElementById(badgeId);
+    if (val) {
+      const key = inputId === 'faceAssetId' ? 'aha_face_asset_id' : 'aha_body_asset_id';
+      localStorage.setItem(key, val);
+      badge.style.display = 'inline';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+
+  function clearAssetIds() {
+    localStorage.removeItem('aha_face_asset_id');
+    localStorage.removeItem('aha_body_asset_id');
+    document.getElementById('faceAssetId').value = '';
+    document.getElementById('bodyAssetId').value = '';
+    document.getElementById('faceAssetSavedBadge').style.display = 'none';
+    document.getElementById('bodyAssetSavedBadge').style.display = 'none';
+  }
+
+  // ページ読み込み時にAsset IDを自動入力＋クレジット読み込み
+  loadAssetIds();
+  setTimeout(loadCredits, 500); // 認証完了後に読み込む
 
   // カメラアングル「その他」の表示制御
   function onCameraChange() {
@@ -652,13 +975,22 @@ rgba(245,213,229,.35) 100%
     setStep(1,'active');
     document.getElementById('statusText').textContent='リクエストを送信中...';
 
+    // クレジットチェック＆消費
+    const ok = await deductCredit();
+    if (!ok) return;
+
     try {
       const payload = {
         rough_prompt_ja: prompt,
         reference_face_asset_id: faceId,
-        camera_angle: camera,   // プリセット値 or 自由記入テキストをそのまま送信
+        camera_angle: camera,
+        outfit_style: getOutfitValue(),
+        outfit_color: getColorValue(),
       };
       if (bodyId) payload.reference_body_asset_id = bodyId;
+
+      // Asset IDを保存
+      saveAssetIds(faceId, bodyId);
 
       const res = await fetch(WEBHOOK_URL, {
         method: 'POST',
