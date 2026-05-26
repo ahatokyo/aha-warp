@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AHA WARP — ログイン</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@300;400;700;900&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --pink:       #f9c8db;
+    --pink-mid:   #f0a0c0;
+    --pink-deep:  #d4607e;
+    --pink-btn:   #c84f72;
+    --purple:     #c4b5fd;
+    --purple-deep:#7c5fe0;
+    --text:       #3d1428;
+    --text-light: #7a3050;
+    --muted:      rgba(160,60,100,0.6);
+    --border:     rgba(255,180,210,0.18);
+    --card-bg:    rgba(255,255,255,0.55);
+    --input-bg:   rgba(255,255,255,0.7);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: linear-gradient(160deg, #fce8f0 0%, #f8dde9 40%, #f5d5e5 100%);
+    color: var(--text);
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    cursor: none;
+  }
+  .cursor { position:fixed; width:10px; height:10px; background:var(--pink-deep); border-radius:50%; pointer-events:none; z-index:9999; transform:translate(-50%,-50%); transition:width .2s,height .2s; mix-blend-mode:multiply; }
+  .cursor-ring { position:fixed; width:32px; height:32px; border:1px solid rgba(200,80,120,.3); border-radius:50%; pointer-events:none; z-index:9998; transform:translate(-50%,-50%); transition:width .3s,height .3s; }
+
+  .bg-orbs { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
+  .orb { position:absolute; border-radius:50%; filter:blur(120px); opacity:.18; animation:drift 26s ease-in-out infinite; }
+  .orb-1 { width:700px;height:700px; background:#f9a8c9; top:-250px;left:-150px; }
+  .orb-2 { width:500px;height:500px; background:#ddd6fe; bottom:-150px;right:-100px; animation-delay:-10s; }
+  .orb-3 { width:400px;height:400px; background:#fbc8d8; top:40%;left:40%; animation-delay:-18s; }
+  @keyframes drift { 0%,100%{transform:translate(0,0) scale(1);} 33%{transform:translate(40px,-28px) scale(1.06);} 66%{transform:translate(-28px,44px) scale(.95);} }
+
+  .grid-overlay { position:fixed; inset:0; pointer-events:none; z-index:0; background-image: linear-gradient(rgba(200,100,140,.04) 1px, transparent 1px), linear-gradient(90deg,rgba(200,100,140,.04) 1px, transparent 1px); background-size:56px 56px; }
+
+  nav {
+    position:fixed; top:0;left:0;right:0; z-index:100;
+    padding:22px 48px;
+    display:flex; justify-content:space-between; align-items:center;
+    backdrop-filter:blur(28px);
+    border-bottom:1px solid rgba(220,150,180,.2);
+    background:rgba(252,232,240,.7);
+  }
+  .logo { font-family:'Syne',sans-serif; font-size:21px; font-weight:800; letter-spacing:.12em; background:linear-gradient(135deg,#c84f72 0%,#9d6fcc 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; text-decoration:none; }
+  .nav-badge { font-size:10px; letter-spacing:.22em; color:var(--muted); border:1px solid rgba(200,100,140,.25); padding:6px 16px; border-radius:100px; background:rgba(255,255,255,.4); }
+
+  main {
+    position:relative; z-index:1;
+    flex:1; display:flex; align-items:center; justify-content:center;
+    padding:120px 24px 80px;
+  }
+
+  .auth-card {
+    width:100%; max-width:440px;
+    background:var(--card-bg);
+    border:1px solid rgba(220,150,180,.25);
+    border-radius:28px; padding:48px 40px;
+    backdrop-filter:blur(40px);
+    box-shadow:0 20px 80px rgba(200,80,120,.1);
+    position:relative; overflow:hidden;
+    opacity:0; animation:fadeUp .8s ease .2s forwards;
+  }
+  .auth-card::before {
+    content:''; position:absolute; inset:0;
+    background:linear-gradient(145deg,rgba(255,220,235,.3) 0%,rgba(220,200,255,.15) 100%);
+    pointer-events:none;
+  }
+
+  @keyframes fadeUp { from{opacity:0;transform:translateY(22px);} to{opacity:1;transform:translateY(0);} }
+
+  .card-eyebrow { font-size:10px; letter-spacing:.35em; color:var(--pink-deep); margin-bottom:16px; display:flex; align-items:center; gap:10px; }
+  .card-eyebrow::before { content:''; width:18px; height:1px; background:var(--pink-deep); }
+
+  .card-title { font-family:'Syne',sans-serif; font-size:28px; font-weight:800; margin-bottom:32px; background:linear-gradient(135deg,#3d1428 0%,#8b3060 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+
+  /* Tab */
+  .tab-row { display:flex; gap:0; margin-bottom:28px; background:rgba(200,130,160,.1); border-radius:12px; padding:4px; }
+  .tab-btn { flex:1; padding:10px; border:none; background:none; border-radius:10px; font-family:'Zen Kaku Gothic New',sans-serif; font-size:14px; font-weight:700; color:var(--muted); cursor:none; transition:all .2s; }
+  .tab-btn.active { background:white; color:var(--pink-deep); box-shadow:0 2px 8px rgba(200,80,120,.15); }
+
+  .field-label { font-size:10px; letter-spacing:.22em; color:var(--muted); margin-bottom:7px; display:block; }
+  .input-field {
+    width:100%; background:var(--input-bg);
+    border:1px solid rgba(200,130,160,.25); border-radius:14px;
+    padding:14px 18px; color:var(--text);
+    font-family:'Zen Kaku Gothic New',sans-serif; font-size:15px;
+    outline:none; transition:border-color .3s,box-shadow .3s;
+    box-shadow:inset 0 2px 8px rgba(200,100,140,.05);
+    margin-bottom:16px;
+  }
+  .input-field:focus { border-color:rgba(200,80,120,.4); box-shadow:0 0 0 3px rgba(200,80,120,.08),inset 0 2px 8px rgba(200,100,140,.05); }
+  .input-field::placeholder { color:rgba(160,80,110,.4); }
+
+  .submit-btn {
+    width:100%; padding:16px; border:none; border-radius:14px;
+    background:linear-gradient(135deg,var(--pink-btn) 0%,var(--purple-deep) 100%);
+    color:white; font-family:'Zen Kaku Gothic New',sans-serif;
+    font-size:15px; font-weight:700; letter-spacing:.1em;
+    cursor:none; position:relative; overflow:hidden;
+    transition:transform .2s,box-shadow .2s;
+    box-shadow:0 8px 32px rgba(200,79,114,.25);
+    margin-top:4px;
+  }
+  .submit-btn:hover { transform:translateY(-2px); box-shadow:0 16px 50px rgba(200,79,114,.35); }
+  .submit-btn:disabled { opacity:.5; transform:none; box-shadow:none; }
+  .submit-btn::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(255,255,255,.18) 0%,transparent 55%); pointer-events:none; }
+
+  .divider { display:flex; align-items:center; gap:12px; margin:20px 0; }
+  .divider::before, .divider::after { content:''; flex:1; height:1px; background:rgba(200,130,160,.2); }
+  .divider span { font-size:11px; color:var(--muted); letter-spacing:.1em; }
+
+  .google-btn {
+    width:100%; padding:14px; border:1px solid rgba(200,130,160,.25); border-radius:14px;
+    background:rgba(255,255,255,.7); color:var(--text);
+    font-family:'Zen Kaku Gothic New',sans-serif; font-size:14px; font-weight:700;
+    cursor:none; display:flex; align-items:center; justify-content:center; gap:10px;
+    transition:all .2s;
+  }
+  .google-btn:hover { background:rgba(255,255,255,.9); box-shadow:0 4px 20px rgba(200,80,120,.1); }
+
+  .error-msg { margin-top:12px; padding:12px 16px; background:rgba(239,68,68,.06); border:1px solid rgba(239,68,68,.2); border-radius:12px; color:#dc2626; font-size:13px; display:none; }
+  .error-msg.active { display:block; }
+
+  .success-msg { margin-top:12px; padding:12px 16px; background:rgba(34,197,94,.06); border:1px solid rgba(34,197,94,.2); border-radius:12px; color:#16a34a; font-size:13px; display:none; }
+  .success-msg.active { display:block; }
+
+  footer { position:relative; z-index:1; padding:28px 48px; border-top:1px solid rgba(220,150,180,.2); display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,.2); }
+  .footer-logo { font-family:'Syne',sans-serif; font-weight:800; font-size:14px; background:linear-gradient(135deg,var(--pink-deep),var(--purple-deep)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+  .footer-text { font-size:11px; color:var(--muted); letter-spacing:.1em; }
+
+  @media(max-width:600px){ nav{padding:18px 20px;} .auth-card{padding:36px 24px;} footer{flex-direction:column;gap:12px;text-align:center;} }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+<div class="bg-orbs">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+<div class="grid-overlay"></div>
+
+<nav>
+  <a href="index.html" class="logo">AHA WARP</a>
+  <div class="nav-badge">BETA — 招待制</div>
+</nav>
+
+<main>
+  <div class="auth-card">
+    <div class="card-eyebrow">ACCOUNT</div>
+    <div class="card-title" id="cardTitle">ログイン</div>
+
+    <div class="tab-row">
+      <button class="tab-btn active" id="tabLogin" onclick="switchTab('login')">ログイン</button>
+      <button class="tab-btn" id="tabSignup" onclick="switchTab('signup')">新規登録</button>
+    </div>
+
+    <!-- Googleログイン -->
+    <button class="google-btn" onclick="signInWithGoogle()">
+      <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 0 0 2.38-5.88c0-.57-.05-.66-.15-1.18z"/><path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2a4.8 4.8 0 0 1-7.18-2.54H1.83v2.07A8 8 0 0 0 8.98 17z"/><path fill="#FBBC05" d="M4.5 10.52a4.8 4.8 0 0 1 0-3.04V5.41H1.83a8 8 0 0 0 0 7.18l2.67-2.07z"/><path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 0 0 1.83 5.4L4.5 7.49a4.77 4.77 0 0 1 4.48-3.3z"/></svg>
+      Googleでログイン
+    </button>
+
+    <div class="divider"><span>または</span></div>
+
+    <label class="field-label">メールアドレス</label>
+    <input type="email" class="input-field" id="emailInput" placeholder="your@email.com">
+
+    <label class="field-label">パスワード</label>
+    <input type="password" class="input-field" id="passwordInput" placeholder="••••••••">
+
+    <button class="submit-btn" id="submitBtn" onclick="handleAuth()">✦ ログイン</button>
+
+    <div class="error-msg" id="errorMsg"></div>
+    <div class="success-msg" id="successMsg"></div>
+  </div>
+</main>
+
+<footer>
+  <div class="footer-logo">AHA WARP</div>
+  <div class="footer-text">© 2025 AHA WARP — Powered by AI</div>
+</footer>
+
+<script>
+  // Supabase初期化
+  const { createClient } = supabase;
+  const sb = createClient(
+    'https://majunwobgxvdckyyunxu.supabase.co',
+    'sb_publishable_p93V6Tk3LAn8HjwmPuNbKg_00cs6Z6L'
+  );
+
+  // すでにログイン済みならマイページへ
+  sb.auth.getSession().then(({ data: { session } }) => {
+    if (session) window.location.href = 'mypage.html';
+  });
+
+  // Cursor
+  const cursor = document.getElementById('cursor');
+  const cursorRing = document.getElementById('cursorRing');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;});
+  (function loop(){ cursor.style.left=mx+'px'; cursor.style.top=my+'px'; rx+=(mx-rx)*.12; ry+=(my-ry)*.12; cursorRing.style.left=rx+'px'; cursorRing.style.top=ry+'px'; requestAnimationFrame(loop); })();
+  document.querySelectorAll('button,a,input').forEach(el=>{
+    el.addEventListener('mouseenter',()=>{cursor.style.width='18px';cursor.style.height='18px';cursorRing.style.width='50px';cursorRing.style.height='50px';});
+    el.addEventListener('mouseleave',()=>{cursor.style.width='10px';cursor.style.height='10px';cursorRing.style.width='32px';cursorRing.style.height='32px';});
+  });
+
+  let currentTab = 'login';
+
+  function switchTab(tab) {
+    currentTab = tab;
+    document.getElementById('tabLogin').classList.toggle('active', tab === 'login');
+    document.getElementById('tabSignup').classList.toggle('active', tab === 'signup');
+    document.getElementById('cardTitle').textContent = tab === 'login' ? 'ログイン' : '新規登録';
+    document.getElementById('submitBtn').textContent = tab === 'login' ? '✦ ログイン' : '✦ 新規登録';
+    document.getElementById('errorMsg').classList.remove('active');
+    document.getElementById('successMsg').classList.remove('active');
+  }
+
+  async function signInWithGoogle() {
+    const { error } = await sb.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin + '/mypage.html' }
+    });
+    if (error) showError(error.message);
+  }
+
+  async function handleAuth() {
+    const email = document.getElementById('emailInput').value.trim();
+    const password = document.getElementById('passwordInput').value.trim();
+    const btn = document.getElementById('submitBtn');
+
+    document.getElementById('errorMsg').classList.remove('active');
+    document.getElementById('successMsg').classList.remove('active');
+
+    if (!email || !password) { showError('メールアドレスとパスワードを入力してください'); return; }
+    if (password.length < 6) { showError('パスワードは6文字以上で入力してください'); return; }
+
+    btn.disabled = true;
+    btn.textContent = '処理中...';
+
+    if (currentTab === 'login') {
+      const { error } = await sb.auth.signInWithPassword({ email, password });
+      if (error) { showError('メールアドレスまたはパスワードが正しくありません'); }
+      else { window.location.href = 'mypage.html'; }
+    } else {
+      const { error } = await sb.auth.signUp({ email, password });
+      if (error) { showError(error.message); }
+      else { showSuccess('確認メールを送信しました。メールをご確認ください。'); }
+    }
+
+    btn.disabled = false;
+    btn.textContent = currentTab === 'login' ? '✦ ログイン' : '✦ 新規登録';
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('errorMsg');
+    el.textContent = msg; el.classList.add('active');
+  }
+  function showSuccess(msg) {
+    const el = document.getElementById('successMsg');
+    el.textContent = msg; el.classList.add('active');
+  }
+
+  document.addEventListener('keydown', e => { if (e.key === 'Enter') handleAuth(); });
+</script>
+</body>
+</html>

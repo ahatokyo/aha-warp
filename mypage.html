@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AHA WARP — マイページ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@300;400;700;900&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --pink:       #f9c8db;
+    --pink-mid:   #f0a0c0;
+    --pink-deep:  #d4607e;
+    --pink-btn:   #c84f72;
+    --purple:     #c4b5fd;
+    --purple-deep:#7c5fe0;
+    --text:       #3d1428;
+    --text-light: #7a3050;
+    --muted:      rgba(160,60,100,0.6);
+    --card-bg:    rgba(255,255,255,0.55);
+    --input-bg:   rgba(255,255,255,0.7);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: linear-gradient(160deg, #fce8f0 0%, #f8dde9 40%, #f5d5e5 100%);
+    color: var(--text);
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    min-height: 100vh;
+    cursor: none;
+  }
+  .cursor { position:fixed; width:10px; height:10px; background:var(--pink-deep); border-radius:50%; pointer-events:none; z-index:9999; transform:translate(-50%,-50%); transition:width .2s,height .2s; mix-blend-mode:multiply; }
+  .cursor-ring { position:fixed; width:32px; height:32px; border:1px solid rgba(200,80,120,.3); border-radius:50%; pointer-events:none; z-index:9998; transform:translate(-50%,-50%); transition:width .3s,height .3s; }
+
+  .bg-orbs { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
+  .orb { position:absolute; border-radius:50%; filter:blur(120px); opacity:.18; animation:drift 26s ease-in-out infinite; }
+  .orb-1 { width:700px;height:700px; background:#f9a8c9; top:-250px;left:-150px; }
+  .orb-2 { width:500px;height:500px; background:#ddd6fe; bottom:-150px;right:-100px; animation-delay:-10s; }
+  @keyframes drift { 0%,100%{transform:translate(0,0) scale(1);} 33%{transform:translate(40px,-28px) scale(1.06);} 66%{transform:translate(-28px,44px) scale(.95);} }
+
+  .grid-overlay { position:fixed; inset:0; pointer-events:none; z-index:0; background-image: linear-gradient(rgba(200,100,140,.04) 1px, transparent 1px), linear-gradient(90deg,rgba(200,100,140,.04) 1px, transparent 1px); background-size:56px 56px; }
+
+  nav {
+    position:fixed; top:0;left:0;right:0; z-index:100;
+    padding:22px 48px;
+    display:flex; justify-content:space-between; align-items:center;
+    backdrop-filter:blur(28px);
+    border-bottom:1px solid rgba(220,150,180,.2);
+    background:rgba(252,232,240,.7);
+  }
+  .logo { font-family:'Syne',sans-serif; font-size:21px; font-weight:800; letter-spacing:.12em; background:linear-gradient(135deg,#c84f72 0%,#9d6fcc 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; text-decoration:none; }
+  .nav-right { display:flex; align-items:center; gap:16px; }
+  .nav-email { font-size:12px; color:var(--muted); }
+  .logout-btn { font-size:11px; letter-spacing:.15em; color:var(--muted); background:rgba(255,255,255,.4); border:1px solid rgba(200,100,140,.2); padding:6px 14px; border-radius:100px; cursor:none; font-family:'Zen Kaku Gothic New',sans-serif; transition:all .2s; }
+  .logout-btn:hover { background:rgba(255,255,255,.7); }
+
+  main {
+    position:relative; z-index:1;
+    max-width:760px; margin:0 auto;
+    padding:120px 24px 80px;
+  }
+
+  .page-title {
+    font-family:'Syne',sans-serif; font-size:clamp(28px,4vw,36px);
+    font-weight:800; margin-bottom:32px;
+    background:linear-gradient(135deg,#3d1428 0%,#8b3060 100%);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    opacity:0; animation:fadeUp .8s ease .1s forwards;
+  }
+
+  @keyframes fadeUp { from{opacity:0;transform:translateY(20px);} to{opacity:1;transform:translateY(0);} }
+
+  .card {
+    background:var(--card-bg);
+    border:1px solid rgba(220,150,180,.25);
+    border-radius:24px; padding:32px;
+    backdrop-filter:blur(40px);
+    box-shadow:0 12px 48px rgba(200,80,120,.08);
+    margin-bottom:20px;
+    position:relative; overflow:hidden;
+    opacity:0; animation:fadeUp .8s ease forwards;
+  }
+  .card::before {
+    content:''; position:absolute; inset:0;
+    background:linear-gradient(145deg,rgba(255,220,235,.2) 0%,rgba(220,200,255,.1) 100%);
+    pointer-events:none;
+  }
+  .card:nth-child(2) { animation-delay:.15s; }
+  .card:nth-child(3) { animation-delay:.25s; }
+  .card:nth-child(4) { animation-delay:.35s; }
+
+  .card-label {
+    font-size:10px; letter-spacing:.35em; color:var(--pink-deep);
+    margin-bottom:20px; display:flex; align-items:center; gap:10px;
+  }
+  .card-label::before { content:''; width:18px; height:1px; background:var(--pink-deep); }
+
+  /* Plan card */
+  .plan-row {
+    display:flex; justify-content:space-between; align-items:center;
+    flex-wrap:wrap; gap:16px;
+  }
+  .plan-name {
+    font-family:'Syne',sans-serif; font-size:22px; font-weight:800;
+    color:var(--text);
+  }
+  .plan-badge {
+    display:inline-flex; align-items:center; gap:6px;
+    padding:6px 14px; border-radius:100px; font-size:11px; font-weight:700;
+    letter-spacing:.1em;
+  }
+  .plan-badge.free { background:rgba(200,130,160,.15); color:var(--pink-deep); border:1px solid rgba(200,130,160,.3); }
+  .plan-badge.economy { background:rgba(124,95,224,.15); color:var(--purple-deep); border:1px solid rgba(124,95,224,.3); }
+  .plan-badge.standard { background:rgba(200,79,114,.15); color:var(--pink-btn); border:1px solid rgba(200,79,114,.3); }
+  .plan-badge.premium { background:linear-gradient(135deg,rgba(200,79,114,.15),rgba(124,95,224,.15)); color:var(--purple-deep); border:1px solid rgba(124,95,224,.3); }
+
+  .upgrade-btn {
+    padding:10px 20px; border:none; border-radius:12px;
+    background:linear-gradient(135deg,var(--pink-btn),var(--purple-deep));
+    color:white; font-family:'Zen Kaku Gothic New',sans-serif;
+    font-size:13px; font-weight:700; letter-spacing:.1em;
+    cursor:none; transition:all .2s;
+    box-shadow:0 4px 16px rgba(200,79,114,.25);
+  }
+  .upgrade-btn:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(200,79,114,.35); }
+
+  /* Credits */
+  .credits-display {
+    display:flex; align-items:flex-end; gap:8px; margin-bottom:16px;
+  }
+  .credits-number {
+    font-family:'Syne',sans-serif; font-size:48px; font-weight:800; line-height:1;
+    background:linear-gradient(135deg,var(--pink-deep),var(--purple-deep));
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  }
+  .credits-total { font-size:18px; color:var(--muted); margin-bottom:6px; }
+  .credits-label { font-size:12px; color:var(--muted); letter-spacing:.1em; margin-bottom:8px; }
+
+  .progress-bar {
+    height:8px; background:rgba(200,130,160,.15); border-radius:8px; overflow:hidden;
+  }
+  .progress-fill {
+    height:100%;
+    background:linear-gradient(90deg,var(--pink-deep),var(--purple-deep));
+    border-radius:8px; transition:width .8s ease;
+  }
+  .credits-note { font-size:12px; color:var(--muted); margin-top:10px; line-height:1.6; }
+
+  /* Asset IDs */
+  .asset-group { display:flex; flex-direction:column; gap:16px; }
+  .asset-item { display:flex; flex-direction:column; gap:8px; }
+  .asset-item-label {
+    font-size:10px; letter-spacing:.22em; color:var(--muted);
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  .saved-badge { font-size:10px; color:#16a34a; letter-spacing:.1em; }
+
+  .asset-input-row { display:flex; gap:10px; }
+  .asset-input {
+    flex:1; background:var(--input-bg);
+    border:1px solid rgba(200,130,160,.25); border-radius:12px;
+    padding:12px 16px; color:var(--text);
+    font-family:'Zen Kaku Gothic New',sans-serif; font-size:13px;
+    outline:none; transition:border-color .3s,box-shadow .3s;
+  }
+  .asset-input:focus { border-color:rgba(200,80,120,.4); box-shadow:0 0 0 3px rgba(200,80,120,.08); }
+  .asset-input::placeholder { color:rgba(160,80,110,.35); }
+
+  .save-asset-btn {
+    padding:0 18px; border:none; border-radius:12px;
+    background:linear-gradient(135deg,var(--pink-btn),var(--purple-deep));
+    color:white; font-family:'Zen Kaku Gothic New',sans-serif;
+    font-size:12px; font-weight:700; letter-spacing:.1em;
+    cursor:none; white-space:nowrap; transition:all .2s;
+    box-shadow:0 4px 16px rgba(200,79,114,.2);
+  }
+  .save-asset-btn:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(200,79,114,.3); }
+
+  /* Generate button */
+  .generate-link {
+    display:block; width:100%; padding:18px; border:none; border-radius:16px;
+    background:linear-gradient(135deg,var(--pink-btn) 0%,var(--purple-deep) 100%);
+    color:white; font-family:'Zen Kaku Gothic New',sans-serif;
+    font-size:15px; font-weight:700; letter-spacing:.1em;
+    text-align:center; text-decoration:none;
+    transition:transform .2s,box-shadow .2s;
+    box-shadow:0 8px 32px rgba(200,79,114,.25);
+    position:relative; overflow:hidden;
+  }
+  .generate-link:hover { transform:translateY(-2px); box-shadow:0 16px 50px rgba(200,79,114,.35); }
+  .generate-link::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(255,255,255,.18) 0%,transparent 55%); pointer-events:none; }
+
+  .success-toast {
+    position:fixed; bottom:32px; right:32px; z-index:200;
+    background:rgba(34,197,94,.9); color:white;
+    padding:14px 24px; border-radius:14px; font-size:13px; font-weight:700;
+    box-shadow:0 8px 32px rgba(34,197,94,.3);
+    transform:translateY(80px); opacity:0;
+    transition:all .3s ease;
+  }
+  .success-toast.show { transform:translateY(0); opacity:1; }
+
+  footer { position:relative; z-index:1; padding:28px 48px; border-top:1px solid rgba(220,150,180,.2); display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,.2); }
+  .footer-logo { font-family:'Syne',sans-serif; font-weight:800; font-size:14px; background:linear-gradient(135deg,var(--pink-deep),var(--purple-deep)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+  .footer-text { font-size:11px; color:var(--muted); letter-spacing:.1em; }
+
+  @media(max-width:600px){ nav{padding:18px 20px;} .nav-email{display:none;} footer{flex-direction:column;gap:12px;text-align:center;} }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+<div class="bg-orbs">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+</div>
+<div class="grid-overlay"></div>
+
+<nav>
+  <a href="index.html" class="logo">AHA WARP</a>
+  <div class="nav-right">
+    <span class="nav-email" id="navEmail">読み込み中...</span>
+    <button class="logout-btn" onclick="handleLogout()">ログアウト</button>
+  </div>
+</nav>
+
+<main>
+  <div class="page-title" id="pageTitle">マイページ</div>
+
+  <!-- プランカード -->
+  <div class="card">
+    <div class="card-label">PLAN</div>
+    <div class="plan-row">
+      <div>
+        <div class="plan-name" id="planName">読み込み中...</div>
+        <div style="margin-top:8px;">
+          <span class="plan-badge free" id="planBadge">FREE</span>
+        </div>
+      </div>
+      <button class="upgrade-btn" onclick="window.location.href='index.html#pricing'">
+        プランを変更する →
+      </button>
+    </div>
+  </div>
+
+  <!-- クレジットカード -->
+  <div class="card">
+    <div class="card-label">CREDITS</div>
+    <div class="credits-display">
+      <div class="credits-number" id="creditsNumber">—</div>
+      <div class="credits-total" id="creditsTotal">/ —</div>
+    </div>
+    <div class="credits-label">残りクレジット数</div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="creditsFill" style="width:0%"></div>
+    </div>
+    <div class="credits-note" id="creditsNote">読み込み中...</div>
+  </div>
+
+  <!-- Asset ID カード -->
+  <div class="card">
+    <div class="card-label">ASSET IDs</div>
+    <div class="asset-group">
+      <div class="asset-item">
+        <div class="asset-item-label">
+          <span>FACE ASSET ID</span>
+          <span class="saved-badge" id="faceSavedBadge" style="display:none;">✓ 保存済み</span>
+        </div>
+        <div class="asset-input-row">
+          <input type="text" class="asset-input" id="faceAssetInput" placeholder="asset://asset-XXXXXXXXX">
+          <button class="save-asset-btn" onclick="saveAsset('face')">保存</button>
+        </div>
+      </div>
+      <div class="asset-item">
+        <div class="asset-item-label">
+          <span>BODY ASSET ID（任意）</span>
+          <span class="saved-badge" id="bodySavedBadge" style="display:none;">✓ 保存済み</span>
+        </div>
+        <div class="asset-input-row">
+          <input type="text" class="asset-input" id="bodyAssetInput" placeholder="asset://asset-XXXXXXXXX">
+          <button class="save-asset-btn" onclick="saveAsset('body')">保存</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 動画生成へ -->
+  <a href="index.html" class="generate-link">✦ 動画を生成する</a>
+
+</main>
+
+<div class="success-toast" id="successToast">保存しました ✓</div>
+
+<footer>
+  <div class="footer-logo">AHA WARP</div>
+  <div class="footer-text">© 2025 AHA WARP — Powered by AI</div>
+</footer>
+
+<script>
+  // Supabase初期化
+  const { createClient } = supabase;
+  const sb = createClient(
+    'https://majunwobgxvdckyyunxu.supabase.co',
+    'sb_publishable_p93V6Tk3LAn8HjwmPuNbKg_00cs6Z6L'
+  );
+
+  const PLAN_CONFIG = {
+    free:     { name: 'フリープラン',     total: 3,   badgeClass: 'free',     label: 'FREE' },
+    economy:  { name: 'エコノミー',        total: 10,  badgeClass: 'economy',  label: 'ECONOMY' },
+    standard: { name: 'スタンダード',      total: 30,  badgeClass: 'standard', label: 'STANDARD' },
+    premium:  { name: 'プレミアム',        total: 100, badgeClass: 'premium',  label: 'PREMIUM' },
+  };
+
+  let userId = null;
+
+  // 認証チェック
+  sb.auth.getSession().then(async ({ data: { session } }) => {
+    if (!session) { window.location.href = 'login.html'; return; }
+    userId = session.user.id;
+    document.getElementById('navEmail').textContent = session.user.email;
+    document.getElementById('pageTitle').textContent = 'マイページ';
+    await loadProfile();
+  });
+
+  async function loadProfile() {
+    const { data, error } = await sb
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+
+    if (error || !data) return;
+
+    const plan = PLAN_CONFIG[data.plan] || PLAN_CONFIG.free;
+    const remaining = data.credits_remaining ?? 0;
+    const total = plan.total;
+    const pct = Math.max(0, Math.min(100, (remaining / total) * 100));
+
+    // プラン表示
+    document.getElementById('planName').textContent = plan.name;
+    const badge = document.getElementById('planBadge');
+    badge.textContent = plan.label;
+    badge.className = `plan-badge ${plan.badgeClass}`;
+
+    // クレジット表示
+    document.getElementById('creditsNumber').textContent = remaining;
+    document.getElementById('creditsTotal').textContent = `/ ${total}`;
+    document.getElementById('creditsFill').style.width = pct + '%';
+
+    const noteMap = {
+      free: 'フリープランは合計3本まで生成できます。',
+      economy: 'エコノミープランは月10本まで生成できます。毎月1日にリセットされます。',
+      standard: 'スタンダードプランは月30本まで生成できます。毎月1日にリセットされます。',
+      premium: 'プレミアムプランは月100本まで生成できます。毎月1日にリセットされます。',
+    };
+    document.getElementById('creditsNote').textContent = noteMap[data.plan] || noteMap.free;
+
+    // Asset IDs
+    if (data.face_asset_id) {
+      document.getElementById('faceAssetInput').value = data.face_asset_id;
+      document.getElementById('faceSavedBadge').style.display = 'inline';
+      localStorage.setItem('aha_face_asset_id', data.face_asset_id);
+    }
+    if (data.body_asset_id) {
+      document.getElementById('bodyAssetInput').value = data.body_asset_id;
+      document.getElementById('bodySavedBadge').style.display = 'inline';
+      localStorage.setItem('aha_body_asset_id', data.body_asset_id);
+    }
+  }
+
+  async function saveAsset(type) {
+    const inputId = type === 'face' ? 'faceAssetInput' : 'bodyAssetInput';
+    const badgeId = type === 'face' ? 'faceSavedBadge' : 'bodySavedBadge';
+    const field   = type === 'face' ? 'face_asset_id' : 'body_asset_id';
+    const localKey = type === 'face' ? 'aha_face_asset_id' : 'aha_body_asset_id';
+
+    const val = document.getElementById(inputId).value.trim();
+    if (!val) return;
+
+    const { error } = await sb.from('profiles').update({ [field]: val }).eq('id', userId);
+    if (!error) {
+      document.getElementById(badgeId).style.display = 'inline';
+      localStorage.setItem(localKey, val);
+      showToast();
+    }
+  }
+
+  async function handleLogout() {
+    await sb.auth.signOut();
+    window.location.href = 'login.html';
+  }
+
+  function showToast() {
+    const toast = document.getElementById('successToast');
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2500);
+  }
+
+  // Cursor
+  const cursor = document.getElementById('cursor');
+  const cursorRing = document.getElementById('cursorRing');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;});
+  (function loop(){ cursor.style.left=mx+'px'; cursor.style.top=my+'px'; rx+=(mx-rx)*.12; ry+=(my-ry)*.12; cursorRing.style.left=rx+'px'; cursorRing.style.top=ry+'px'; requestAnimationFrame(loop); })();
+  document.querySelectorAll('button,a,input').forEach(el=>{
+    el.addEventListener('mouseenter',()=>{cursor.style.width='18px';cursor.style.height='18px';cursorRing.style.width='50px';cursorRing.style.height='50px';});
+    el.addEventListener('mouseleave',()=>{cursor.style.width='10px';cursor.style.height='10px';cursorRing.style.width='32px';cursorRing.style.height='32px';});
+  });
+</script>
+</body>
+</html>
