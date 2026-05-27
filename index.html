@@ -282,8 +282,7 @@
   }
   .camera-custom-input::placeholder { color:rgba(160,80,110,.4); }
 
-  .asset-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:14px; }
-  .input-group { display:flex; flex-direction:column; gap:7px; }
+
   .input-field {
     background:var(--input-bg); border:1px solid rgba(200,130,160,.25); border-radius:12px;
     padding:11px 15px; color:var(--text);
@@ -598,32 +597,19 @@
       </div>
     </div>
 
-    <div class="asset-row">
-      <div class="input-group">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
-          <label class="field-label" for="faceAssetId" style="margin-bottom:0;">FACE ASSET ID</label>
-          <span id="faceAssetSavedBadge" style="display:none;font-size:10px;color:#16a34a;letter-spacing:.1em;">✓ 保存済み</span>
-        </div>
-        <div style="display:flex;align-items:center;background:var(--input-bg);border:1px solid rgba(200,130,160,.25);border-radius:12px;overflow:hidden;box-shadow:inset 0 2px 8px rgba(200,100,140,.05);">
-          <span style="padding:11px 8px 11px 15px;font-size:13px;color:var(--muted);white-space:nowrap;user-select:none;">asset://</span>
-          <input type="text" style="flex:1;background:none;border:none;padding:11px 15px 11px 0;color:var(--text);font-family:'Zen Kaku Gothic New',sans-serif;font-size:13px;outline:none;" id="faceAssetId" placeholder="asset-XXXXXXXXX"
-            oninput="onAssetInput('faceAssetId','faceAssetSavedBadge')">
-        </div>
+    <div style="margin-top:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
+        <label class="field-label" for="faceAssetId" style="margin-bottom:0;">FACE ASSET ID</label>
+        <span id="faceAssetSavedBadge" style="display:none;font-size:10px;color:#16a34a;letter-spacing:.1em;">✓ 保存済み</span>
       </div>
-      <div class="input-group">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
-          <label class="field-label" for="bodyAssetId" style="margin-bottom:0;">BODY ASSET ID（任意）</label>
-          <span id="bodyAssetSavedBadge" style="display:none;font-size:10px;color:#16a34a;letter-spacing:.1em;">✓ 保存済み</span>
-        </div>
-        <div style="display:flex;align-items:center;background:var(--input-bg);border:1px solid rgba(200,130,160,.25);border-radius:12px;overflow:hidden;box-shadow:inset 0 2px 8px rgba(200,100,140,.05);">
-          <span style="padding:11px 8px 11px 15px;font-size:13px;color:var(--muted);white-space:nowrap;user-select:none;">asset://</span>
-          <input type="text" style="flex:1;background:none;border:none;padding:11px 15px 11px 0;color:var(--text);font-family:'Zen Kaku Gothic New',sans-serif;font-size:13px;outline:none;" id="bodyAssetId" placeholder="asset-XXXXXXXXX"
-            oninput="onAssetInput('bodyAssetId','bodyAssetSavedBadge')">
-        </div>
+      <div style="display:flex;align-items:center;background:var(--input-bg);border:1px solid rgba(200,130,160,.25);border-radius:12px;overflow:hidden;box-shadow:inset 0 2px 8px rgba(200,100,140,.05);">
+        <span style="padding:11px 8px 11px 15px;font-size:13px;color:var(--muted);white-space:nowrap;user-select:none;">asset://</span>
+        <input type="text" style="flex:1;background:none;border:none;padding:11px 15px 11px 0;color:var(--text);font-family:'Zen Kaku Gothic New',sans-serif;font-size:13px;outline:none;" id="faceAssetId" placeholder="asset-XXXXXXXXX"
+          oninput="onAssetInput()">
       </div>
     </div>
     <div style="text-align:right;margin-top:6px;">
-      <button onclick="clearAssetIds()" style="background:none;border:none;font-size:11px;color:var(--muted);cursor:none;letter-spacing:.1em;text-decoration:underline;font-family:'Zen Kaku Gothic New',sans-serif;">
+      <button onclick="clearAssetId()" style="background:none;border:none;font-size:11px;color:var(--muted);cursor:none;letter-spacing:.1em;text-decoration:underline;font-family:'Zen Kaku Gothic New',sans-serif;">
         保存済みIDをクリア
       </button>
     </div>
@@ -652,6 +638,11 @@
           完成まで数分かかります。このページを離れても、<br>
           <a href="mypage.html" style="color:var(--pink-deep);text-decoration:underline;">こちら</a>から後ほどダウンロードできます。
         </p>
+        <div style="text-align:center;margin-top:14px;">
+          <button onclick="resetForm()" style="background:none;border:1px solid rgba(200,130,160,.3);border-radius:100px;padding:8px 20px;font-size:12px;color:var(--text-light);font-family:'Zen Kaku Gothic New',sans-serif;cursor:none;letter-spacing:.05em;">
+            ＋ 新しい動画を生成する
+          </button>
+        </div>
       </div>
     </div>
 
@@ -818,7 +809,7 @@
     if (!window.__supabase || !window.__user) return;
     const { data } = await window.__supabase
       .from('profiles')
-      .select('credits_remaining, face_asset_id, body_asset_id')
+      .select('credits_remaining, face_asset_id')
       .eq('id', window.__user.id)
       .single();
     if (data) {
@@ -827,10 +818,6 @@
       if (data.face_asset_id && !document.getElementById('faceAssetId').value) {
         document.getElementById('faceAssetId').value = toShortAssetId(data.face_asset_id);
         document.getElementById('faceAssetSavedBadge').style.display = 'inline';
-      }
-      if (data.body_asset_id && !document.getElementById('bodyAssetId').value) {
-        document.getElementById('bodyAssetId').value = toShortAssetId(data.body_asset_id);
-        document.getElementById('bodyAssetSavedBadge').style.display = 'inline';
       }
     }
   }
@@ -856,46 +843,32 @@
     return val.replace(/^asset:\/\//, '');
   }
 
-  function loadAssetIds() {
+  function loadAssetId() {
     const face = localStorage.getItem('aha_face_asset_id');
-    const body = localStorage.getItem('aha_body_asset_id');
     if (face) {
       document.getElementById('faceAssetId').value = toShortAssetId(face);
       document.getElementById('faceAssetSavedBadge').style.display = 'inline';
     }
-    if (body) {
-      document.getElementById('bodyAssetId').value = toShortAssetId(body);
-      document.getElementById('bodyAssetSavedBadge').style.display = 'inline';
-    }
   }
 
-  function saveAssetIds(faceId, bodyId) {
-    if (faceId) localStorage.setItem('aha_face_asset_id', faceId);
-    if (bodyId) localStorage.setItem('aha_body_asset_id', bodyId);
-  }
-
-  function onAssetInput(inputId, badgeId) {
-    const val = document.getElementById(inputId).value.trim();
-    const badge = document.getElementById(badgeId);
+  function onAssetInput() {
+    const val = document.getElementById('faceAssetId').value.trim();
+    const badge = document.getElementById('faceAssetSavedBadge');
     if (val) {
-      const key = inputId === 'faceAssetId' ? 'aha_face_asset_id' : 'aha_body_asset_id';
-      localStorage.setItem(key, toFullAssetId(val));
+      localStorage.setItem('aha_face_asset_id', toFullAssetId(val));
       badge.style.display = 'inline';
     } else {
       badge.style.display = 'none';
     }
   }
 
-  function clearAssetIds() {
+  function clearAssetId() {
     localStorage.removeItem('aha_face_asset_id');
-    localStorage.removeItem('aha_body_asset_id');
     document.getElementById('faceAssetId').value = '';
-    document.getElementById('bodyAssetId').value = '';
     document.getElementById('faceAssetSavedBadge').style.display = 'none';
-    document.getElementById('bodyAssetSavedBadge').style.display = 'none';
   }
 
-  loadAssetIds();
+  loadAssetId();
   setTimeout(loadCredits, 500);
 
   function onCameraChange() {
@@ -975,7 +948,6 @@
   async function startGeneration(){
     const prompt = document.getElementById('promptInput').value.trim();
     const faceId = toFullAssetId(document.getElementById('faceAssetId').value.trim());
-    const bodyId = toFullAssetId(document.getElementById('bodyAssetId').value.trim());
     const camera = getCameraAngleValue();
 
     const hl = id => {
@@ -1035,9 +1007,7 @@
         duration: 5,
         ratio: '9:16',
       };
-      if (bodyId) payload.reference_body_asset_id = bodyId;
-
-      saveAssetIds(faceId, bodyId);
+      localStorage.setItem('aha_face_asset_id', faceId);
 
       const res = await fetch(WEBHOOK_URL, {
         method: 'POST',
@@ -1066,7 +1036,18 @@
     } catch(err) { showError(err.message); }
   }
 
-  // ⑤ onVideoReady：ステップ3をactiveで見せてからdoneにする
+  function resetForm(){
+    if (pollingTimer) { clearInterval(pollingTimer); pollingTimer = null; }
+    document.getElementById('statusPanel').classList.remove('active');
+    document.getElementById('resultPanel').classList.remove('active');
+    document.getElementById('errorMsg').classList.remove('active');
+    document.getElementById('generateBtn').disabled = false;
+    document.getElementById('generateBtn').textContent = '✦ "あなた"を生成する';
+    document.getElementById('promptInput').value = '';
+    setProgress(0);
+    [1,2,3,4].forEach(n=>setStep(n,''));
+  }
+
   function onVideoReady(videoUrl){
     setStep(2,'done');
     setStep(3,'active');
