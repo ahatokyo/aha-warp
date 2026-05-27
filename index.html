@@ -19,7 +19,6 @@
     if (!session) {
       window.location.href = 'login.html';
     } else {
-      // ログイン済みユーザーの情報をグローバルに保持
       window.__supabase = sb;
       window.__user = session.user;
     }
@@ -47,7 +46,6 @@
   html { scroll-behavior:smooth; }
 
   body {
-    /* ペールピンク — とても薄く明るい */
     background: linear-gradient(160deg, #fce8f0 0%, #f8dde9 40%, #f5d5e5 100%);
     color: var(--text);
     font-family: 'Zen Kaku Gothic New', sans-serif;
@@ -72,7 +70,6 @@
     transition:width .3s,height .3s;
   }
 
-  /* 背景の淡いオーブ */
   .bg-orbs { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
   .orb {
     position:absolute; border-radius:50%;
@@ -97,7 +94,6 @@
     background-size:56px 56px;
   }
 
-  /* Nav */
   nav {
     position:fixed; top:0;left:0;right:0; z-index:100;
     padding:22px 48px;
@@ -117,7 +113,6 @@
     background:rgba(255,255,255,.4);
   }
 
-  /* Hero */
   .hero {
     position:relative; z-index:1;
     min-height:100vh;
@@ -195,7 +190,6 @@
     font-size:8px; color:var(--purple-deep);
   }
 
-  /* App card */
   .app-section {
     position:relative; z-index:1;
     width:100%; max-width:700px;
@@ -241,7 +235,6 @@
   }
   .prompt-area::placeholder { color:rgba(160,80,110,.4); }
 
-  /* Camera angle */
   .camera-row { margin-top:14px; }
   .select-wrapper { position:relative; }
   .select-wrapper::after {
@@ -263,7 +256,6 @@
   }
   .camera-select option { background:#fff5f8; color:var(--text); }
 
-  /* その他の自由記入欄 */
   .camera-custom {
     margin-top:10px;
     overflow:hidden;
@@ -289,7 +281,6 @@
   }
   .camera-custom-input::placeholder { color:rgba(160,80,110,.4); }
 
-  /* Asset IDs */
   .asset-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:14px; }
   .input-group { display:flex; flex-direction:column; gap:7px; }
   .input-field {
@@ -323,7 +314,6 @@
   }
   .generate-btn:disabled { opacity:.5; cursor:not-allowed; transform:none; box-shadow:none; }
 
-  /* Status */
   .status-panel { margin-top:22px; display:none; }
   .status-panel.active { display:block; }
   .status-inner {
@@ -365,7 +355,6 @@
     font-size:10px; flex-shrink:0;
   }
 
-  /* Result */
   .result-panel { margin-top:22px; display:none; }
   .result-panel.active { display:block; }
   .result-inner {
@@ -395,7 +384,6 @@
   }
   .error-msg.active { display:block; }
 
-  /* Features */
   .features {
     position:relative; z-index:1; padding:80px 48px;
     border-top:1px solid rgba(220,150,180,.2);
@@ -419,7 +407,6 @@
   .feature-title { font-size:15px; font-weight:700; margin-bottom:10px; color:var(--text); }
   .feature-desc { font-size:13px; color:var(--text-light); line-height:1.85; font-weight:300; }
 
-  /* Reviews */
   .reviews-section {
     position:relative; z-index:1;
     padding:80px 0;
@@ -440,7 +427,6 @@
 
   .reviews-track-wrap {
     width:100%; overflow:hidden;
-    /* 左右フェードアウト */
     -webkit-mask:linear-gradient(90deg, transparent 0%, black 10%, black 90%, transparent 100%);
     mask:linear-gradient(90deg, transparent 0%, black 10%, black 90%, transparent 100%);
   }
@@ -468,18 +454,10 @@
     transform:translateY(-4px);
     box-shadow:0 12px 40px rgba(200,80,120,.12);
   }
-  .review-stars {
-    font-size:16px; margin-bottom:14px; letter-spacing:2px;
-  }
-  .review-text {
-    font-size:14px; color:var(--text); line-height:1.85;
-    font-weight:300; margin-bottom:16px;
-  }
-  .review-author {
-    font-size:11px; letter-spacing:.1em; color:var(--muted);
-  }
+  .review-stars { font-size:16px; margin-bottom:14px; letter-spacing:2px; }
+  .review-text { font-size:14px; color:var(--text); line-height:1.85; font-weight:300; margin-bottom:16px; }
+  .review-author { font-size:11px; letter-spacing:.1em; color:var(--muted); }
 
-  /* Footer */
   footer {
     position:relative; z-index:1; padding:36px 48px;
     border-top:1px solid rgba(220,150,180,.2);
@@ -613,14 +591,9 @@
           <option value="custom">その他（自由記入）</option>
         </select>
       </div>
-      <!-- その他の自由記入欄 -->
       <div class="camera-custom" id="cameraCustomWrap">
-        <input
-          type="text"
-          class="camera-custom-input"
-          id="cameraCustomInput"
-          placeholder="例：肩越しのショット、回転しながら引くカメラ など"
-        >
+        <input type="text" class="camera-custom-input" id="cameraCustomInput"
+          placeholder="例：肩越しのショット、回転しながら引くカメラ など">
       </div>
     </div>
 
@@ -654,7 +627,10 @@
       </button>
     </div>
 
+    <!-- ① 生成ボタン -->
     <button class="generate-btn" id="generateBtn" onclick="startGeneration()">✦ "あなた"を生成する</button>
+    <!-- ② 5秒動画の注記 -->
+    <p style="text-align:center;font-size:11px;color:var(--muted);margin-top:8px;letter-spacing:.05em;">※ 1回の生成につき5秒の動画が生成されます</p>
 
     <div class="status-panel" id="statusPanel">
       <div class="status-inner">
@@ -666,9 +642,15 @@
         <div class="steps-list">
           <div class="step-item" id="step1"><div class="step-icon">1</div><span>リクエストを送信</span></div>
           <div class="step-item" id="step2"><div class="step-icon">2</div><span>AIがシーンを最適化中</span></div>
-          <div class="step-item" id="step3"><div class="step-icon">3</div><span>動画を生成中（数分かかる場合があります）</span></div>
+          <!-- ③ ステップ3テキスト変更 -->
+          <div class="step-item" id="step3"><div class="step-icon">3</div><span>動画を生成中（完成まで数分の間お待ちください）</span></div>
           <div class="step-item" id="step4"><div class="step-icon">4</div><span>保存完了</span></div>
         </div>
+        <!-- ④ マイページへの案内 -->
+        <p style="margin-top:16px;font-size:12px;color:var(--muted);line-height:1.8;text-align:center;">
+          完成まで数分かかります。このページを離れても、<br>
+          <a href="mypage.html" style="color:var(--pink-deep);text-decoration:underline;">こちら</a>から後ほどダウンロードできます。
+        </p>
       </div>
     </div>
 
@@ -704,7 +686,6 @@
   </div>
 </section>
 
-<!-- レビューセクション -->
 <section class="reviews-section">
   <div class="reviews-header">
     <div class="reviews-eyebrow">USER REVIEWS</div>
@@ -712,7 +693,6 @@
   </div>
   <div class="reviews-track-wrap">
     <div class="reviews-track" id="reviewsTrack">
-      <!-- カード×2セット（シームレスループ用） -->
       <div class="review-card">
         <div class="review-stars">⭐⭐⭐⭐⭐</div>
         <div class="review-text">「プロンプトを打つだけで、本当に自分がパリにいる動画が作れました。もう撮影に行かなくていい。」</div>
@@ -743,7 +723,7 @@
         <div class="review-text">「日本語でプロンプトを打つだけで、英語圏向けの動画が自動で作れる。グローバル展開のコストが激減しました。」</div>
         <div class="review-author">— Ryo S. / 海外向けビジネスオーナー</div>
       </div>
-      <!-- ループ用に同じカードをもう一セット -->
+      <!-- ループ用 -->
       <div class="review-card">
         <div class="review-stars">⭐⭐⭐⭐⭐</div>
         <div class="review-text">「プロンプトを打つだけで、本当に自分がパリにいる動画が作れました。もう撮影に行かなくていい。」</div>
@@ -832,8 +812,7 @@
     return sel.value || '';
   }
 
-  // ── Asset ID の保存・読み込み ──
-  // ── クレジット読み込み ──
+  // クレジット読み込み
   async function loadCredits() {
     if (!window.__supabase || !window.__user) return;
     const { data } = await window.__supabase
@@ -844,7 +823,6 @@
     if (data) {
       document.getElementById('navCredits').textContent = `クレジット残数: ${data.credits_remaining}`;
       window.__credits = data.credits_remaining;
-      // Supabase上のAsset IDを自動入力
       if (data.face_asset_id && !document.getElementById('faceAssetId').value) {
         document.getElementById('faceAssetId').value = toShortAssetId(data.face_asset_id);
         document.getElementById('faceAssetSavedBadge').style.display = 'inline';
@@ -866,7 +844,6 @@
     return true;
   }
 
-  // asset-XXXX → asset://asset-XXXX に変換
   function toFullAssetId(val) {
     if (!val) return '';
     val = val.trim();
@@ -917,24 +894,17 @@
     document.getElementById('bodyAssetSavedBadge').style.display = 'none';
   }
 
-  // ページ読み込み時にAsset IDを自動入力＋クレジット読み込み
   loadAssetIds();
-  setTimeout(loadCredits, 500); // 認証完了後に読み込む
+  setTimeout(loadCredits, 500);
 
-  // カメラアングル「その他」の表示制御
   function onCameraChange() {
     const sel = document.getElementById('cameraAngle');
     const wrap = document.getElementById('cameraCustomWrap');
     const inp  = document.getElementById('cameraCustomInput');
-    if (sel.value === 'custom') {
-      wrap.classList.add('visible');
-      inp.focus();
-    } else {
-      wrap.classList.remove('visible');
-    }
+    if (sel.value === 'custom') { wrap.classList.add('visible'); inp.focus(); }
+    else wrap.classList.remove('visible');
   }
 
-  // カメラアングルの値を取得（その他の場合は自由記入内容を返す）
   function getCameraAngleValue() {
     const sel = document.getElementById('cameraAngle');
     if (sel.value === 'custom') {
@@ -943,9 +913,7 @@
     return sel.value || 'front_shot';
   }
 
-  // Generation
   const WEBHOOK_URL = 'https://hook.us2.make.com/7sd9spdm0cwl2dar73lhm6o6yp0eicvh';
-
   let pollingTimer = null;
 
   function setStep(n,state){
@@ -965,15 +933,12 @@
     if (pollingTimer) { clearInterval(pollingTimer); pollingTimer = null; }
   }
 
-  // ポーリング：Supabaseのjobsテーブルをチェック
   async function startPolling(jobId) {
     let elapsed = 0;
-    const maxWait = 600; // 最大10分
+    const maxWait = 600;
 
     pollingTimer = setInterval(async () => {
       elapsed += 5;
-
-      // プログレスバーをゆっくり進める（62%〜95%）
       const progress = Math.min(95, 62 + (elapsed / maxWait) * 33);
       setProgress(progress);
 
@@ -1003,7 +968,7 @@
         }
       } catch(e) { console.error('polling error:', e); }
 
-    }, 5000); // 5秒ごとにチェック
+    }, 5000);
   }
 
   async function startGeneration(){
@@ -1019,12 +984,10 @@
     };
     if (!prompt) { hl('promptInput'); return; }
     if (!faceId) { hl('faceAssetId'); return; }
-
     if (document.getElementById('cameraAngle').value === 'custom' && !document.getElementById('cameraCustomInput').value.trim()) {
       hl('cameraCustomInput'); return;
     }
 
-    // Reset UI
     document.getElementById('errorMsg').classList.remove('active');
     document.getElementById('resultPanel').classList.remove('active');
     document.getElementById('statusPanel').classList.add('active');
@@ -1036,12 +999,10 @@
     setStep(1,'active');
     document.getElementById('statusText').textContent='リクエストを送信中...';
 
-    // クレジットチェック＆消費
     const ok = await deductCredit();
     if (!ok) return;
 
     try {
-      // Supabaseにjobを作成してjob_idを取得
       const { data: jobData, error: jobError } = await window.__supabase
         .from('jobs')
         .insert({
@@ -1075,7 +1036,6 @@
       };
       if (bodyId) payload.reference_body_asset_id = bodyId;
 
-      // Asset IDを保存
       saveAssetIds(faceId, bodyId);
 
       const res = await fetch(WEBHOOK_URL, {
@@ -1085,7 +1045,6 @@
       });
       if (!res.ok) throw new Error('送信エラー: ' + res.status);
 
-      // Supabaseのjobをprocessingに更新
       await window.__supabase
         .from('jobs')
         .update({ status: 'processing' })
@@ -1098,26 +1057,31 @@
       setTimeout(()=>{
         setStep(2,'done'); setProgress(45);
         setStep(3,'active');
-        document.getElementById('statusText').textContent='動画を生成中... しばらくお待ちください（数分かかります）';
+        document.getElementById('statusText').textContent='動画を生成中... 完成まで数分の間お待ちください';
         setProgress(62);
-        // ポーリング開始
         startPolling(jobId);
       }, 4000);
 
     } catch(err) { showError(err.message); }
   }
 
+  // ⑤ onVideoReady：ステップ3をactiveで見せてからdoneにする
   function onVideoReady(videoUrl){
-    setStep(3,'done'); setStep(4,'done'); setProgress(100);
-    document.getElementById('statusDot').className='status-dot done';
-    document.getElementById('statusText').textContent='生成完了！';
-    const v=document.getElementById('videoPreview');
-    v.src=videoUrl; v.classList.add('active');
-    document.getElementById('downloadBtn').href=videoUrl;
-    document.getElementById('resultPanel').classList.add('active');
-    document.getElementById('generateBtn').disabled=false;
-    document.getElementById('generateBtn').textContent='✦ "あなた"を生成する';
-  };
+    setStep(2,'done');
+    setStep(3,'active');
+    document.getElementById('statusText').textContent='動画を保存中...';
+    setTimeout(() => {
+      setStep(3,'done'); setStep(4,'done'); setProgress(100);
+      document.getElementById('statusDot').className='status-dot done';
+      document.getElementById('statusText').textContent='生成完了！';
+      const v=document.getElementById('videoPreview');
+      v.src=videoUrl; v.classList.add('active');
+      document.getElementById('downloadBtn').href=videoUrl;
+      document.getElementById('resultPanel').classList.add('active');
+      document.getElementById('generateBtn').disabled=false;
+      document.getElementById('generateBtn').textContent='✦ "あなた"を生成する';
+    }, 1000);
+  }
 </script>
 </body>
 </html>
