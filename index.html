@@ -1008,8 +1008,8 @@
 
   async function startGeneration(){
     const prompt = document.getElementById('promptInput').value.trim();
-    const faceId = document.getElementById('faceAssetId').value.trim();
-    const bodyId = document.getElementById('bodyAssetId').value.trim();
+    const faceId = toFullAssetId(document.getElementById('faceAssetId').value.trim());
+    const bodyId = toFullAssetId(document.getElementById('bodyAssetId').value.trim());
     const camera = getCameraAngleValue();
 
     const hl = id => {
