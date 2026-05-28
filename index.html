@@ -489,6 +489,14 @@
     .asset-row{grid-template-columns:1fr;}
     footer{flex-direction:column;gap:14px;text-align:center;}
   }
+  @media(max-width:480px){
+    .hero{padding:110px 16px 60px;}
+    .app-section{padding:0 12px 80px;}
+    .card{padding:24px 20px;}
+    .pipeline{gap:2px;}
+    .pipe-node{font-size:10px;padding:5px 10px;}
+    .pipe-arrow{width:14px;margin:0 2px;}
+  }
 
   /* 利用規約モーダル */
   .terms-overlay {
@@ -1104,6 +1112,10 @@
 
       if (elapsed >= maxWait) {
         clearInterval(pollingTimer);
+        console.error('generation timeout: jobId =', jobId);
+        if (window.__supabase) {
+          await window.__supabase.from('jobs').update({ status: 'failed' }).eq('id', jobId);
+        }
         showError('タイムアウトしました。しばらく後に再度お試しください。');
         return;
       }
@@ -1166,6 +1178,7 @@
     const ok = await deductCredit();
     if (!ok) return;
 
+    let jobId = null;
     try {
       const { data: jobData, error: jobError } = await window.__supabase
         .from('jobs')
@@ -1182,7 +1195,7 @@
 
       if (jobError || !jobData) throw new Error('ジョブの作成に失敗しました');
 
-      const jobId = jobData.id;
+      jobId = jobData.id;
 
       const payload = {
         rough_prompt_ja: prompt,
@@ -1224,7 +1237,13 @@
         startPolling(jobId);
       }, 4000);
 
-    } catch(err) { showError(err.message); }
+    } catch(err) {
+      console.error('generation error:', err);
+      if (jobId && window.__supabase) {
+        await window.__supabase.from('jobs').update({ status: 'failed' }).eq('id', jobId);
+      }
+      showError(err.message);
+    }
   }
 
   function resetForm(){
