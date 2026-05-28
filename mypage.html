@@ -23,274 +23,92 @@
     --input-bg:   rgba(255,255,255,0.7);
   }
   * { margin:0; padding:0; box-sizing:border-box; }
-  body {
-    background: linear-gradient(160deg, #fce8f0 0%, #f8dde9 40%, #f5d5e5 100%);
-    color: var(--text);
-    font-family: 'Zen Kaku Gothic New', sans-serif;
-    min-height: 100vh;
-    cursor: none;
-  }
+  body { background: linear-gradient(160deg, #fce8f0 0%, #f8dde9 40%, #f5d5e5 100%); color: var(--text); font-family: 'Zen Kaku Gothic New', sans-serif; min-height: 100vh; cursor: none; }
   .cursor { position:fixed; width:10px; height:10px; background:var(--pink-deep); border-radius:50%; pointer-events:none; z-index:9999; transform:translate(-50%,-50%); transition:width .2s,height .2s; mix-blend-mode:multiply; }
   .cursor-ring { position:fixed; width:32px; height:32px; border:1px solid rgba(200,80,120,.3); border-radius:50%; pointer-events:none; z-index:9998; transform:translate(-50%,-50%); transition:width .3s,height .3s; }
-
   .bg-orbs { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
   .orb { position:absolute; border-radius:50%; filter:blur(120px); opacity:.18; animation:drift 26s ease-in-out infinite; }
   .orb-1 { width:700px;height:700px; background:#f9a8c9; top:-250px;left:-150px; }
   .orb-2 { width:500px;height:500px; background:#ddd6fe; bottom:-150px;right:-100px; animation-delay:-10s; }
   @keyframes drift { 0%,100%{transform:translate(0,0) scale(1);} 33%{transform:translate(40px,-28px) scale(1.06);} 66%{transform:translate(-28px,44px) scale(.95);} }
-
   .grid-overlay { position:fixed; inset:0; pointer-events:none; z-index:0; background-image: linear-gradient(rgba(200,100,140,.04) 1px, transparent 1px), linear-gradient(90deg,rgba(200,100,140,.04) 1px, transparent 1px); background-size:56px 56px; }
-
-  nav {
-    position:fixed; top:0;left:0;right:0; z-index:100;
-    padding:22px 48px;
-    display:flex; justify-content:space-between; align-items:center;
-    backdrop-filter:blur(28px);
-    border-bottom:1px solid rgba(220,150,180,.2);
-    background:rgba(252,232,240,.7);
-  }
+  nav { position:fixed; top:0;left:0;right:0; z-index:100; padding:22px 48px; display:flex; justify-content:space-between; align-items:center; backdrop-filter:blur(28px); border-bottom:1px solid rgba(220,150,180,.2); background:rgba(252,232,240,.7); }
   .logo { font-family:'Syne',sans-serif; font-size:21px; font-weight:800; letter-spacing:.12em; background:linear-gradient(135deg,#c84f72 0%,#9d6fcc 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; text-decoration:none; }
   .nav-right { display:flex; align-items:center; gap:16px; }
   .nav-email { font-size:12px; color:var(--muted); }
   .logout-btn { font-size:11px; letter-spacing:.15em; color:var(--muted); background:rgba(255,255,255,.4); border:1px solid rgba(200,100,140,.2); padding:6px 14px; border-radius:100px; cursor:none; font-family:'Zen Kaku Gothic New',sans-serif; transition:all .2s; }
   .logout-btn:hover { background:rgba(255,255,255,.7); }
-
-  main {
-    position:relative; z-index:1;
-    max-width:760px; margin:0 auto;
-    padding:120px 24px 80px;
-  }
-
-  .page-title {
-    font-family:'Syne',sans-serif; font-size:clamp(28px,4vw,36px);
-    font-weight:800; margin-bottom:32px;
-    background:linear-gradient(135deg,#3d1428 0%,#8b3060 100%);
-    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
-    opacity:0; animation:fadeUp .8s ease .1s forwards;
-  }
-
+  main { position:relative; z-index:1; max-width:760px; margin:0 auto; padding:120px 24px 80px; }
+  .page-title { font-family:'Syne',sans-serif; font-size:clamp(28px,4vw,36px); font-weight:800; margin-bottom:32px; background:linear-gradient(135deg,#3d1428 0%,#8b3060 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; opacity:0; animation:fadeUp .8s ease .1s forwards; }
   @keyframes fadeUp { from{opacity:0;transform:translateY(20px);} to{opacity:1;transform:translateY(0);} }
-
-  .card {
-    background:var(--card-bg);
-    border:1px solid rgba(220,150,180,.25);
-    border-radius:24px; padding:32px;
-    backdrop-filter:blur(40px);
-    box-shadow:0 12px 48px rgba(200,80,120,.08);
-    margin-bottom:20px;
-    position:relative; overflow:hidden;
-    opacity:0; animation:fadeUp .8s ease forwards;
-  }
-  .card::before {
-    content:''; position:absolute; inset:0;
-    background:linear-gradient(145deg,rgba(255,220,235,.2) 0%,rgba(220,200,255,.1) 100%);
-    pointer-events:none;
-  }
+  .card { background:var(--card-bg); border:1px solid rgba(220,150,180,.25); border-radius:24px; padding:32px; backdrop-filter:blur(40px); box-shadow:0 12px 48px rgba(200,80,120,.08); margin-bottom:20px; position:relative; overflow:hidden; opacity:0; animation:fadeUp .8s ease forwards; }
+  .card::before { content:''; position:absolute; inset:0; background:linear-gradient(145deg,rgba(255,220,235,.2) 0%,rgba(220,200,255,.1) 100%); pointer-events:none; }
   .card:nth-child(2) { animation-delay:.15s; }
   .card:nth-child(3) { animation-delay:.25s; }
   .card:nth-child(4) { animation-delay:.35s; }
-
-  .card-label {
-    font-size:10px; letter-spacing:.35em; color:var(--pink-deep);
-    margin-bottom:20px; display:flex; align-items:center; gap:10px;
-  }
+  .card-label { font-size:10px; letter-spacing:.35em; color:var(--pink-deep); margin-bottom:20px; display:flex; align-items:center; gap:10px; }
   .card-label::before { content:''; width:18px; height:1px; background:var(--pink-deep); }
-
-  /* Plan card */
-  .plan-row {
-    display:flex; justify-content:space-between; align-items:center;
-    flex-wrap:wrap; gap:16px;
-  }
-  .plan-name {
-    font-family:'Syne',sans-serif; font-size:22px; font-weight:800;
-    color:var(--text);
-  }
-  .plan-badge {
-    display:inline-flex; align-items:center; gap:6px;
-    padding:6px 14px; border-radius:100px; font-size:11px; font-weight:700;
-    letter-spacing:.1em;
-  }
+  .plan-row { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px; }
+  .plan-name { font-family:'Syne',sans-serif; font-size:22px; font-weight:800; color:var(--text); }
+  .plan-badge { display:inline-flex; align-items:center; gap:6px; padding:6px 14px; border-radius:100px; font-size:11px; font-weight:700; letter-spacing:.1em; }
   .plan-badge.free { background:rgba(200,130,160,.15); color:var(--pink-deep); border:1px solid rgba(200,130,160,.3); }
-  .plan-badge.economy { background:rgba(124,95,224,.15); color:var(--purple-deep); border:1px solid rgba(124,95,224,.3); }
-  .plan-badge.standard { background:rgba(200,79,114,.15); color:var(--pink-btn); border:1px solid rgba(200,79,114,.3); }
-  .plan-badge.premium { background:linear-gradient(135deg,rgba(200,79,114,.15),rgba(124,95,224,.15)); color:var(--purple-deep); border:1px solid rgba(124,95,224,.3); }
-
-  .upgrade-btn {
-    padding:10px 20px; border:none; border-radius:12px;
-    background:linear-gradient(135deg,var(--pink-btn),var(--purple-deep));
-    color:white; font-family:'Zen Kaku Gothic New',sans-serif;
-    font-size:13px; font-weight:700; letter-spacing:.1em;
-    cursor:none; transition:all .2s;
-    box-shadow:0 4px 16px rgba(200,79,114,.25);
-  }
+  .plan-badge.starter { background:rgba(124,95,224,.15); color:var(--purple-deep); border:1px solid rgba(124,95,224,.3); }
+  .plan-badge.creator { background:rgba(200,79,114,.15); color:var(--pink-btn); border:1px solid rgba(200,79,114,.3); }
+  .plan-badge.business { background:linear-gradient(135deg,rgba(200,79,114,.15),rgba(124,95,224,.15)); color:var(--purple-deep); border:1px solid rgba(124,95,224,.3); }
+  .plan-reset { font-size:12px; color:var(--muted); margin-top:6px; }
+  .upgrade-btn { padding:10px 20px; border:none; border-radius:12px; background:linear-gradient(135deg,var(--pink-btn),var(--purple-deep)); color:white; font-family:'Zen Kaku Gothic New',sans-serif; font-size:13px; font-weight:700; letter-spacing:.1em; cursor:none; transition:all .2s; box-shadow:0 4px 16px rgba(200,79,114,.25); white-space:nowrap; }
   .upgrade-btn:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(200,79,114,.35); }
-
-  /* Credits */
-  .credits-display {
-    display:flex; align-items:flex-end; gap:8px; margin-bottom:16px;
-  }
-  .credits-number {
-    font-family:'Syne',sans-serif; font-size:48px; font-weight:800; line-height:1;
-    background:linear-gradient(135deg,var(--pink-deep),var(--purple-deep));
-    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
-  }
+  .credits-display { display:flex; align-items:flex-end; gap:8px; margin-bottom:16px; }
+  .credits-number { font-family:'Syne',sans-serif; font-size:48px; font-weight:800; line-height:1; background:linear-gradient(135deg,var(--pink-deep),var(--purple-deep)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
   .credits-total { font-size:18px; color:var(--muted); margin-bottom:6px; }
   .credits-label { font-size:12px; color:var(--muted); letter-spacing:.1em; margin-bottom:8px; }
-
-  .progress-bar {
-    height:8px; background:rgba(200,130,160,.15); border-radius:8px; overflow:hidden;
-  }
-  .progress-fill {
-    height:100%;
-    background:linear-gradient(90deg,var(--pink-deep),var(--purple-deep));
-    border-radius:8px; transition:width .8s ease;
-  }
+  .progress-bar { height:8px; background:rgba(200,130,160,.15); border-radius:8px; overflow:hidden; }
+  .progress-fill { height:100%; background:linear-gradient(90deg,var(--pink-deep),var(--purple-deep)); border-radius:8px; transition:width .8s ease; }
   .credits-note { font-size:12px; color:var(--muted); margin-top:10px; line-height:1.6; }
-
-  /* Asset IDs */
   .asset-group { display:flex; flex-direction:column; gap:16px; }
   .asset-item { display:flex; flex-direction:column; gap:8px; }
-  .asset-item-label {
-    font-size:10px; letter-spacing:.22em; color:var(--muted);
-    display:flex; justify-content:space-between; align-items:center;
-  }
+  .asset-item-label { font-size:10px; letter-spacing:.22em; color:var(--muted); display:flex; justify-content:space-between; align-items:center; }
   .saved-badge { font-size:10px; color:#16a34a; letter-spacing:.1em; }
-
   .asset-input-row { display:flex; gap:10px; }
-  .asset-input {
-    flex:1; background:var(--input-bg);
-    border:1px solid rgba(200,130,160,.25); border-radius:12px;
-    padding:12px 16px; color:var(--text);
-    font-family:'Zen Kaku Gothic New',sans-serif; font-size:13px;
-    outline:none; transition:border-color .3s,box-shadow .3s;
-  }
+  .asset-input { flex:1; background:var(--input-bg); border:1px solid rgba(200,130,160,.25); border-radius:12px; padding:12px 16px; color:var(--text); font-family:'Zen Kaku Gothic New',sans-serif; font-size:13px; outline:none; transition:border-color .3s,box-shadow .3s; }
   .asset-input:focus { border-color:rgba(200,80,120,.4); box-shadow:0 0 0 3px rgba(200,80,120,.08); }
   .asset-input::placeholder { color:rgba(160,80,110,.35); }
-
-  .save-asset-btn {
-    padding:0 18px; border:none; border-radius:12px;
-    background:linear-gradient(135deg,var(--pink-btn),var(--purple-deep));
-    color:white; font-family:'Zen Kaku Gothic New',sans-serif;
-    font-size:12px; font-weight:700; letter-spacing:.1em;
-    cursor:none; white-space:nowrap; transition:all .2s;
-    box-shadow:0 4px 16px rgba(200,79,114,.2);
-  }
+  .save-asset-btn { padding:0 18px; border:none; border-radius:12px; background:linear-gradient(135deg,var(--pink-btn),var(--purple-deep)); color:white; font-family:'Zen Kaku Gothic New',sans-serif; font-size:12px; font-weight:700; letter-spacing:.1em; cursor:none; white-space:nowrap; transition:all .2s; box-shadow:0 4px 16px rgba(200,79,114,.2); }
   .save-asset-btn:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(200,79,114,.3); }
-
-  /* オンボーディングバナー */
-  .onboarding-banner {
-    background:linear-gradient(135deg,rgba(200,79,114,.08),rgba(124,95,224,.08));
-    border:1px solid rgba(200,79,114,.25);
-    border-radius:24px; padding:28px 32px;
-    margin-bottom:20px; display:none;
-    position:relative; overflow:hidden;
-    opacity:0; animation:fadeUp .8s ease .1s forwards;
-  }
+  .onboarding-banner { background:linear-gradient(135deg,rgba(200,79,114,.08),rgba(124,95,224,.08)); border:1px solid rgba(200,79,114,.25); border-radius:24px; padding:28px 32px; margin-bottom:20px; display:none; position:relative; overflow:hidden; opacity:0; animation:fadeUp .8s ease .1s forwards; }
   .onboarding-banner.active { display:block; }
-  .onboarding-banner::before {
-    content:''; position:absolute; inset:0;
-    background:linear-gradient(135deg,rgba(255,220,235,.2) 0%,rgba(220,200,255,.1) 100%);
-    pointer-events:none;
-  }
-  .banner-step {
-    display:flex; align-items:flex-start; gap:16px;
-    margin-bottom:16px;
-  }
+  .onboarding-banner::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(255,220,235,.2) 0%,rgba(220,200,255,.1) 100%); pointer-events:none; }
+  .banner-step { display:flex; align-items:flex-start; gap:16px; margin-bottom:16px; }
   .banner-step:last-child { margin-bottom:0; }
-  .banner-step-num {
-    width:28px; height:28px; border-radius:50%; flex-shrink:0;
-    background:linear-gradient(135deg,var(--pink-btn),var(--purple-deep));
-    color:white; font-size:12px; font-weight:700;
-    display:flex; align-items:center; justify-content:center;
-    box-shadow:0 4px 12px rgba(200,79,114,.3);
-  }
+  .banner-step-num { width:28px; height:28px; border-radius:50%; flex-shrink:0; background:linear-gradient(135deg,var(--pink-btn),var(--purple-deep)); color:white; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 12px rgba(200,79,114,.3); }
   .banner-step-content { flex:1; }
   .banner-step-title { font-size:14px; font-weight:700; color:var(--text); margin-bottom:4px; }
   .banner-step-desc { font-size:13px; color:var(--text-light); line-height:1.7; font-weight:300; }
-  .banner-step-link {
-    display:inline-flex; align-items:center; gap:6px;
-    margin-top:8px; padding:8px 16px;
-    background:linear-gradient(135deg,var(--pink-btn),var(--purple-deep));
-    color:white; text-decoration:none; border-radius:10px;
-    font-size:12px; font-weight:700; letter-spacing:.08em;
-    transition:all .2s; box-shadow:0 4px 12px rgba(200,79,114,.25);
-  }
+  .banner-step-link { display:inline-flex; align-items:center; gap:6px; margin-top:8px; padding:8px 16px; background:linear-gradient(135deg,var(--pink-btn),var(--purple-deep)); color:white; text-decoration:none; border-radius:10px; font-size:12px; font-weight:700; letter-spacing:.08em; transition:all .2s; box-shadow:0 4px 12px rgba(200,79,114,.25); }
   .banner-step-link:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(200,79,114,.35); }
-  .banner-title {
-    font-family:'Syne',sans-serif; font-size:16px; font-weight:800;
-    color:var(--text); margin-bottom:20px;
-    display:flex; align-items:center; gap:10px;
-  }
+  .banner-title { font-family:'Syne',sans-serif; font-size:16px; font-weight:800; color:var(--text); margin-bottom:20px; display:flex; align-items:center; gap:10px; }
   .banner-title::before { content:''; width:18px; height:1px; background:var(--pink-deep); }
-
-  /* 動画履歴 */
-  .video-history-item {
-    display:flex; align-items:center; gap:16px;
-    padding:16px 0;
-    border-bottom:1px solid rgba(220,150,180,.15);
-  }
+  .video-history-item { display:flex; align-items:center; gap:16px; padding:16px 0; border-bottom:1px solid rgba(220,150,180,.15); }
   .video-history-item:last-child { border-bottom:none; }
-  .video-thumb-placeholder {
-    width:80px; height:56px; border-radius:10px;
-    background:rgba(200,130,160,.1);
-    border:1px solid rgba(220,150,180,.2);
-    display:flex; align-items:center; justify-content:center;
-    font-size:20px; flex-shrink:0;
-  }
+  .video-thumb-placeholder { width:80px; height:56px; border-radius:10px; background:rgba(200,130,160,.1); border:1px solid rgba(220,150,180,.2); display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
   .video-info { flex:1; min-width:0; }
-  .video-prompt {
-    font-size:13px; color:var(--text); font-weight:700;
-    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-    margin-bottom:4px;
-  }
+  .video-prompt { font-size:13px; color:var(--text); font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:4px; }
   .video-date { font-size:11px; color:var(--muted); letter-spacing:.05em; }
-  .video-status {
-    font-size:11px; padding:3px 10px; border-radius:100px;
-    font-weight:700; letter-spacing:.08em; white-space:nowrap;
-  }
+  .video-status { font-size:11px; padding:3px 10px; border-radius:100px; font-weight:700; letter-spacing:.08em; white-space:nowrap; }
   .video-status.completed { background:rgba(34,197,94,.1); color:#16a34a; }
   .video-status.processing { background:rgba(200,79,114,.1); color:var(--pink-deep); }
   .video-status.pending { background:rgba(200,130,160,.1); color:var(--muted); }
-  .video-download-btn {
-    padding:8px 16px; border:1px solid rgba(34,197,94,.35);
-    border-radius:10px; background:rgba(34,197,94,.08);
-    color:#16a34a; font-size:12px; font-weight:700;
-    text-decoration:none; white-space:nowrap;
-    transition:all .2s; cursor:none;
-  }
+  .video-download-btn { padding:8px 16px; border:1px solid rgba(34,197,94,.35); border-radius:10px; background:rgba(34,197,94,.08); color:#16a34a; font-size:12px; font-weight:700; text-decoration:none; white-space:nowrap; transition:all .2s; cursor:none; }
   .video-download-btn:hover { background:rgba(34,197,94,.15); transform:translateY(-1px); }
-  .video-empty {
-    text-align:center; padding:32px 0;
-    font-size:13px; color:var(--muted); line-height:1.8;
-  }
-
-  .generate-link {
-    display:block; width:100%; padding:18px; border:none; border-radius:16px;
-    background:linear-gradient(135deg,var(--pink-btn) 0%,var(--purple-deep) 100%);
-    color:white; font-family:'Zen Kaku Gothic New',sans-serif;
-    font-size:15px; font-weight:700; letter-spacing:.1em;
-    text-align:center; text-decoration:none;
-    transition:transform .2s,box-shadow .2s;
-    box-shadow:0 8px 32px rgba(200,79,114,.25);
-    position:relative; overflow:hidden;
-  }
+  .video-empty { text-align:center; padding:32px 0; font-size:13px; color:var(--muted); line-height:1.8; }
+  .generate-link { display:block; width:100%; padding:18px; border:none; border-radius:16px; background:linear-gradient(135deg,var(--pink-btn) 0%,var(--purple-deep) 100%); color:white; font-family:'Zen Kaku Gothic New',sans-serif; font-size:15px; font-weight:700; letter-spacing:.1em; text-align:center; text-decoration:none; transition:transform .2s,box-shadow .2s; box-shadow:0 8px 32px rgba(200,79,114,.25); position:relative; overflow:hidden; }
   .generate-link:hover { transform:translateY(-2px); box-shadow:0 16px 50px rgba(200,79,114,.35); }
   .generate-link::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(255,255,255,.18) 0%,transparent 55%); pointer-events:none; }
-
-  .success-toast {
-    position:fixed; bottom:32px; right:32px; z-index:200;
-    background:rgba(34,197,94,.9); color:white;
-    padding:14px 24px; border-radius:14px; font-size:13px; font-weight:700;
-    box-shadow:0 8px 32px rgba(34,197,94,.3);
-    transform:translateY(80px); opacity:0;
-    transition:all .3s ease;
-  }
+  .success-toast { position:fixed; bottom:32px; right:32px; z-index:200; background:rgba(34,197,94,.9); color:white; padding:14px 24px; border-radius:14px; font-size:13px; font-weight:700; box-shadow:0 8px 32px rgba(34,197,94,.3); transform:translateY(80px); opacity:0; transition:all .3s ease; }
   .success-toast.show { transform:translateY(0); opacity:1; }
-
   footer { position:relative; z-index:1; padding:28px 48px; border-top:1px solid rgba(220,150,180,.2); display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,.2); }
   .footer-logo { font-family:'Syne',sans-serif; font-weight:800; font-size:14px; background:linear-gradient(135deg,var(--pink-deep),var(--purple-deep)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
   .footer-text { font-size:11px; color:var(--muted); letter-spacing:.1em; }
-
   @media(max-width:600px){ nav{padding:18px 20px;} .nav-email{display:none;} footer{flex-direction:column;gap:12px;text-align:center;} }
 </style>
 </head>
@@ -316,11 +134,9 @@
 <main>
   <div class="page-title" id="pageTitle">マイページ</div>
 
-  <!-- オンボーディングバナー（Asset ID未登録のユーザーのみ表示） -->
+  <!-- オンボーディングバナー -->
   <div class="onboarding-banner" id="onboardingBanner">
     <div class="banner-title">🎬 動画生成を始めるための準備</div>
-
-    <!-- STEP 1：必須 -->
     <div class="banner-step">
       <div class="banner-step-num">1</div>
       <div class="banner-step-content">
@@ -333,15 +149,12 @@
           以下のリンクから顔認証を完了してください。<br>
           画面の指示（英語）の対訳：<br>
           Blink your eyes → 目を瞬きして　／　Nod your head → 頭を縦に振って<br>
-          Turn left/right → 顔を左右に向けて　／　Open your mouth → 口を開けて
-          <br><br>
+          Turn left/right → 顔を左右に向けて　／　Open your mouth → 口を開けて<br><br>
           <span style="font-size:11px;color:var(--muted);">※ 顔認証にはBytePlusへの登録が必須です（Googleアカウントで1〜2分）</span>
         </div>
         <a href="https://www.byteplus.com/en/liveness-face-manage/index?uuid=dce020a6-51af-4836-8c8d-38f8cc3ec329" target="_blank" class="banner-step-link">顔認証を開始する →</a>
       </div>
     </div>
-
-    <!-- STEP 2：必須 -->
     <div class="banner-step">
       <div class="banner-step-num">2</div>
       <div class="banner-step-content">
@@ -353,19 +166,6 @@
         <a href="https://console.byteplus.com/ark/region:ark+ap-southeast-1/experience/vision?modelId=dreamina-seedance-2-0-fast-260128&tab=ManageAssets" target="_blank" class="banner-step-link">Asset IDを確認する →</a>
       </div>
     </div>
-
-    <!-- STEP 3：任意 -->
-    <div class="banner-step">
-      <div class="banner-step-num">3</div>
-      <div class="banner-step-content">
-        <div class="banner-step-title">動きのリファレンス動画を登録する <span style="font-size:11px;background:rgba(124,95,224,.12);color:var(--purple-deep);padding:2px 8px;border-radius:100px;margin-left:6px;font-weight:700;">任意・後から追加可</span></div>
-        <div class="banner-step-desc">
-          自分が動いている動画（スマホ撮影でOK）をBytePlusに追加登録すると、生成される動画のクオリティが大幅に向上します。<br>
-          まずは静止画だけで動画生成を試してみて、後から追加してもOKです。
-        </div>
-      </div>
-    </div>
-
   </div>
 
   <!-- プランカード -->
@@ -377,8 +177,9 @@
         <div style="margin-top:8px;">
           <span class="plan-badge free" id="planBadge">FREE</span>
         </div>
+        <div class="plan-reset" id="planReset"></div>
       </div>
-      <button class="upgrade-btn" onclick="window.location.href='index.html#pricing'">
+      <button class="upgrade-btn" onclick="window.location.href='pricing.html'">
         プランを変更する →
       </button>
     </div>
@@ -391,7 +192,7 @@
       <div class="credits-number" id="creditsNumber">—</div>
       <div class="credits-total" id="creditsTotal">/ —</div>
     </div>
-    <div class="credits-label">残りクレジット数</div>
+    <div class="credits-label">今月の残り生成本数</div>
     <div class="progress-bar">
       <div class="progress-fill" id="creditsFill" style="width:0%"></div>
     </div>
@@ -410,16 +211,6 @@
         <div class="asset-input-row">
           <input type="text" class="asset-input" id="faceAssetInput" placeholder="asset://asset-XXXXXXXXX">
           <button class="save-asset-btn" onclick="saveAsset('face')">保存</button>
-        </div>
-      </div>
-      <div class="asset-item">
-        <div class="asset-item-label">
-          <span>BODY ASSET ID（任意）</span>
-          <span class="saved-badge" id="bodySavedBadge" style="display:none;">✓ 保存済み</span>
-        </div>
-        <div class="asset-input-row">
-          <input type="text" class="asset-input" id="bodyAssetInput" placeholder="asset://asset-XXXXXXXXX">
-          <button class="save-asset-btn" onclick="saveAsset('body')">保存</button>
         </div>
       </div>
     </div>
@@ -446,7 +237,6 @@
 </footer>
 
 <script>
-  // Supabase初期化
   const { createClient } = supabase;
   const sb = createClient(
     'https://majunwobgxvdckyyunxu.supabase.co',
@@ -454,20 +244,18 @@
   );
 
   const PLAN_CONFIG = {
-    free:     { name: 'フリープラン',     total: 3,   badgeClass: 'free',     label: 'FREE' },
-    economy:  { name: 'エコノミー',        total: 10,  badgeClass: 'economy',  label: 'ECONOMY' },
-    standard: { name: 'スタンダード',      total: 30,  badgeClass: 'standard', label: 'STANDARD' },
-    premium:  { name: 'プレミアム',        total: 100, badgeClass: 'premium',  label: 'PREMIUM' },
+    free:     { name: 'フリープラン',  total: 3,  badgeClass: 'free',     label: 'FREE' },
+    starter:  { name: 'STARTER',      total: 6,  badgeClass: 'starter',  label: 'STARTER' },
+    creator:  { name: 'CREATOR',      total: 18, badgeClass: 'creator',  label: 'CREATOR' },
+    business: { name: 'BUSINESS',     total: 60, badgeClass: 'business', label: 'BUSINESS' },
   };
 
   let userId = null;
 
-  // 認証チェック
   sb.auth.getSession().then(async ({ data: { session } }) => {
     if (!session) { window.location.href = 'login.html'; return; }
     userId = session.user.id;
     document.getElementById('navEmail').textContent = session.user.email;
-    document.getElementById('pageTitle').textContent = 'マイページ';
     await loadProfile();
     await loadVideoHistory();
   });
@@ -481,9 +269,10 @@
 
     if (error || !data) return;
 
-    const plan = PLAN_CONFIG[data.plan] || PLAN_CONFIG.free;
+    const planKey = data.plan || 'free';
+    const plan = PLAN_CONFIG[planKey] || PLAN_CONFIG.free;
     const remaining = data.credits_remaining ?? 0;
-    const total = plan.total;
+    const total = data.videos_limit || plan.total;
     const pct = Math.max(0, Math.min(100, (remaining / total) * 100));
 
     // プラン表示
@@ -492,18 +281,29 @@
     badge.textContent = plan.label;
     badge.className = `plan-badge ${plan.badgeClass}`;
 
+    // リセット日表示
+    const resetEl = document.getElementById('planReset');
+    if (data.cycle_reset_at && planKey !== 'free') {
+      const resetDate = new Date(data.cycle_reset_at).toLocaleDateString('ja-JP', {
+        year: 'numeric', month: 'long', day: 'numeric'
+      });
+      resetEl.textContent = `次回リセット日：${resetDate}`;
+    } else if (planKey === 'free') {
+      resetEl.textContent = '';
+    }
+
     // クレジット表示
     document.getElementById('creditsNumber').textContent = remaining;
-    document.getElementById('creditsTotal').textContent = `/ ${total}`;
+    document.getElementById('creditsTotal').textContent = `/ ${total}本`;
     document.getElementById('creditsFill').style.width = pct + '%';
 
     const noteMap = {
-      free: 'フリープランは合計3本まで生成できます。',
-      economy: 'エコノミープランは月10本まで生成できます。毎月1日にリセットされます。',
-      standard: 'スタンダードプランは月30本まで生成できます。毎月1日にリセットされます。',
-      premium: 'プレミアムプランは月100本まで生成できます。毎月1日にリセットされます。',
+      free:     'フリープランは合計3本まで生成できます。プランに加入すると毎月生成本数がリセットされます。',
+      starter:  'STARTERプランは月6本まで生成できます。契約日から30日ごとにリセットされます。',
+      creator:  'CREATORプランは月18本まで生成できます。契約日から30日ごとにリセットされます。',
+      business: 'BUSINESSプランは月60本まで生成できます。契約日から30日ごとにリセットされます。',
     };
-    document.getElementById('creditsNote').textContent = noteMap[data.plan] || noteMap.free;
+    document.getElementById('creditsNote').textContent = noteMap[planKey] || noteMap.free;
 
     // Asset ID未登録の場合はオンボーディングバナーを表示
     if (!data.face_asset_id) {
@@ -515,11 +315,6 @@
       document.getElementById('faceAssetInput').value = data.face_asset_id;
       document.getElementById('faceSavedBadge').style.display = 'inline';
       localStorage.setItem('aha_face_asset_id', data.face_asset_id);
-    }
-    if (data.body_asset_id) {
-      document.getElementById('bodyAssetInput').value = data.body_asset_id;
-      document.getElementById('bodySavedBadge').style.display = 'inline';
-      localStorage.setItem('aha_body_asset_id', data.body_asset_id);
     }
   }
 
@@ -534,18 +329,13 @@
     const container = document.getElementById('videoHistoryList');
 
     if (error || !data || data.length === 0) {
-      container.innerHTML = `
-        <div class="video-empty">
-          まだ動画がありません。<br>
-          「動画を生成する」ボタンから最初の動画を作ってみましょう！
-        </div>`;
+      container.innerHTML = `<div class="video-empty">まだ動画がありません。<br>「動画を生成する」ボタンから最初の動画を作ってみましょう！</div>`;
       return;
     }
 
     container.innerHTML = data.map(job => {
       const date = new Date(job.created_at).toLocaleDateString('ja-JP', {
-        year:'numeric', month:'2-digit', day:'2-digit',
-        hour:'2-digit', minute:'2-digit'
+        year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'
       });
       const prompt = job.prompt || '（プロンプトなし）';
       const statusMap = {
@@ -600,7 +390,6 @@
     setTimeout(() => toast.classList.remove('show'), 2500);
   }
 
-  // Cursor
   const cursor = document.getElementById('cursor');
   const cursorRing = document.getElementById('cursorRing');
   let mx=0,my=0,rx=0,ry=0;
