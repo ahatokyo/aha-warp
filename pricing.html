@@ -5,8 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AHA WARP — 料金プラン</title>
 <link rel="icon" type="image/png" href="favicon.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="AHA WARP">
+<meta property="og:description" content="AIがあなたの顔で動画を生成する">
+<meta property="og:image" content="favicon.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="AHA WARP">
+<meta name="twitter:description" content="AIがあなたの顔で動画を生成する">
+<meta name="twitter:image" content="favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@300;400;700;900&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
     --pink:        #f9c8db;
@@ -266,7 +275,7 @@
         <li>720p画質</li>
         <li>メール完了通知</li>
       </ul>
-      <button class="plan-btn secondary" onclick="window.location.href='https://buy.stripe.com/9B6aEWbzbclX6ld3X59sk00'">
+      <button class="plan-btn secondary" onclick="choosePlan('https://buy.stripe.com/9B6aEWbzbclX6ld3X59sk00')">
         このプランを選ぶ
       </button>
       <div class="per-video">1本あたり約¥830</div>
@@ -289,7 +298,7 @@
         <li>メール完了通知</li>
         <li>STARTERより1本あたりのコストがお得</li>
       </ul>
-      <button class="plan-btn primary" onclick="window.location.href='https://buy.stripe.com/cNifZg6eRdq14d58dl9sk01'">
+      <button class="plan-btn primary" onclick="choosePlan('https://buy.stripe.com/cNifZg6eRdq14d58dl9sk01')">
         このプランを選ぶ
       </button>
       <div class="per-video">1本あたり約¥822</div>
@@ -312,7 +321,7 @@
         <li>最もコストパフォーマンスが高い</li>
         <li>チーム・法人利用に最適</li>
       </ul>
-      <button class="plan-btn secondary" onclick="window.location.href='https://buy.stripe.com/bJedR88mZbhTaBt0KT9sk02'">
+      <button class="plan-btn secondary" onclick="choosePlan('https://buy.stripe.com/bJedR88mZbhTaBt0KT9sk02')">
         このプランを選ぶ
       </button>
       <div class="per-video">1本あたり約¥663</div>
@@ -363,6 +372,21 @@
 </footer>
 
 <script>
+  // プラン選択：未ログインならlogin.html、ログイン済みならStripeへ
+  async function choosePlan(stripeUrl) {
+    const { createClient } = supabase;
+    const sb = createClient(
+      'https://majunwobgxvdckyyunxu.supabase.co',
+      'sb_publishable_p93V6Tk3LAn8HjwmPuNbKg_00cs6Z6L'
+    );
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) {
+      window.location.href = 'login.html';
+    } else {
+      window.location.href = stripeUrl;
+    }
+  }
+
   // Cursor
   const cursor = document.getElementById('cursor');
   const cursorRing = document.getElementById('cursorRing');

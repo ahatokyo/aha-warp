@@ -5,6 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AHA WARP — あなたの分身が、世界へ</title>
 <link rel="icon" type="image/png" href="favicon.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="AHA WARP">
+<meta property="og:description" content="AIがあなたの顔で動画を生成する">
+<meta property="og:image" content="favicon.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="AHA WARP">
+<meta name="twitter:description" content="AIがあなたの顔で動画を生成する">
+<meta name="twitter:image" content="favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@300;400;700;900&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -572,9 +580,64 @@
   .review-submit-btn:hover { transform:translateY(-2px); box-shadow:0 12px 36px rgba(200,79,114,.3); }
   .review-submit-btn:disabled { opacity:.5; transform:none; }
   .review-thanks { text-align:center; padding:20px 0; font-size:14px; color:#16a34a; font-weight:700; display:none; }
+
+  /* クレジット不足モーダル */
+  .credits-overlay {
+    position:fixed; inset:0; z-index:9000;
+    background:rgba(45,16,32,.7); backdrop-filter:blur(8px);
+    display:flex; align-items:center; justify-content:center;
+    padding:20px;
+  }
+  .credits-overlay.hidden { display:none; }
+  .credits-modal {
+    background:#fff5f8; border-radius:24px; padding:36px 40px;
+    max-width:420px; width:100%; text-align:center;
+    box-shadow:0 32px 80px rgba(200,80,120,.2);
+  }
+  .credits-modal-logo {
+    font-family:'Syne',sans-serif; font-size:18px; font-weight:800;
+    background:linear-gradient(135deg,#c84f72 0%,#9d6fcc 100%);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    margin-bottom:16px;
+  }
+  .credits-modal h2 {
+    font-size:18px; font-weight:700; color:var(--text);
+    margin-bottom:12px; line-height:1.5;
+  }
+  .credits-modal p {
+    font-size:14px; color:var(--text-light); line-height:1.8;
+    margin-bottom:24px;
+  }
+  .credits-modal-go {
+    display:block; padding:16px; border-radius:14px;
+    background:linear-gradient(135deg,var(--pink-btn) 0%,var(--purple-deep) 100%);
+    color:white; text-decoration:none;
+    font-family:'Zen Kaku Gothic New',sans-serif;
+    font-size:15px; font-weight:700; letter-spacing:.08em;
+    margin-bottom:12px;
+    box-shadow:0 8px 32px rgba(200,79,114,.25);
+    transition:transform .2s,box-shadow .2s;
+  }
+  .credits-modal-go:hover { transform:translateY(-2px); box-shadow:0 14px 40px rgba(200,79,114,.35); }
+  .credits-modal-close {
+    background:none; border:none; font-size:13px; color:var(--muted);
+    cursor:none; letter-spacing:.1em; font-family:'Zen Kaku Gothic New',sans-serif;
+  }
+  .credits-modal-close:hover { color:var(--text-light); }
 </style>
 </head>
 <body>
+
+<!-- クレジット不足モーダル -->
+<div class="credits-overlay hidden" id="creditsOverlay">
+  <div class="credits-modal">
+    <div class="credits-modal-logo">AHA WARP</div>
+    <h2>クレジットが不足しています</h2>
+    <p>動画を生成するには<br>プランの購入が必要です。</p>
+    <a href="pricing.html" class="credits-modal-go">料金プランを見る →</a>
+    <button class="credits-modal-close" onclick="document.getElementById('creditsOverlay').classList.add('hidden')">閉じる</button>
+  </div>
+</div>
 
 <!-- 利用規約モーダル -->
 <div class="terms-overlay hidden" id="termsOverlay">
@@ -945,7 +1008,10 @@
   async function deductCredit() {
     if (!window.__supabase || !window.__user) return true;
     const current = window.__credits ?? 0;
-    if (current <= 0) { showError('クレジットが不足しています。プランをアップグレードしてください。'); return false; }
+    if (current <= 0) {
+      document.getElementById('creditsOverlay').classList.remove('hidden');
+      return false;
+    }
     await window.__supabase.from('profiles').update({ credits_remaining: current - 1 }).eq('id', window.__user.id);
     window.__credits = current - 1;
     document.getElementById('navCredits').textContent = `クレジット残数: ${window.__credits}`;
@@ -1079,6 +1145,11 @@
     if (!faceId) { hl('faceAssetId'); return; }
     if (document.getElementById('cameraAngle').value === 'custom' && !document.getElementById('cameraCustomInput').value.trim()) {
       hl('cameraCustomInput'); return;
+    }
+
+    if ((window.__credits ?? -1) === 0) {
+      document.getElementById('creditsOverlay').classList.remove('hidden');
+      return;
     }
 
     document.getElementById('errorMsg').classList.remove('active');
