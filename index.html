@@ -470,6 +470,9 @@
     -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
   }
   .footer-text { font-size:11px; color:var(--muted); letter-spacing:.1em; }
+  .footer-links { display:flex; gap:16px; }
+  .footer-links a { font-size:11px; color:var(--muted); text-decoration:none; letter-spacing:.1em; }
+  .footer-links a:hover { color:var(--pink-deep); }
 
   @media(max-width:768px){
     nav{padding:18px 20px;}
@@ -630,7 +633,6 @@
 <nav>
   <div class="logo">AHA WARP</div>
   <div style="display:flex;align-items:center;gap:12px;">
-    <a href="pricing.html" style="font-size:12px;color:var(--muted);text-decoration:none;letter-spacing:.1em;border:1px solid var(--border);padding:6px 14px;border-radius:100px;background:rgba(255,255,255,.4);">料金プラン</a>
     <a href="mypage.html" style="font-size:12px;color:var(--muted);text-decoration:none;letter-spacing:.1em;border:1px solid var(--border);padding:6px 14px;border-radius:100px;background:rgba(255,255,255,.4);">マイページ</a>
     <div class="nav-badge" id="navCredits">読み込み中...</div>
   </div>
@@ -848,6 +850,7 @@
 
 <footer>
   <div class="footer-logo">AHA WARP</div>
+  <div class="footer-links"><a href="terms.html">利用規約</a><a href="privacy.html">プライバシーポリシー</a></div>
   <div class="footer-text">© 2025 AHA WARP — Powered by AI</div>
 </footer>
 
