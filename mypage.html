@@ -289,12 +289,34 @@
     business: { name: 'BUSINESS',     total: 60, badgeClass: 'business', label: 'BUSINESS' },
   };
 
+  // ウェルカムメール送信先 Make.com ウェブフック（新規シナリオのURLに差し替えてください）
+  const WELCOME_WEBHOOK_URL = 'MAKE_WELCOME_WEBHOOK_URL';
+
   let userId = null;
+
+  // メール確認完了直後にウェルカムメールを送信する
+  // Supabase は確認リンクからのリダイレクト時に URL ハッシュへ type=signup を付与する
+  async function maybeSendWelcomeEmail(email) {
+    const params = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+    if (params.get('type') !== 'signup') return;
+    history.replaceState(null, '', window.location.pathname); // ハッシュをURLから除去
+    if (!WELCOME_WEBHOOK_URL || WELCOME_WEBHOOK_URL === 'MAKE_WELCOME_WEBHOOK_URL') return;
+    try {
+      await fetch(WELCOME_WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+    } catch (e) {
+      console.error('welcome email error:', e);
+    }
+  }
 
   sb.auth.getSession().then(async ({ data: { session } }) => {
     if (!session) { window.location.href = 'login.html'; return; }
     userId = session.user.id;
     document.getElementById('navEmail').textContent = session.user.email;
+    await maybeSendWelcomeEmail(session.user.email);
     await loadProfile();
     await loadVideoHistory();
   });

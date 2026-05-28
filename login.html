@@ -274,7 +274,11 @@
         window.location.href = 'mypage.html';
       }
     } else {
-      const { data, error } = await sb.auth.signUp({ email, password });
+      const { data, error } = await sb.auth.signUp({
+        email,
+        password,
+        options: { emailRedirectTo: window.location.origin + '/mypage.html' }
+      });
       if (error) {
         if (error.message.includes('User already registered') ||
             error.message.includes('already been registered') ||
