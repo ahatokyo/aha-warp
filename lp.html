@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AHA WARP — 撮影ゼロで、あなたが世界中に現れる</title>
+<title>AHA WARP — あなたの顔は、最強のコンテンツだ。</title>
 <link rel="icon" type="image/png" href="favicon.png">
 <meta property="og:type" content="website">
-<meta property="og:title" content="AHA WARP — 撮影ゼロで、あなたが世界中に現れる">
-<meta property="og:description" content="AIがあなたの顔で動画を生成。Instagramの更新を止めるな。">
+<meta property="og:title" content="AHA WARP — あなたの顔は、最強のコンテンツだ。">
+<meta property="og:description" content="顔が資産のすべての人へ。AIがあなたの顔で動画を自動生成し、発信を加速する。">
 <meta property="og:image" content="favicon.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="AHA WARP — 撮影ゼロで、あなたが世界中に現れる">
-<meta name="twitter:description" content="AIがあなたの顔で動画を生成。Instagramの更新を止めるな。">
+<meta name="twitter:title" content="AHA WARP — あなたの顔は、最強のコンテンツだ。">
+<meta name="twitter:description" content="顔が資産のすべての人へ。AIがあなたの顔で動画を自動生成し、発信を加速する。">
 <meta name="twitter:image" content="favicon.png">
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
@@ -40,274 +40,296 @@
 
   * { margin:0; padding:0; box-sizing:border-box; }
   html { scroll-behavior:smooth; }
-
   body {
-    background: linear-gradient(160deg, #fce8f0 0%, #f8dde9 40%, #f5d5e5 100%);
-    color: var(--text);
-    font-family: 'Zen Kaku Gothic New', sans-serif;
-    min-height: 100vh;
-    overflow-x: hidden;
-    cursor: none;
+    background: linear-gradient(160deg,#fce8f0 0%,#f8dde9 40%,#f5d5e5 100%);
+    color:var(--text);
+    font-family:'Zen Kaku Gothic New',sans-serif;
+    min-height:100vh; overflow-x:hidden; cursor:none;
   }
 
+  /* Cursor */
   .cursor { position:fixed; width:10px; height:10px; background:var(--pink-deep); border-radius:50%; pointer-events:none; z-index:9999; transform:translate(-50%,-50%); transition:width .2s,height .2s; mix-blend-mode:multiply; }
   .cursor-ring { position:fixed; width:32px; height:32px; border:1px solid rgba(200,80,120,.3); border-radius:50%; pointer-events:none; z-index:9998; transform:translate(-50%,-50%); transition:width .3s,height .3s; }
 
+  /* Background */
   .bg-orbs { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
   .orb { position:absolute; border-radius:50%; filter:blur(120px); opacity:.18; animation:drift 26s ease-in-out infinite; }
-  .orb-1 { width:800px;height:800px; background:#f9a8c9; top:-300px;left:-200px; }
-  .orb-2 { width:600px;height:600px; background:#ddd6fe; bottom:-200px;right:-150px; animation-delay:-10s; }
-  .orb-3 { width:450px;height:450px; background:#fbc8d8; top:40%;left:38%; animation-delay:-18s; }
-  @keyframes drift { 0%,100%{transform:translate(0,0) scale(1);} 33%{transform:translate(40px,-28px) scale(1.06);} 66%{transform:translate(-28px,44px) scale(.95);} }
+  .orb-1 { width:800px;height:800px;background:#f9a8c9;top:-300px;left:-200px; }
+  .orb-2 { width:600px;height:600px;background:#ddd6fe;bottom:-200px;right:-150px;animation-delay:-10s; }
+  .orb-3 { width:450px;height:450px;background:#fbc8d8;top:40%;left:38%;animation-delay:-18s; }
+  @keyframes drift { 0%,100%{transform:translate(0,0) scale(1);}33%{transform:translate(40px,-28px) scale(1.06);}66%{transform:translate(-28px,44px) scale(.95);} }
+  .grid-overlay { position:fixed; inset:0; pointer-events:none; z-index:0; background-image:linear-gradient(rgba(200,100,140,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(200,100,140,.04) 1px,transparent 1px); background-size:56px 56px; }
 
-  .grid-overlay { position:fixed; inset:0; pointer-events:none; z-index:0; background-image: linear-gradient(rgba(200,100,140,.04) 1px, transparent 1px), linear-gradient(90deg,rgba(200,100,140,.04) 1px, transparent 1px); background-size:56px 56px; }
+  /* Nav */
+  nav { position:fixed;top:0;left:0;right:0;z-index:100;padding:22px 48px;display:flex;justify-content:space-between;align-items:center;backdrop-filter:blur(28px);border-bottom:1px solid rgba(220,150,180,.2);background:rgba(252,232,240,.7); }
+  .logo { font-family:'Syne',sans-serif;font-size:21px;font-weight:800;letter-spacing:.12em;background:linear-gradient(135deg,#c84f72 0%,#9d6fcc 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-decoration:none; }
+  .nav-actions { display:flex;align-items:center;gap:12px; }
+  .nav-link-ghost { font-size:12px;color:var(--muted);text-decoration:none;letter-spacing:.1em; }
+  .nav-btn { font-size:12px;font-weight:700;letter-spacing:.1em;padding:9px 22px;border-radius:100px;background:linear-gradient(135deg,var(--pink-btn),var(--purple-deep));color:white;text-decoration:none;transition:all .2s;box-shadow:0 4px 16px rgba(200,79,114,.25); }
+  .nav-btn:hover { transform:translateY(-1px);box-shadow:0 8px 24px rgba(200,79,114,.35); }
 
-  nav {
-    position:fixed; top:0;left:0;right:0; z-index:100;
-    padding:22px 48px;
-    display:flex; justify-content:space-between; align-items:center;
-    backdrop-filter:blur(28px);
-    border-bottom:1px solid rgba(220,150,180,.2);
-    background:rgba(252,232,240,.7);
-  }
-  .logo { font-family:'Syne',sans-serif; font-size:21px; font-weight:800; letter-spacing:.12em; background:linear-gradient(135deg,#c84f72 0%,#9d6fcc 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; text-decoration:none; }
-  .nav-cta { display:flex; align-items:center; gap:12px; }
-  .nav-login { font-size:12px; color:var(--muted); text-decoration:none; letter-spacing:.1em; }
-  .nav-start { font-size:12px; font-weight:700; letter-spacing:.1em; padding:8px 20px; border-radius:100px; background:linear-gradient(135deg,var(--pink-btn),var(--purple-deep)); color:white; text-decoration:none; transition:all .2s; box-shadow:0 4px 16px rgba(200,79,114,.25); }
-  .nav-start:hover { transform:translateY(-1px); box-shadow:0 8px 24px rgba(200,79,114,.35); }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:translateY(0);} }
 
-  @keyframes fadeUp { from{opacity:0;transform:translateY(24px);} to{opacity:1;transform:translateY(0);} }
-
-  /* ───── HERO ───── */
+  /* ══════════════════════════════
+     HERO
+  ══════════════════════════════ */
   .hero {
-    position:relative; z-index:1;
+    position:relative;z-index:1;
     min-height:100vh;
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-    text-align:center; padding:140px 24px 100px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:140px 24px 80px;
   }
-  .hero-eyebrow { font-size:11px; letter-spacing:.42em; color:var(--pink-deep); margin-bottom:24px; opacity:0; animation:fadeUp .8s ease .1s forwards; }
-  .hero-title {
+  .hero-eyebrow { font-size:11px;letter-spacing:.42em;color:var(--pink-deep);margin-bottom:28px;opacity:0;animation:fadeUp .7s ease .1s forwards; }
+  .hero-catch {
     font-family:'Syne',sans-serif;
-    font-size:clamp(40px,7vw,88px); font-weight:800; line-height:1.08;
-    margin-bottom:28px; opacity:0; animation:fadeUp .8s ease .3s forwards;
+    font-size:clamp(36px,6.5vw,82px);font-weight:800;line-height:1.1;
+    margin-bottom:32px;opacity:0;animation:fadeUp .7s ease .25s forwards;
   }
-  .hero-title .line-accent {
+  .hero-catch .line-1 { display:block;color:var(--text); }
+  .hero-catch .line-2 {
     display:block;
     background:linear-gradient(135deg,var(--pink-deep) 0%,var(--purple-deep) 100%);
-    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
   }
-  .hero-title .line-dark {
-    display:block;
-    background:linear-gradient(135deg,#3d1428 0%,#7a3050 100%);
-    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
-  }
-  .hero-sub {
-    font-size:clamp(15px,1.8vw,20px); color:var(--text-light);
-    max-width:540px; line-height:2; margin-bottom:48px;
-    font-weight:300; opacity:0; animation:fadeUp .8s ease .5s forwards;
-  }
-  .hero-cta-wrap { display:flex; flex-direction:column; align-items:center; gap:14px; opacity:0; animation:fadeUp .8s ease .65s forwards; }
-  .btn-primary {
-    display:inline-flex; align-items:center; gap:10px;
-    padding:20px 48px; border-radius:100px;
+  .hero-sub { font-size:clamp(15px,1.8vw,19px);color:var(--text-light);max-width:560px;line-height:2.1;margin-bottom:52px;font-weight:300;opacity:0;animation:fadeUp .7s ease .4s forwards; }
+  .hero-sub strong { color:var(--pink-deep);font-weight:700; }
+  .hero-cta { display:flex;flex-direction:column;align-items:center;gap:16px;opacity:0;animation:fadeUp .7s ease .55s forwards; }
+  .btn-hero {
+    display:inline-flex;align-items:center;gap:10px;
+    padding:20px 52px;border-radius:100px;
     background:linear-gradient(135deg,var(--pink-btn) 0%,var(--purple-deep) 100%);
-    color:white; font-family:'Zen Kaku Gothic New',sans-serif;
-    font-size:16px; font-weight:700; letter-spacing:.1em;
-    text-decoration:none; transition:all .25s;
-    box-shadow:0 10px 40px rgba(200,79,114,.3);
-    position:relative; overflow:hidden;
+    color:white;font-family:'Zen Kaku Gothic New',sans-serif;
+    font-size:17px;font-weight:700;letter-spacing:.1em;
+    text-decoration:none;transition:all .25s;
+    box-shadow:0 12px 48px rgba(200,79,114,.32);
+    position:relative;overflow:hidden;
   }
-  .btn-primary::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(255,255,255,.18) 0%,transparent 55%); pointer-events:none; }
-  .btn-primary:hover { transform:translateY(-3px); box-shadow:0 18px 56px rgba(200,79,114,.4); }
-  .hero-note { font-size:12px; color:var(--muted); letter-spacing:.08em; }
+  .btn-hero::before { content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.18) 0%,transparent 55%);pointer-events:none; }
+  .btn-hero:hover { transform:translateY(-3px);box-shadow:0 20px 60px rgba(200,79,114,.44); }
+  .hero-note { font-size:12px;color:var(--muted);letter-spacing:.08em; }
 
-  .hero-stats {
-    display:flex; gap:40px; margin-top:80px; opacity:0; animation:fadeUp .8s ease .8s forwards;
-    flex-wrap:wrap; justify-content:center;
-  }
-  .stat-item { text-align:center; }
-  .stat-num { font-family:'Syne',sans-serif; font-size:28px; font-weight:800; background:linear-gradient(135deg,var(--pink-deep),var(--purple-deep)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
-  .stat-label { font-size:11px; color:var(--muted); letter-spacing:.12em; margin-top:4px; }
-  .stat-divider { width:1px; background:rgba(200,130,160,.25); align-self:stretch; }
+  .hero-tags { display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:64px;opacity:0;animation:fadeUp .7s ease .7s forwards; }
+  .hero-tag { padding:7px 18px;border:1px solid rgba(200,130,160,.3);border-radius:100px;font-size:12px;color:var(--text-light);background:rgba(255,255,255,.5);backdrop-filter:blur(12px);letter-spacing:.05em; }
 
-  /* ───── PROBLEM ───── */
-  .section {
-    position:relative; z-index:1;
-    max-width:1040px; margin:0 auto;
-    padding:120px 24px;
-  }
-  .section-eyebrow { font-size:11px; letter-spacing:.4em; color:var(--pink-deep); margin-bottom:20px; display:flex; align-items:center; gap:12px; }
-  .section-eyebrow::before { content:''; width:24px; height:1px; background:var(--pink-deep); }
-  .section-title { font-family:'Syne',sans-serif; font-size:clamp(28px,4vw,52px); font-weight:800; line-height:1.15; margin-bottom:16px; }
-  .section-sub { font-size:16px; color:var(--text-light); line-height:2; font-weight:300; max-width:560px; margin-bottom:60px; }
+  /* ══════════════════════════════
+     SHARED LAYOUT
+  ══════════════════════════════ */
+  .section { position:relative;z-index:1;max-width:1040px;margin:0 auto;padding:120px 24px; }
+  .section-eyebrow { font-size:11px;letter-spacing:.4em;color:var(--pink-deep);margin-bottom:18px;display:flex;align-items:center;gap:12px; }
+  .section-eyebrow::before { content:'';width:24px;height:1px;background:var(--pink-deep); }
+  .section-title { font-family:'Syne',sans-serif;font-size:clamp(26px,3.8vw,50px);font-weight:800;line-height:1.15;margin-bottom:16px; }
+  .section-title .accent { background:linear-gradient(135deg,var(--pink-deep),var(--purple-deep));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text; }
+  .section-lead { font-size:16px;color:var(--text-light);line-height:2;font-weight:300;max-width:600px;margin-bottom:64px; }
+  .band { position:relative;z-index:1;border-top:1px solid rgba(220,150,180,.2);border-bottom:1px solid rgba(220,150,180,.2);background:linear-gradient(145deg,rgba(200,79,114,.05) 0%,rgba(124,95,224,.05) 100%); }
+  .band-inner { max-width:1040px;margin:0 auto;padding:120px 24px; }
 
-  .problem-grid {
-    display:grid; grid-template-columns:repeat(2,1fr); gap:20px;
-  }
-  .problem-card {
-    background:var(--card-bg); border:1px solid rgba(220,150,180,.25);
-    border-radius:22px; padding:32px 28px;
-    backdrop-filter:blur(30px);
-    box-shadow:0 6px 28px rgba(200,80,120,.07);
-    position:relative; overflow:hidden;
-    transition:transform .3s,box-shadow .3s;
-  }
-  .problem-card:hover { transform:translateY(-4px); box-shadow:0 14px 40px rgba(200,80,120,.12); }
-  .problem-card::before { content:''; position:absolute; inset:0; background:linear-gradient(145deg,rgba(255,210,225,.2) 0%,transparent 60%); pointer-events:none; }
-  .problem-icon { font-size:32px; margin-bottom:16px; }
-  .problem-title { font-size:16px; font-weight:700; color:var(--text); margin-bottom:10px; }
-  .problem-desc { font-size:13px; color:var(--text-light); line-height:1.85; font-weight:300; }
-
-  /* ───── SOLUTION ───── */
-  .solution-wrap {
-    position:relative; z-index:1;
-    background:linear-gradient(145deg,rgba(200,79,114,.06) 0%,rgba(124,95,224,.06) 100%);
-    border-top:1px solid rgba(220,150,180,.2);
-    border-bottom:1px solid rgba(220,150,180,.2);
-  }
-  .solution-inner { max-width:1040px; margin:0 auto; padding:120px 24px; }
-  .solution-pipeline {
-    display:flex; align-items:center; justify-content:center;
-    gap:0; flex-wrap:wrap; margin-bottom:80px;
-  }
-  .sol-node {
-    padding:12px 22px; border:1px solid rgba(200,100,140,.3); border-radius:100px;
-    font-size:13px; letter-spacing:.08em; color:var(--text-light);
-    background:rgba(255,255,255,.7); backdrop-filter:blur(20px);
-    white-space:nowrap;
-  }
-  .sol-node.hl { border-color:rgba(200,79,114,.5); color:var(--pink-btn); background:rgba(255,255,255,.9); font-weight:700; }
-  .sol-arrow { width:36px; height:1px; background:linear-gradient(90deg,var(--pink-deep),var(--purple-deep)); position:relative; margin:0 4px; flex-shrink:0; }
-  .sol-arrow::after { content:'▶'; position:absolute; right:-6px; top:-8px; font-size:10px; color:var(--purple-deep); }
-
-  .solution-cards { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; }
-  .sol-card {
-    background:rgba(255,255,255,.6); border:1px solid rgba(220,150,180,.25);
-    border-radius:22px; padding:32px 26px;
-    backdrop-filter:blur(30px);
-    box-shadow:0 6px 28px rgba(200,80,120,.06);
-    position:relative; overflow:hidden;
-  }
-  .sol-card::before { content:''; position:absolute; inset:0; background:linear-gradient(145deg,rgba(255,220,235,.2) 0%,rgba(220,200,255,.1) 100%); pointer-events:none; }
-  .sol-step { font-size:10px; letter-spacing:.3em; color:var(--pink-deep); margin-bottom:14px; font-weight:700; }
-  .sol-title { font-family:'Syne',sans-serif; font-size:18px; font-weight:800; color:var(--text); margin-bottom:12px; }
-  .sol-desc { font-size:13px; color:var(--text-light); line-height:1.85; font-weight:300; }
-  .sol-num {
-    position:absolute; top:24px; right:24px;
-    font-family:'Syne',sans-serif; font-size:48px; font-weight:800; line-height:1;
-    color:rgba(200,130,160,.1); pointer-events:none;
-  }
-
-  /* ───── FEATURES ───── */
-  .features-grid-lp {
-    display:grid; grid-template-columns:repeat(3,1fr); gap:24px;
-  }
-  .feat-card {
-    background:var(--card-bg); border:1px solid rgba(220,150,180,.25);
-    border-radius:22px; padding:32px 26px;
-    backdrop-filter:blur(30px);
-    box-shadow:0 6px 28px rgba(200,80,120,.07);
-    transition:transform .3s,box-shadow .3s;
-    position:relative; overflow:hidden;
-  }
-  .feat-card:hover { transform:translateY(-5px); box-shadow:0 16px 48px rgba(200,80,120,.13); }
-  .feat-card::before { content:''; position:absolute; inset:0; background:linear-gradient(145deg,rgba(255,210,225,.2) 0%,transparent 60%); pointer-events:none; }
-  .feat-icon { font-size:32px; margin-bottom:16px; }
-  .feat-title { font-size:15px; font-weight:700; color:var(--text); margin-bottom:10px; }
-  .feat-desc { font-size:13px; color:var(--text-light); line-height:1.85; font-weight:300; }
-
-  /* ───── PRICING SUMMARY ───── */
-  .pricing-wrap {
-    position:relative; z-index:1;
-    background:linear-gradient(145deg,rgba(200,79,114,.05) 0%,rgba(124,95,224,.05) 100%);
-    border-top:1px solid rgba(220,150,180,.2);
-    border-bottom:1px solid rgba(220,150,180,.2);
-  }
-  .pricing-inner { max-width:900px; margin:0 auto; padding:120px 24px; text-align:center; }
-  .free-badge {
-    display:inline-flex; align-items:center; gap:8px;
-    background:linear-gradient(135deg,rgba(200,79,114,.12),rgba(124,95,224,.12));
-    border:1px solid rgba(200,79,114,.3); border-radius:100px;
-    padding:8px 22px; font-size:12px; font-weight:700;
-    color:var(--pink-deep); letter-spacing:.08em;
-    margin-bottom:32px;
-  }
-  .free-badge::before { content:'🎁'; }
-  .plans-row { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-top:56px; }
-  .plan-mini {
-    background:rgba(255,255,255,.6); border:1px solid rgba(220,150,180,.25);
-    border-radius:20px; padding:28px 22px;
+  /* ══════════════════════════════
+     FOR WHOM
+  ══════════════════════════════ */
+  .persona-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:20px; }
+  .persona-card {
+    background:var(--card-bg);border:1px solid rgba(220,150,180,.25);
+    border-radius:20px;padding:28px 24px;
     backdrop-filter:blur(30px);
     box-shadow:0 6px 24px rgba(200,80,120,.07);
-    position:relative; overflow:hidden;
+    transition:transform .3s,box-shadow .3s;
+    position:relative;overflow:hidden;
+  }
+  .persona-card::before { content:'';position:absolute;inset:0;background:linear-gradient(145deg,rgba(255,215,230,.22) 0%,transparent 65%);pointer-events:none; }
+  .persona-card:hover { transform:translateY(-5px);box-shadow:0 16px 44px rgba(200,80,120,.13); }
+  .persona-icon { font-size:28px;margin-bottom:14px; }
+  .persona-name { font-size:15px;font-weight:700;color:var(--text);margin-bottom:8px; }
+  .persona-desc { font-size:13px;color:var(--text-light);line-height:1.85;font-weight:300; }
+
+  /* ══════════════════════════════
+     PROBLEM
+  ══════════════════════════════ */
+  .problem-list { display:flex;flex-direction:column;gap:20px; }
+  .problem-item {
+    display:flex;align-items:flex-start;gap:24px;
+    background:var(--card-bg);border:1px solid rgba(220,150,180,.25);
+    border-radius:20px;padding:32px 28px;
+    backdrop-filter:blur(30px);
+    box-shadow:0 6px 24px rgba(200,80,120,.07);
+    position:relative;overflow:hidden;
     transition:transform .3s,box-shadow .3s;
   }
-  .plan-mini:hover { transform:translateY(-5px); box-shadow:0 14px 40px rgba(200,80,120,.12); }
-  .plan-mini::before { content:''; position:absolute; inset:0; background:linear-gradient(145deg,rgba(255,220,235,.2) 0%,transparent 60%); pointer-events:none; }
-  .plan-mini.featured { border-color:rgba(200,79,114,.4); box-shadow:0 10px 40px rgba(200,79,114,.15); }
-  .plan-mini-badge { position:absolute; top:0; right:18px; background:linear-gradient(135deg,var(--pink-btn),var(--purple-deep)); color:white; font-size:9px; font-weight:700; letter-spacing:.15em; padding:5px 12px; border-radius:0 0 8px 8px; }
-  .plan-mini-name { font-family:'Syne',sans-serif; font-size:11px; font-weight:800; letter-spacing:.25em; color:var(--muted); margin-bottom:12px; }
-  .plan-mini-price { font-family:'Syne',sans-serif; font-size:28px; font-weight:700; color:var(--text); line-height:1; margin-bottom:4px; }
-  .plan-mini-price span { font-size:14px; font-weight:400; color:var(--muted); }
-  .plan-mini-videos { font-size:13px; color:var(--text-light); margin-top:10px; }
-  .plan-mini-videos strong { color:var(--text); font-size:16px; }
-  .pricing-link { display:inline-flex; align-items:center; gap:8px; margin-top:40px; padding:14px 32px; border-radius:100px; border:1px solid rgba(200,79,114,.35); color:var(--pink-deep); font-size:14px; font-weight:700; letter-spacing:.08em; text-decoration:none; background:rgba(255,255,255,.5); transition:all .2s; }
-  .pricing-link:hover { background:rgba(255,255,255,.9); box-shadow:0 6px 24px rgba(200,79,114,.15); }
+  .problem-item:hover { transform:translateX(4px);box-shadow:0 10px 36px rgba(200,80,120,.11); }
+  .problem-item::before { content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,210,225,.2) 0%,transparent 50%);pointer-events:none; }
+  .problem-num { font-family:'Syne',sans-serif;font-size:36px;font-weight:800;line-height:1;background:linear-gradient(135deg,var(--pink-deep),var(--purple-deep));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;flex-shrink:0;width:48px; }
+  .problem-body {}
+  .problem-title { font-size:17px;font-weight:700;color:var(--text);margin-bottom:8px; }
+  .problem-desc { font-size:14px;color:var(--text-light);line-height:1.85;font-weight:300; }
 
-  /* ───── FINAL CTA ───── */
-  .final-cta {
-    position:relative; z-index:1;
-    text-align:center; padding:140px 24px;
-    max-width:800px; margin:0 auto;
+  /* ══════════════════════════════
+     COMPARISON
+  ══════════════════════════════ */
+  .compare-grid { display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:64px; }
+  .compare-card { border-radius:20px;padding:32px 28px; }
+  .compare-card.before { background:rgba(200,100,120,.07);border:1px solid rgba(200,100,120,.2); }
+  .compare-card.after { background:linear-gradient(145deg,rgba(200,79,114,.09),rgba(124,95,224,.09));border:1px solid rgba(200,79,114,.3); }
+  .compare-label { font-size:10px;font-weight:700;letter-spacing:.3em;margin-bottom:20px; }
+  .compare-card.before .compare-label { color:rgba(150,80,100,.6); }
+  .compare-card.after .compare-label { color:var(--pink-deep); }
+  .compare-row { display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(200,130,160,.12);font-size:14px;color:var(--text); }
+  .compare-row:last-child { border-bottom:none; }
+  .compare-icon { font-size:16px;flex-shrink:0;width:22px; }
+  .compare-row.good { color:var(--text); }
+  .compare-row.bad { color:rgba(150,80,100,.6);text-decoration:line-through;text-decoration-color:rgba(200,80,120,.4); }
+
+  /* ══════════════════════════════
+     SOLUTION
+  ══════════════════════════════ */
+  .step-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:24px; }
+  .step-card {
+    background:rgba(255,255,255,.6);border:1px solid rgba(220,150,180,.25);
+    border-radius:22px;padding:36px 28px;
+    backdrop-filter:blur(30px);
+    box-shadow:0 6px 28px rgba(200,80,120,.07);
+    position:relative;overflow:hidden;
   }
-  .final-cta-title { font-family:'Syne',sans-serif; font-size:clamp(32px,5vw,62px); font-weight:800; line-height:1.1; margin-bottom:24px; }
-  .final-cta-title .accent { background:linear-gradient(135deg,var(--pink-deep),var(--purple-deep)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
-  .final-cta-sub { font-size:16px; color:var(--text-light); line-height:2; margin-bottom:48px; font-weight:300; }
-  .btn-large {
-    display:inline-flex; align-items:center; gap:12px;
-    padding:22px 56px; border-radius:100px;
+  .step-card::before { content:'';position:absolute;inset:0;background:linear-gradient(145deg,rgba(255,215,230,.22) 0%,rgba(220,200,255,.12) 100%);pointer-events:none; }
+  .step-bg-num { position:absolute;top:16px;right:20px;font-family:'Syne',sans-serif;font-size:64px;font-weight:800;color:rgba(200,130,160,.08);line-height:1;pointer-events:none; }
+  .step-label { font-size:10px;letter-spacing:.3em;color:var(--pink-deep);font-weight:700;margin-bottom:16px; }
+  .step-title { font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--text);margin-bottom:12px; }
+  .step-desc { font-size:13px;color:var(--text-light);line-height:1.9;font-weight:300; }
+
+  /* ══════════════════════════════
+     FEATURES
+  ══════════════════════════════ */
+  .feat-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:22px; }
+  .feat-card {
+    background:var(--card-bg);border:1px solid rgba(220,150,180,.25);
+    border-radius:20px;padding:30px 26px;
+    backdrop-filter:blur(30px);
+    box-shadow:0 6px 24px rgba(200,80,120,.07);
+    transition:transform .3s,box-shadow .3s;
+    position:relative;overflow:hidden;
+  }
+  .feat-card::before { content:'';position:absolute;inset:0;background:linear-gradient(145deg,rgba(255,215,230,.2) 0%,transparent 60%);pointer-events:none; }
+  .feat-card:hover { transform:translateY(-5px);box-shadow:0 16px 44px rgba(200,80,120,.13); }
+  .feat-icon { font-size:28px;margin-bottom:14px; }
+  .feat-title { font-size:15px;font-weight:700;color:var(--text);margin-bottom:8px; }
+  .feat-desc { font-size:13px;color:var(--text-light);line-height:1.85;font-weight:300; }
+
+  /* ══════════════════════════════
+     PRICING
+  ══════════════════════════════ */
+  .pricing-top { display:flex;align-items:center;gap:16px;margin-bottom:48px;flex-wrap:wrap; }
+  .free-pill {
+    display:inline-flex;align-items:center;gap:8px;
+    padding:9px 22px;border-radius:100px;
+    background:linear-gradient(135deg,rgba(200,79,114,.1),rgba(124,95,224,.1));
+    border:1px solid rgba(200,79,114,.28);
+    font-size:12px;font-weight:700;color:var(--pink-deep);letter-spacing:.08em;
+  }
+  .plans-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:22px; }
+  .plan-card {
+    background:var(--card-bg);border:1px solid rgba(220,150,180,.25);
+    border-radius:22px;padding:34px 26px;
+    backdrop-filter:blur(40px);
+    box-shadow:0 8px 36px rgba(200,80,120,.08);
+    position:relative;overflow:hidden;
+    transition:transform .3s,box-shadow .3s;
+    display:flex;flex-direction:column;
+  }
+  .plan-card::before { content:'';position:absolute;inset:0;background:linear-gradient(145deg,rgba(255,215,230,.22) 0%,rgba(220,200,255,.1) 100%);pointer-events:none; }
+  .plan-card:hover { transform:translateY(-6px);box-shadow:0 18px 56px rgba(200,80,120,.13); }
+  .plan-card.popular { border-color:rgba(200,79,114,.4);box-shadow:0 12px 56px rgba(200,79,114,.18);transform:translateY(-6px); }
+  .plan-card.popular:hover { transform:translateY(-12px); }
+  .popular-badge { position:absolute;top:0;right:22px;background:linear-gradient(135deg,var(--pink-btn),var(--purple-deep));color:white;font-size:9px;font-weight:700;letter-spacing:.15em;padding:5px 13px;border-radius:0 0 9px 9px; }
+  .plan-name { font-family:'Syne',sans-serif;font-size:12px;font-weight:800;letter-spacing:.25em;color:var(--muted);margin-bottom:16px; }
+  .plan-price { margin-bottom:6px; }
+  .plan-price .yen { font-size:16px;font-weight:700;color:var(--text-light);vertical-align:top;margin-top:8px;display:inline-block; }
+  .plan-price .amount { font-family:'Syne',sans-serif;font-size:36px;font-weight:700;color:var(--text);line-height:1; }
+  .plan-price .per { font-size:13px;color:var(--muted);margin-left:4px; }
+  .plan-first { font-size:12px;color:var(--pink-deep);font-weight:700;margin-bottom:6px; }
+  .plan-first s { color:var(--muted);font-weight:400; }
+  .plan-videos { font-size:14px;color:var(--text-light);margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid rgba(200,130,160,.18); }
+  .plan-videos strong { color:var(--text);font-size:18px; }
+  .plan-features { list-style:none;flex:1;margin-bottom:28px; }
+  .plan-features li { display:flex;align-items:flex-start;gap:9px;font-size:13px;color:var(--text-light);line-height:1.7;margin-bottom:9px; }
+  .plan-features li::before { content:'✓';color:var(--pink-deep);font-weight:700;flex-shrink:0;margin-top:1px; }
+  .plan-btn {
+    width:100%;padding:14px;border:none;border-radius:13px;
+    font-family:'Zen Kaku Gothic New',sans-serif;font-size:14px;font-weight:700;letter-spacing:.08em;
+    cursor:none;transition:all .2s;position:relative;overflow:hidden;
+  }
+  .plan-btn::before { content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.18) 0%,transparent 55%);pointer-events:none; }
+  .plan-btn.primary { background:linear-gradient(135deg,var(--pink-btn) 0%,var(--purple-deep) 100%);color:white;box-shadow:0 6px 24px rgba(200,79,114,.25); }
+  .plan-btn.primary:hover { transform:translateY(-2px);box-shadow:0 12px 36px rgba(200,79,114,.35); }
+  .plan-btn.ghost { background:rgba(255,255,255,.6);border:1px solid rgba(200,130,160,.3);color:var(--text); }
+  .plan-btn.ghost:hover { background:rgba(255,255,255,.9);box-shadow:0 4px 16px rgba(200,80,120,.1); }
+
+  /* ══════════════════════════════
+     FINAL CTA
+  ══════════════════════════════ */
+  .cta-section { position:relative;z-index:1;text-align:center;padding:140px 24px 120px;max-width:800px;margin:0 auto; }
+  .cta-title { font-family:'Syne',sans-serif;font-size:clamp(30px,4.8vw,60px);font-weight:800;line-height:1.12;margin-bottom:24px; }
+  .cta-title .accent { background:linear-gradient(135deg,var(--pink-deep),var(--purple-deep));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text; }
+  .cta-sub { font-size:16px;color:var(--text-light);line-height:2;margin-bottom:48px;font-weight:300; }
+  .btn-cta {
+    display:inline-flex;align-items:center;gap:12px;
+    padding:22px 58px;border-radius:100px;
     background:linear-gradient(135deg,var(--pink-btn) 0%,var(--purple-deep) 100%);
-    color:white; font-family:'Zen Kaku Gothic New',sans-serif;
-    font-size:18px; font-weight:700; letter-spacing:.1em;
-    text-decoration:none; transition:all .25s;
-    box-shadow:0 12px 48px rgba(200,79,114,.35);
-    position:relative; overflow:hidden;
+    color:white;font-family:'Zen Kaku Gothic New',sans-serif;
+    font-size:18px;font-weight:700;letter-spacing:.1em;
+    text-decoration:none;transition:all .25s;
+    box-shadow:0 14px 52px rgba(200,79,114,.36);
+    position:relative;overflow:hidden;
   }
-  .btn-large::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(255,255,255,.18) 0%,transparent 55%); pointer-events:none; }
-  .btn-large:hover { transform:translateY(-4px); box-shadow:0 20px 64px rgba(200,79,114,.45); }
-  .final-note { font-size:12px; color:var(--muted); letter-spacing:.1em; margin-top:20px; }
+  .btn-cta::before { content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.18) 0%,transparent 55%);pointer-events:none; }
+  .btn-cta:hover { transform:translateY(-4px);box-shadow:0 22px 66px rgba(200,79,114,.46); }
+  .cta-note { font-size:12px;color:var(--muted);letter-spacing:.1em;margin-top:20px; }
+  .cta-checks { display:flex;gap:28px;justify-content:center;flex-wrap:wrap;margin-top:32px; }
+  .cta-check { font-size:13px;color:var(--text-light);display:flex;align-items:center;gap:7px; }
+  .cta-check::before { content:'✓';color:var(--pink-deep);font-weight:700; }
 
-  /* ───── FOOTER ───── */
-  footer { position:relative; z-index:1; padding:36px 48px; border-top:1px solid rgba(220,150,180,.2); display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,.2); }
-  .footer-logo { font-family:'Syne',sans-serif; font-weight:800; font-size:15px; background:linear-gradient(135deg,var(--pink-deep),var(--purple-deep)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
-  .footer-links { display:flex; gap:16px; }
-  .footer-links a { font-size:11px; color:var(--muted); text-decoration:none; letter-spacing:.1em; }
+  /* Footer */
+  footer { position:relative;z-index:1;padding:36px 48px;border-top:1px solid rgba(220,150,180,.2);display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,.2); }
+  .footer-logo { font-family:'Syne',sans-serif;font-weight:800;font-size:15px;background:linear-gradient(135deg,var(--pink-deep),var(--purple-deep));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text; }
+  .footer-links { display:flex;gap:16px; }
+  .footer-links a { font-size:11px;color:var(--muted);text-decoration:none;letter-spacing:.1em; }
   .footer-links a:hover { color:var(--pink-deep); }
-  .footer-text { font-size:11px; color:var(--muted); letter-spacing:.1em; }
+  .footer-text { font-size:11px;color:var(--muted);letter-spacing:.1em; }
 
-  /* ───── DIVIDERS ───── */
-  .section-divider { position:relative; z-index:1; height:1px; background:linear-gradient(90deg,transparent,rgba(220,150,180,.3),transparent); margin:0 48px; }
+  /* Divider */
+  .divider { position:relative;z-index:1;height:1px;background:linear-gradient(90deg,transparent,rgba(220,150,180,.3),transparent);margin:0 48px; }
 
+  /* Scroll reveal */
+  .reveal { opacity:0;transform:translateY(28px);transition:opacity .65s ease,transform .65s ease; }
+  .reveal.in { opacity:1;transform:translateY(0); }
+
+  /* ══════════════════════════════
+     RESPONSIVE
+  ══════════════════════════════ */
   @media(max-width:768px){
-    nav{padding:18px 20px;}
-    .hero{padding:110px 16px 80px;}
-    .hero-stats{gap:24px;}
-    .stat-divider{display:none;}
-    .section{padding:80px 16px;}
-    .problem-grid{grid-template-columns:1fr;}
-    .solution-inner{padding:80px 16px;}
-    .solution-cards{grid-template-columns:1fr;}
-    .features-grid-lp{grid-template-columns:1fr;}
-    .pricing-inner{padding:80px 16px;}
-    .plans-row{grid-template-columns:1fr;}
-    .final-cta{padding:100px 16px;}
-    footer{flex-direction:column;gap:14px;text-align:center;padding:28px 20px;}
+    nav { padding:18px 20px; }
+    .hero { padding:110px 16px 80px; }
+    .section { padding:80px 16px; }
+    .band-inner { padding:80px 16px; }
+    .persona-grid { grid-template-columns:1fr 1fr; }
+    .problem-item { flex-direction:column;gap:12px; }
+    .problem-num { font-size:28px;width:auto; }
+    .compare-grid { grid-template-columns:1fr; }
+    .step-grid { grid-template-columns:1fr; }
+    .feat-grid { grid-template-columns:1fr 1fr;gap:16px; }
+    .plans-grid { grid-template-columns:1fr; }
+    .plan-card.popular { transform:none; }
+    .plan-card.popular:hover { transform:translateY(-6px); }
+    .cta-section { padding:100px 16px 80px; }
+    footer { flex-direction:column;gap:14px;text-align:center;padding:28px 20px; }
+    .divider { margin:0 20px; }
   }
   @media(max-width:480px){
-    .nav-login{display:none;}
-    .btn-primary{padding:18px 32px;font-size:15px;}
-    .btn-large{padding:18px 36px;font-size:16px;}
-    .solution-pipeline{display:none;}
+    .nav-link-ghost { display:none; }
+    .hero-tags { gap:8px; }
+    .hero-tag { font-size:11px;padding:5px 14px; }
+    .btn-hero { padding:18px 36px;font-size:15px; }
+    .persona-grid { grid-template-columns:1fr; }
+    .feat-grid { grid-template-columns:1fr; }
+    .btn-cta { padding:18px 36px;font-size:16px; }
+    .cta-checks { gap:16px; }
   }
 </style>
 </head>
@@ -322,211 +344,297 @@
 </div>
 <div class="grid-overlay"></div>
 
+<!-- ══════════ NAV ══════════ -->
 <nav>
   <a href="lp.html" class="logo">AHA WARP</a>
-  <div class="nav-cta">
-    <a href="login.html" class="nav-login">ログイン</a>
-    <a href="pricing.html" class="nav-start">無料で始める →</a>
+  <div class="nav-actions">
+    <a href="login.html" class="nav-link-ghost">ログイン</a>
+    <a href="pricing.html" class="nav-btn">無料で始める →</a>
   </div>
 </nav>
 
-<!-- ═══ HERO ═══ -->
+<!-- ══════════ HERO ══════════ -->
 <section class="hero">
   <div class="hero-eyebrow">AI VIDEO GENERATION</div>
-  <h1 class="hero-title">
-    <span class="line-dark">撮影ゼロで、</span>
-    <span class="line-accent">あなたが世界中に現れる。</span>
+  <h1 class="hero-catch">
+    <span class="line-1">あなたの顔は、</span>
+    <span class="line-2">最強のコンテンツだ。</span>
   </h1>
   <p class="hero-sub">
-    AIがあなたの顔で動画を自動生成。<br>
-    Instagramの更新を、もう止めなくていい。
+    顔が資産のすべての人へ。<br>
+    AIがあなたの顔で<strong>動画を自動生成</strong>し、<br>
+    撮影ゼロで発信を加速します。
   </p>
-  <div class="hero-cta-wrap">
-    <a href="pricing.html" class="btn-primary">✦ 無料で3本試してみる</a>
+  <div class="hero-cta">
+    <a href="pricing.html" class="btn-hero">✦ 無料で3本試してみる</a>
     <span class="hero-note">クレジットカード不要 ・ 登録後すぐに開始</span>
   </div>
-  <div class="hero-stats">
-    <div class="stat-item">
-      <div class="stat-num">3本</div>
-      <div class="stat-label">無料でお試し</div>
-    </div>
-    <div class="stat-divider"></div>
-    <div class="stat-item">
-      <div class="stat-num">5秒</div>
-      <div class="stat-label">1本の動画長</div>
-    </div>
-    <div class="stat-divider"></div>
-    <div class="stat-item">
-      <div class="stat-num">数分</div>
-      <div class="stat-label">生成にかかる時間</div>
-    </div>
-    <div class="stat-divider"></div>
-    <div class="stat-item">
-      <div class="stat-num">¥0</div>
-      <div class="stat-label">撮影コスト</div>
-    </div>
+  <div class="hero-tags">
+    <span class="hero-tag">インフルエンサー</span>
+    <span class="hero-tag">コーチ・コンサルタント</span>
+    <span class="hero-tag">オンライン講師</span>
+    <span class="hero-tag">士業・専門家</span>
+    <span class="hero-tag">店舗オーナー</span>
+    <span class="hero-tag">個人ブランド運営者</span>
+    <span class="hero-tag">クリエイター</span>
   </div>
 </section>
 
-<div class="section-divider"></div>
+<div class="divider"></div>
 
-<!-- ═══ PROBLEM ═══ -->
+<!-- ══════════ FOR WHOM ══════════ -->
 <div class="section">
-  <div class="section-eyebrow">THE PROBLEM</div>
-  <h2 class="section-title">フォロワーが増えるほど、<br>撮影の<span style="background:linear-gradient(135deg,var(--pink-deep),var(--purple-deep));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">プレッシャー</span>も増える。</h2>
-  <p class="section-sub">
-    1万フォロワーを超えたとき、コンテンツへの期待値が変わります。<br>でも撮影の負担は、誰も肩代わりしてくれない。
-  </p>
-  <div class="problem-grid">
-    <div class="problem-card">
-      <div class="problem-icon">⏰</div>
-      <div class="problem-title">毎日投稿するための時間がない</div>
-      <div class="problem-desc">撮影・編集・投稿のサイクルに追われ、肝心のコンテンツの質が落ちる。フォロワーは増えたのに、投稿ペースが落ちていく。</div>
+  <div class="section-eyebrow">FOR WHOM</div>
+  <h2 class="section-title">こんな人のために、<br>つくりました。</h2>
+  <p class="section-lead">「自分自身が商品」になっている人は、常に顔を出し続けることを求められます。でも、それを支える仕組みがなかった。</p>
+  <div class="persona-grid">
+    <div class="persona-card reveal">
+      <div class="persona-icon">📱</div>
+      <div class="persona-name">インフルエンサー・クリエイター</div>
+      <div class="persona-desc">毎日投稿が求められる中、撮影の時間と体力を消費し続けている。コンテンツのネタ切れ・マンネリ化も悩み。</div>
     </div>
-    <div class="problem-card">
-      <div class="problem-icon">💸</div>
-      <div class="problem-title">スタジオ・機材にかかるコストが高い</div>
-      <div class="problem-desc">プロクオリティを維持するには機材投資が必要。スタジオ代、カメラマン費用、編集コストが積み重なる。</div>
+    <div class="persona-card reveal">
+      <div class="persona-icon">🎯</div>
+      <div class="persona-name">コーチ・コンサルタント</div>
+      <div class="persona-desc">SNS集客のために顔出し発信が必要なのはわかっている。しかし撮影準備のハードルが高く、発信が後回しになる。</div>
     </div>
-    <div class="problem-card">
-      <div class="problem-icon">🗺️</div>
-      <div class="problem-title">同じ場所ばかりになってしまう</div>
-      <div class="problem-desc">パリや砂漠、宇宙で撮りたいアイデアはあっても、実際に行く時間もコストも現実的ではない。ロケーションが単調になりがち。</div>
+    <div class="persona-card reveal">
+      <div class="persona-icon">🎓</div>
+      <div class="persona-name">オンライン講師・教育者</div>
+      <div class="persona-desc">教材動画やSNS告知動画を継続的に作りたいが、撮影環境を整える時間もコストも限られている。</div>
     </div>
-    <div class="problem-card">
-      <div class="problem-icon">😓</div>
-      <div class="problem-title">体調や気分に左右される</div>
-      <div class="problem-desc">疲れているとき、体調が悪いとき、カメラの前に立てない日もある。でもアルゴリズムは待ってくれない。</div>
+    <div class="persona-card reveal">
+      <div class="persona-icon">⚖️</div>
+      <div class="persona-name">弁護士・税理士・士業</div>
+      <div class="persona-desc">専門性をSNSで発信し集客したい。ただし動画制作には不慣れで、プロに依頼するとコストがかさむ。</div>
     </div>
-  </div>
-</div>
-
-<div class="section-divider"></div>
-
-<!-- ═══ SOLUTION ═══ -->
-<div class="solution-wrap">
-  <div class="solution-inner">
-    <div class="section-eyebrow">THE SOLUTION</div>
-    <h2 class="section-title" style="margin-bottom:16px;">プロンプト一つで、<br><span style="background:linear-gradient(135deg,var(--pink-deep),var(--purple-deep));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">"あなた"</span>を世界に送り出す。</h2>
-    <p class="section-sub">AIがあなたの顔と指示されたシーンを合成し、リアルな動画を自動生成します。</p>
-
-    <div class="solution-pipeline">
-      <div class="sol-node">プロンプトを入力</div>
-      <div class="sol-arrow"></div>
-      <div class="sol-node">AIがシーンを最適化</div>
-      <div class="sol-arrow"></div>
-      <div class="sol-node hl">動画を自動生成</div>
-      <div class="sol-arrow"></div>
-      <div class="sol-node">ダウンロード → 投稿</div>
+    <div class="persona-card reveal">
+      <div class="persona-icon">🏪</div>
+      <div class="persona-name">飲食・店舗オーナー</div>
+      <div class="persona-desc">オーナー自身が発信することで信頼が生まれる。でも日々の業務で撮影に時間を割く余裕がない。</div>
     </div>
-
-    <div class="solution-cards">
-      <div class="sol-card">
-        <div class="sol-num">01</div>
-        <div class="sol-step">STEP 01</div>
-        <div class="sol-title">顔認証を完了する</div>
-        <div class="sol-desc">専用URLから顔認証を行い、あなたの顔データを登録します。初回のみ、数分で完了します。</div>
-      </div>
-      <div class="sol-card">
-        <div class="sol-num">02</div>
-        <div class="sol-step">STEP 02</div>
-        <div class="sol-title">プロンプトを入力する</div>
-        <div class="sol-desc">どんなシーンに登場したいかを日本語で入力します。服装・カメラアングルもカスタマイズ可能です。</div>
-      </div>
-      <div class="sol-card">
-        <div class="sol-num">03</div>
-        <div class="sol-step">STEP 03</div>
-        <div class="sol-title">動画をダウンロードして投稿</div>
-        <div class="sol-desc">数分で動画が完成します。Instagramリール、TikTok、YouTubeショートにそのまま使えます。</div>
-      </div>
+    <div class="persona-card reveal">
+      <div class="persona-icon">✨</div>
+      <div class="persona-name">個人ブランド運営者</div>
+      <div class="persona-desc">「自分ブランド」を確立するために顔出し発信は不可欠。でも量と質を両立するのが難しい。</div>
     </div>
   </div>
 </div>
 
-<div class="section-divider"></div>
+<div class="divider"></div>
 
-<!-- ═══ FEATURES ═══ -->
+<!-- ══════════ PROBLEM ══════════ -->
+<div class="band">
+  <div class="band-inner">
+    <div class="section-eyebrow">THE PROBLEM</div>
+    <h2 class="section-title">「発信しなきゃ」とわかっていても、<br><span class="accent">撮影が止まる。</span></h2>
+    <p class="section-lead">顔出し発信を続ける人が直面する3つの壁。どれか一つでも心当たりがあれば、AHA WARPはあなたのために作られています。</p>
+    <div class="problem-list">
+      <div class="problem-item reveal">
+        <div class="problem-num">01</div>
+        <div class="problem-body">
+          <div class="problem-title">撮影に時間がかかりすぎる</div>
+          <div class="problem-desc">セットアップ・撮影・確認・再撮影・編集——1本の動画を仕上げるまでに数時間を消費します。本業が忙しいほど、撮影は後回しになり、発信頻度が落ちていきます。</div>
+        </div>
+      </div>
+      <div class="problem-item reveal">
+        <div class="problem-num">02</div>
+        <div class="problem-body">
+          <div class="problem-title">撮影のコストが積み重なる</div>
+          <div class="problem-desc">カメラ・照明・マイクなどの機材費、スタジオ代、編集外注費——プロクオリティを保つには継続的な出費が伴います。費用対効果が見えにくく、投資判断が難しい。</div>
+        </div>
+      </div>
+      <div class="problem-item reveal">
+        <div class="problem-num">03</div>
+        <div class="problem-body">
+          <div class="problem-title">場所・体調・気分に左右される</div>
+          <div class="problem-desc">旅先のホテル、体調が悪い日、髪が決まらない朝——カメラの前に立てない日は必ずあります。でもアルゴリズムは待ってくれない。発信が途切れるたびにリーチは落ちていきます。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ══════════ SOLUTION ══════════ -->
 <div class="section">
-  <div class="section-eyebrow">FEATURES</div>
-  <h2 class="section-title">AHA WARPが、<br>できること。</h2>
-  <p class="section-sub">インフルエンサーのコンテンツ制作に特化した機能を揃えています。</p>
-  <div class="features-grid-lp">
-    <div class="feat-card">
-      <div class="feat-icon">🎭</div>
-      <div class="feat-title">高精度な顔の再現</div>
-      <div class="feat-desc">登録した顔データから、"あなた"を高い精度で動画に再現。見た人があなただとわかるクオリティです。</div>
+  <div class="section-eyebrow">THE SOLUTION</div>
+  <h2 class="section-title">顔を登録するだけ。<br><span class="accent">あとはAIが全部やる。</span></h2>
+  <p class="section-lead">AHA WARPは、あなたの顔データとプロンプトから動画を自動生成します。撮影も照明も編集も不要。</p>
+
+  <!-- Compare -->
+  <div class="compare-grid reveal">
+    <div class="compare-card before">
+      <div class="compare-label">従来の撮影方法</div>
+      <div class="compare-row bad"><span class="compare-icon">⏰</span> 撮影に半日〜丸1日</div>
+      <div class="compare-row bad"><span class="compare-icon">💸</span> 機材・スタジオ代が必要</div>
+      <div class="compare-row bad"><span class="compare-icon">🗺️</span> 同じ場所・背景になりがち</div>
+      <div class="compare-row bad"><span class="compare-icon">😓</span> 体調・気分に左右される</div>
+      <div class="compare-row bad"><span class="compare-icon">✂️</span> 撮影後に編集作業が必要</div>
     </div>
-    <div class="feat-card">
-      <div class="feat-icon">🌍</div>
-      <div class="feat-title">世界中どこでも撮影可能</div>
-      <div class="feat-desc">パリのカフェ、砂漠の夕日、NYのビル街。プロンプト一つで、"あなた"をどこにでも配置できます。</div>
+    <div class="compare-card after">
+      <div class="compare-label">AHA WARP</div>
+      <div class="compare-row good"><span class="compare-icon">⚡</span> 数分で動画が完成</div>
+      <div class="compare-row good"><span class="compare-icon">📦</span> 月額定額、追加コスト不要</div>
+      <div class="compare-row good"><span class="compare-icon">🌍</span> 世界中どこでも自由に設定</div>
+      <div class="compare-row good"><span class="compare-icon">🤖</span> 体調に関係なく毎日生成可能</div>
+      <div class="compare-row good"><span class="compare-icon">✅</span> 生成完了でそのままダウンロード</div>
     </div>
-    <div class="feat-card">
-      <div class="feat-icon">👗</div>
-      <div class="feat-title">服装・スタイルを自由にカスタマイズ</div>
-      <div class="feat-desc">カジュアル、ビジネス、フォーマル、ストリート。コーデと色を指定して、コンセプトに合わせた動画を作成。</div>
+  </div>
+
+  <!-- Steps -->
+  <div class="step-grid">
+    <div class="step-card reveal">
+      <div class="step-bg-num">01</div>
+      <div class="step-label">STEP 01</div>
+      <div class="step-title">顔認証を完了する</div>
+      <div class="step-desc">専用URLからスマートフォンで顔認証を行い、あなたの顔データを登録します。初回のみで、数分で完了します。</div>
     </div>
-    <div class="feat-card">
-      <div class="feat-icon">🎬</div>
-      <div class="feat-title">カメラアングルを選択</div>
-      <div class="feat-desc">フロント、スリークォーター、ドローンショットなど8種類以上のアングルから選択。映像表現の幅が広がります。</div>
+    <div class="step-card reveal">
+      <div class="step-bg-num">02</div>
+      <div class="step-label">STEP 02</div>
+      <div class="step-title">プロンプトを入力する</div>
+      <div class="step-desc">日本語でシーンを指定するだけ。服装・色・カメラアングルも選べます。「パリのカフェ」も「砂漠の夕日」も思いのまま。</div>
     </div>
-    <div class="feat-card">
-      <div class="feat-icon">⚡</div>
-      <div class="feat-title">数分で完成・すぐ投稿</div>
-      <div class="feat-desc">生成が完了したら通知。マイページからいつでもダウンロードでき、そのままSNSに投稿できます。</div>
-    </div>
-    <div class="feat-card">
-      <div class="feat-icon">📊</div>
-      <div class="feat-title">月額固定でコスト管理</div>
-      <div class="feat-desc">月額固定でクレジット本数が決まるから、コスト管理が簡単。フリープランで3本まで無料で試せます。</div>
+    <div class="step-card reveal">
+      <div class="step-bg-num">03</div>
+      <div class="step-label">STEP 03</div>
+      <div class="step-title">動画をダウンロードして発信</div>
+      <div class="step-desc">数分で5秒動画が完成します。Instagram・TikTok・YouTubeショートにそのまま使えるフォーマットで書き出されます。</div>
     </div>
   </div>
 </div>
 
-<div class="section-divider"></div>
+<div class="divider"></div>
 
-<!-- ═══ PRICING ═══ -->
-<div class="pricing-wrap">
-  <div class="pricing-inner">
-    <div class="section-eyebrow" style="justify-content:center;">PRICING</div>
-    <h2 class="section-title">シンプルな<span style="background:linear-gradient(135deg,var(--pink-deep),var(--purple-deep));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">料金プラン</span></h2>
-    <p style="font-size:15px;color:var(--text-light);line-height:2;font-weight:300;margin-bottom:8px;">まずは無料3本からお試しください。クレジットカード不要。</p>
-    <div class="free-badge">🎁 新規登録で3本無料</div>
-    <div class="plans-row">
-      <div class="plan-mini">
-        <div class="plan-mini-name">STARTER</div>
-        <div class="plan-mini-price">¥4,980<span>/ 月</span></div>
-        <div class="plan-mini-videos">月 <strong>6本</strong> の動画を生成</div>
+<!-- ══════════ FEATURES ══════════ -->
+<div class="band">
+  <div class="band-inner">
+    <div class="section-eyebrow">FEATURES</div>
+    <h2 class="section-title">発信を止めない、<br>すべての機能。</h2>
+    <p class="section-lead">顔出し発信を続けるために必要な機能を、一つのサービスに。</p>
+    <div class="feat-grid">
+      <div class="feat-card reveal">
+        <div class="feat-icon">🎭</div>
+        <div class="feat-title">高精度な顔の再現</div>
+        <div class="feat-desc">登録した顔データをもとに、"あなた"を高精度で動画に再現。見た人があなたとわかるクオリティです。</div>
       </div>
-      <div class="plan-mini featured">
-        <div class="plan-mini-badge">POPULAR</div>
-        <div class="plan-mini-name">CREATOR</div>
-        <div class="plan-mini-price">¥14,800<span>/ 月</span></div>
-        <div class="plan-mini-videos">月 <strong>18本</strong> の動画を生成</div>
+      <div class="feat-card reveal">
+        <div class="feat-icon">🌍</div>
+        <div class="feat-title">世界中どこにでも登場</div>
+        <div class="feat-desc">パリ・ニューヨーク・砂漠・宇宙。撮影に行かなくてもプロンプト一つで、あなたをどこにでも配置できます。</div>
       </div>
-      <div class="plan-mini">
-        <div class="plan-mini-name">BUSINESS</div>
-        <div class="plan-mini-price">¥39,800<span>/ 月</span></div>
-        <div class="plan-mini-videos">月 <strong>60本</strong> の動画を生成</div>
+      <div class="feat-card reveal">
+        <div class="feat-icon">👗</div>
+        <div class="feat-title">服装・スタイルを自由に指定</div>
+        <div class="feat-desc">カジュアル・スーツ・ストリート・リゾート。コーデとカラーを組み合わせてブランドに合った見た目を実現。</div>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-icon">🎬</div>
+        <div class="feat-title">8種類以上のカメラアングル</div>
+        <div class="feat-desc">フロント・スリークォーター・ドローン・クローズアップなど多彩なアングルで映像表現の幅が広がります。</div>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-icon">⚡</div>
+        <div class="feat-title">数分で完成・マイページ管理</div>
+        <div class="feat-desc">生成はバックグラウンドで完了。マイページからいつでも過去の動画をダウンロードできます。</div>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-icon">🔒</div>
+        <div class="feat-title">月額固定・安心の料金体系</div>
+        <div class="feat-desc">月額固定でクレジット本数が決まるシンプルな設計。フリープランで3本まで無料で試せます。</div>
       </div>
     </div>
-    <a href="pricing.html" class="pricing-link">全プランの詳細を見る →</a>
   </div>
 </div>
 
-<!-- ═══ FINAL CTA ═══ -->
-<div class="final-cta">
+<div class="divider"></div>
+
+<!-- ══════════ PRICING ══════════ -->
+<div class="section">
+  <div class="section-eyebrow">PRICING</div>
+  <h2 class="section-title">シンプルな<span class="accent">料金プラン</span></h2>
+  <div class="pricing-top">
+    <p style="font-size:15px;color:var(--text-light);line-height:2;font-weight:300;margin:0;">まずは無料3本からお試しください。クレジットカード不要。</p>
+    <span class="free-pill">🎁 新規登録で3本無料 ・ 初月20%OFF</span>
+  </div>
+  <div class="plans-grid">
+
+    <!-- STARTER -->
+    <div class="plan-card reveal">
+      <div class="plan-name">STARTER</div>
+      <div class="plan-price"><span class="yen">¥</span><span class="amount">4,980</span><span class="per">/ 月</span></div>
+      <div class="plan-first">初月 <s>¥4,980</s> → <strong>¥3,984</strong>（20%OFF）</div>
+      <div class="plan-videos">月 <strong>6本</strong> の動画を生成</div>
+      <ul class="plan-features">
+        <li>5秒動画 × 月6本</li>
+        <li>顔認証による高精度な再現</li>
+        <li>日本語プロンプト対応</li>
+        <li>720p画質</li>
+        <li>メール完了通知</li>
+      </ul>
+      <a href="pricing.html" class="plan-btn ghost">このプランを選ぶ</a>
+    </div>
+
+    <!-- CREATOR -->
+    <div class="plan-card popular reveal">
+      <div class="popular-badge">POPULAR</div>
+      <div class="plan-name">CREATOR</div>
+      <div class="plan-price"><span class="yen">¥</span><span class="amount">14,800</span><span class="per">/ 月</span></div>
+      <div class="plan-first">初月 <s>¥14,800</s> → <strong>¥11,840</strong>（20%OFF）</div>
+      <div class="plan-videos">月 <strong>18本</strong> の動画を生成</div>
+      <ul class="plan-features">
+        <li>5秒動画 × 月18本</li>
+        <li>顔認証による高精度な再現</li>
+        <li>日本語プロンプト対応</li>
+        <li>720p画質</li>
+        <li>メール完了通知</li>
+        <li>STARTERより1本あたりのコストがお得</li>
+      </ul>
+      <a href="pricing.html" class="plan-btn primary">このプランを選ぶ</a>
+    </div>
+
+    <!-- BUSINESS -->
+    <div class="plan-card reveal">
+      <div class="plan-name">BUSINESS</div>
+      <div class="plan-price"><span class="yen">¥</span><span class="amount">39,800</span><span class="per">/ 月</span></div>
+      <div class="plan-first">初月 <s>¥39,800</s> → <strong>¥31,840</strong>（20%OFF）</div>
+      <div class="plan-videos">月 <strong>60本</strong> の動画を生成</div>
+      <ul class="plan-features">
+        <li>5秒動画 × 月60本</li>
+        <li>顔認証による高精度な再現</li>
+        <li>日本語プロンプト対応</li>
+        <li>720p画質</li>
+        <li>メール完了通知</li>
+        <li>最もコストパフォーマンスが高い</li>
+        <li>チーム・法人利用に最適</li>
+      </ul>
+      <a href="pricing.html" class="plan-btn ghost">このプランを選ぶ</a>
+    </div>
+
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ══════════ FINAL CTA ══════════ -->
+<div class="cta-section">
   <div class="section-eyebrow" style="justify-content:center;">GET STARTED</div>
-  <h2 class="final-cta-title">
-    今日から、<br><span class="accent">撮影をやめよう。</span>
+  <h2 class="cta-title">
+    あなたの顔は、<br><span class="accent">まだ眠っている。</span>
   </h2>
-  <p class="final-cta-sub">
-    あなたのアイデアとフォロワーは、もう揃っている。<br>
-    足りないのは、コンテンツを生成するツールだけ。
+  <p class="cta-sub">
+    顔が資産の人にとって、発信を止めることは機会損失です。<br>
+    AIが、あなたの代わりに世界中で動き続けます。
   </p>
-  <a href="pricing.html" class="btn-large">✦ 無料で始める（3本プレゼント）</a>
-  <p class="final-note">クレジットカード不要 ・ いつでも解約可能</p>
+  <a href="pricing.html" class="btn-cta">✦ 無料で始める（3本プレゼント）</a>
+  <div class="cta-checks">
+    <span class="cta-check">クレジットカード不要</span>
+    <span class="cta-check">登録後すぐに生成開始</span>
+    <span class="cta-check">いつでも解約可能</span>
+    <span class="cta-check">初月20%OFF</span>
+  </div>
 </div>
 
 <footer>
@@ -541,6 +649,7 @@
 </footer>
 
 <script>
+  // Cursor
   const cursor = document.getElementById('cursor');
   const cursorRing = document.getElementById('cursorRing');
   let mx=0,my=0,rx=0,ry=0;
@@ -551,27 +660,16 @@
     cursorRing.style.left=rx+'px'; cursorRing.style.top=ry+'px';
     requestAnimationFrame(loop);
   })();
-  document.querySelectorAll('button,a').forEach(el=>{
+  document.querySelectorAll('a,button').forEach(el=>{
     el.addEventListener('mouseenter',()=>{cursor.style.width='18px';cursor.style.height='18px';cursorRing.style.width='50px';cursorRing.style.height='50px';});
     el.addEventListener('mouseleave',()=>{cursor.style.width='10px';cursor.style.height='10px';cursorRing.style.width='32px';cursorRing.style.height='32px';});
   });
 
-  // スクロールアニメーション
+  // Scroll reveal
   const observer = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.style.opacity = '1';
-        entry.target.style.transform = 'translateY(0)';
-      }
-    });
-  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
-
-  document.querySelectorAll('.problem-card,.feat-card,.sol-card,.plan-mini').forEach(el => {
-    el.style.opacity = '0';
-    el.style.transform = 'translateY(28px)';
-    el.style.transition = 'opacity .6s ease, transform .6s ease';
-    observer.observe(el);
-  });
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
+  }, { threshold:0.08, rootMargin:'0px 0px -32px 0px' });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 </script>
 </body>
 </html>
