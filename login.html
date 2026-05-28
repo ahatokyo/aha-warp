@@ -274,26 +274,29 @@
         window.location.href = 'mypage.html';
       }
     } else {
-      // 既存メールアドレスかどうかを先にチェック
-      const { data: existingUser } = await sb.auth.signInWithPassword({ email, password: '___dummy___' });
-      const { error } = await sb.auth.signUp({ email, password });
+      const { data, error } = await sb.auth.signUp({ email, password });
       if (error) {
         if (error.message.includes('User already registered') ||
             error.message.includes('already been registered') ||
-            error.message.includes('email address is already')) {
+            error.message.includes('email address is already') ||
+            error.message.includes('already registered') ||
+            error.status === 422) {
           showError('このメールアドレスはすでに登録されています。ログインタブからサインインしてください。');
-        } else if (error.message.includes('rate limit') || error.message.includes('rate_limit')) {
+        } else if (error.message.includes('rate limit') || error.message.includes('rate_limit') || error.status === 429) {
           showError('しばらく時間をおいてから再度お試しください。');
         } else if (error.message.includes('Password should be')) {
           showError('パスワードは6文字以上で入力してください。');
         } else {
-          showError('登録に失敗しました。もう一度お試しください。');
+          showError('登録に失敗しました。(' + error.message + ')');
         }
       } else {
-        // Supabaseは既存メールでも成功を返すことがあるため、identitiesで判定
-        const identities = error?.user?.identities;
-        if (identities && identities.length === 0) {
+        // Supabaseはメール確認が必要な場合でも成功を返す。
+        // identitiesが空配列 = すでに登録済みのメールアドレス。
+        if (data.user && data.user.identities && data.user.identities.length === 0) {
           showError('このメールアドレスはすでに登録されています。ログインタブからサインインしてください。');
+        } else if (data.session) {
+          // メール確認不要の設定の場合、即座にセッションが発行される
+          window.location.href = 'mypage.html';
         } else {
           showSuccess('確認メールを送信しました。メールをご確認ください。');
         }
