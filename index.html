@@ -478,6 +478,44 @@
     .asset-row{grid-template-columns:1fr;}
     footer{flex-direction:column;gap:14px;text-align:center;}
   }
+
+  /* レビューフォーム */
+  .review-form-panel { margin-top:22px; display:none; }
+  .review-form-panel.active { display:block; }
+  .review-form-inner {
+    background:rgba(255,255,255,.6); border:1px solid rgba(200,130,160,.25);
+    border-radius:18px; padding:28px;
+    box-shadow:0 4px 20px rgba(200,80,120,.06);
+  }
+  .review-form-title { font-size:13px; font-weight:700; color:var(--text); margin-bottom:6px; letter-spacing:.05em; }
+  .review-form-sub { font-size:11px; color:var(--muted); margin-bottom:18px; line-height:1.7; }
+  .star-row { display:flex; gap:8px; margin-bottom:16px; }
+  .star-btn { font-size:26px; background:none; border:none; cursor:none; opacity:.3; transition:opacity .2s,transform .2s; line-height:1; }
+  .star-btn.active { opacity:1; transform:scale(1.1); }
+  .review-textarea {
+    width:100%; background:var(--input-bg);
+    border:1px solid rgba(200,130,160,.25); border-radius:14px;
+    padding:14px 16px; color:var(--text);
+    font-family:'Zen Kaku Gothic New',sans-serif; font-size:14px;
+    line-height:1.7; resize:none; min-height:90px;
+    outline:none; transition:border-color .3s,box-shadow .3s;
+    box-shadow:inset 0 2px 8px rgba(200,100,140,.05); margin-bottom:6px;
+  }
+  .review-textarea:focus { border-color:rgba(200,80,120,.4); box-shadow:0 0 0 3px rgba(200,80,120,.08); }
+  .review-textarea::placeholder { color:rgba(160,80,110,.4); }
+  .review-char-count { font-size:11px; color:var(--muted); text-align:right; margin-bottom:14px; }
+  .review-char-count.valid { color:#16a34a; }
+  .review-submit-btn {
+    width:100%; padding:14px; border:none; border-radius:14px;
+    background:linear-gradient(135deg,var(--pink-btn) 0%,var(--purple-deep) 100%);
+    color:white; font-family:'Zen Kaku Gothic New',sans-serif;
+    font-size:14px; font-weight:700; letter-spacing:.08em;
+    cursor:none; transition:transform .2s,box-shadow .2s,opacity .2s;
+    box-shadow:0 6px 24px rgba(200,79,114,.2);
+  }
+  .review-submit-btn:hover { transform:translateY(-2px); box-shadow:0 12px 36px rgba(200,79,114,.3); }
+  .review-submit-btn:disabled { opacity:.5; transform:none; }
+  .review-thanks { text-align:center; padding:20px 0; font-size:14px; color:#16a34a; font-weight:700; display:none; }
 </style>
 </head>
 <body>
@@ -655,6 +693,26 @@
         <a class="download-btn" id="downloadBtn" href="#" download="aha-warp.mp4">↓ 動画をダウンロード</a>
       </div>
     </div>
+
+    <!-- レビューフォーム（has_reviewed=falseのユーザーのみ表示） -->
+    <div class="review-form-panel" id="reviewFormPanel">
+      <div class="review-form-inner">
+        <div class="review-form-title">✦ ご感想をお聞かせください</div>
+        <div class="review-form-sub">いただいたレビューはサービス改善と他のユーザーの参考に活用されます。</div>
+        <div class="star-row" id="starRow">
+          <button class="star-btn" data-star="1" onclick="selectStar(1)">⭐</button>
+          <button class="star-btn" data-star="2" onclick="selectStar(2)">⭐</button>
+          <button class="star-btn" data-star="3" onclick="selectStar(3)">⭐</button>
+          <button class="star-btn" data-star="4" onclick="selectStar(4)">⭐</button>
+          <button class="star-btn" data-star="5" onclick="selectStar(5)">⭐</button>
+        </div>
+        <textarea class="review-textarea" id="reviewText" placeholder="実際に使ってみた感想を教えてください（20文字以上）" oninput="onReviewInput()"></textarea>
+        <div class="review-char-count" id="reviewCharCount">0 / 20文字以上</div>
+        <div id="reviewErrorMsg" style="display:none;font-size:12px;color:#dc2626;margin-bottom:10px;padding:10px 14px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:10px;"></div>
+        <button class="review-submit-btn" id="reviewSubmitBtn" onclick="submitReview()">レビューを送信する</button>
+        <div class="review-thanks" id="reviewThanks">✦ ありがとうございました！</div>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -678,75 +736,14 @@
   </div>
 </section>
 
-<section class="reviews-section">
+<!-- レビューセクション（レビューが1件以上あるときのみ表示） -->
+<section class="reviews-section" id="reviewsSection" style="display:none;">
   <div class="reviews-header">
     <div class="reviews-eyebrow">USER REVIEWS</div>
     <h2 class="reviews-title">使った人の声</h2>
   </div>
   <div class="reviews-track-wrap">
-    <div class="reviews-track" id="reviewsTrack">
-      <div class="review-card">
-        <div class="review-stars">⭐⭐⭐⭐⭐</div>
-        <div class="review-text">「プロンプトを打つだけで、本当に自分がパリにいる動画が作れました。もう撮影に行かなくていい。」</div>
-        <div class="review-author">— Yuki T. / ライフスタイル系インフルエンサー</div>
-      </div>
-      <div class="review-card">
-        <div class="review-stars">⭐⭐⭐⭐⭐</div>
-        <div class="review-text">「毎日投稿が続けられるようになりました。撮影の時間と費用が完全にゼロになった感覚です。」</div>
-        <div class="review-author">— Kenji M. / ビジネス系YouTuber</div>
-      </div>
-      <div class="review-card">
-        <div class="review-stars">⭐⭐⭐⭐⭐</div>
-        <div class="review-text">「顔の再現度に驚きました。友達に見せたら本当に海外に行ったと思われました（笑）」</div>
-        <div class="review-author">— Saki R. / トラベル系クリエイター</div>
-      </div>
-      <div class="review-card">
-        <div class="review-stars">⭐⭐⭐⭐⭐</div>
-        <div class="review-text">「コンサルタントとして、世界各地にいるような動画でブランディングできています。クライアントへの印象が変わりました。」</div>
-        <div class="review-author">— Takashi N. / 独立コンサルタント</div>
-      </div>
-      <div class="review-card">
-        <div class="review-stars">⭐⭐⭐⭐⭐</div>
-        <div class="review-text">「SNSのフォロワーが増えました。毎週違う国にいるような動画が出せるので、見ている人が飽きないみたいです。」</div>
-        <div class="review-author">— Hana K. / ファッション系インフルエンサー</div>
-      </div>
-      <div class="review-card">
-        <div class="review-stars">⭐⭐⭐⭐⭐</div>
-        <div class="review-text">「日本語でプロンプトを打つだけで、英語圏向けの動画が自動で作れる。グローバル展開のコストが激減しました。」</div>
-        <div class="review-author">— Ryo S. / 海外向けビジネスオーナー</div>
-      </div>
-      <!-- ループ用 -->
-      <div class="review-card">
-        <div class="review-stars">⭐⭐⭐⭐⭐</div>
-        <div class="review-text">「プロンプトを打つだけで、本当に自分がパリにいる動画が作れました。もう撮影に行かなくていい。」</div>
-        <div class="review-author">— Yuki T. / ライフスタイル系インフルエンサー</div>
-      </div>
-      <div class="review-card">
-        <div class="review-stars">⭐⭐⭐⭐⭐</div>
-        <div class="review-text">「毎日投稿が続けられるようになりました。撮影の時間と費用が完全にゼロになった感覚です。」</div>
-        <div class="review-author">— Kenji M. / ビジネス系YouTuber</div>
-      </div>
-      <div class="review-card">
-        <div class="review-stars">⭐⭐⭐⭐⭐</div>
-        <div class="review-text">「顔の再現度に驚きました。友達に見せたら本当に海外に行ったと思われました（笑）」</div>
-        <div class="review-author">— Saki R. / トラベル系クリエイター</div>
-      </div>
-      <div class="review-card">
-        <div class="review-stars">⭐⭐⭐⭐⭐</div>
-        <div class="review-text">「コンサルタントとして、世界各地にいるような動画でブランディングできています。クライアントへの印象が変わりました。」</div>
-        <div class="review-author">— Takashi N. / 独立コンサルタント</div>
-      </div>
-      <div class="review-card">
-        <div class="review-stars">⭐⭐⭐⭐⭐</div>
-        <div class="review-text">「SNSのフォロワーが増えました。毎週違う国にいるような動画が出せるので、見ている人が飽きないみたいです。」</div>
-        <div class="review-author">— Hana K. / ファッション系インフルエンサー</div>
-      </div>
-      <div class="review-card">
-        <div class="review-stars">⭐⭐⭐⭐⭐</div>
-        <div class="review-text">「日本語でプロンプトを打つだけで、英語圏向けの動画が自動で作れる。グローバル展開のコストが激減しました。」</div>
-        <div class="review-author">— Ryo S. / 海外向けビジネスオーナー</div>
-      </div>
-    </div>
+    <div class="reviews-track" id="reviewsTrack"></div>
   </div>
 </section>
 
@@ -809,12 +806,13 @@
     if (!window.__supabase || !window.__user) return;
     const { data } = await window.__supabase
       .from('profiles')
-      .select('credits_remaining, face_asset_id')
+      .select('credits_remaining, face_asset_id, has_reviewed')
       .eq('id', window.__user.id)
       .single();
     if (data) {
       document.getElementById('navCredits').textContent = `クレジット残数: ${data.credits_remaining}`;
       window.__credits = data.credits_remaining;
+      window.__hasReviewed = data.has_reviewed;
       if (data.face_asset_id && !document.getElementById('faceAssetId').value) {
         document.getElementById('faceAssetId').value = toShortAssetId(data.face_asset_id);
         document.getElementById('faceAssetSavedBadge').style.display = 'inline';
@@ -1062,8 +1060,110 @@
       document.getElementById('resultPanel').classList.add('active');
       document.getElementById('generateBtn').disabled=false;
       document.getElementById('generateBtn').textContent='✦ "あなた"を生成する';
+      // has_reviewed=falseのユーザーにのみレビューフォームを表示
+      if (!window.__hasReviewed) {
+        document.getElementById('reviewFormPanel').classList.add('active');
+      }
     }, 1000);
   }
+
+  // ── レビュー機能 ──
+  let selectedStar = 0;
+
+  function selectStar(n) {
+    selectedStar = n;
+    document.querySelectorAll('.star-btn').forEach((btn, i) => {
+      btn.classList.toggle('active', i < n);
+    });
+    validateReview();
+  }
+
+  function onReviewInput() {
+    const len = document.getElementById('reviewText').value.trim().length;
+    const countEl = document.getElementById('reviewCharCount');
+    countEl.textContent = `${len} / 20文字以上`;
+    countEl.classList.toggle('valid', len >= 20);
+    validateReview();
+  }
+
+  function validateReview() {
+    const len = document.getElementById('reviewText').value.trim().length;
+    const ok = selectedStar > 0 && len >= 20;
+    document.getElementById('reviewSubmitBtn').disabled = !ok;
+  }
+
+  async function submitReview() {
+    const comment = document.getElementById('reviewText').value.trim();
+    const errEl = document.getElementById('reviewErrorMsg');
+    errEl.style.display = 'none';
+
+    // バリデーション
+    if (selectedStar === 0) {
+      errEl.textContent = '★の評価を選択してください。';
+      errEl.style.display = 'block';
+      return;
+    }
+    if (comment.length < 20) {
+      errEl.textContent = `20文字以上で入力してください（現在${comment.length}文字）。`;
+      errEl.style.display = 'block';
+      return;
+    }
+
+    document.getElementById('reviewSubmitBtn').disabled = true;
+    document.getElementById('reviewSubmitBtn').textContent = '送信中...';
+
+    try {
+      await window.__supabase.from('reviews').insert({
+        user_id: window.__user.id,
+        rating: selectedStar,
+        comment: comment,
+      });
+      await window.__supabase.from('profiles')
+        .update({ has_reviewed: true })
+        .eq('id', window.__user.id);
+
+      window.__hasReviewed = true;
+      document.getElementById('reviewSubmitBtn').style.display = 'none';
+      document.getElementById('reviewThanks').style.display = 'block';
+
+      // カルーセルを更新
+      loadReviews();
+    } catch(e) {
+      console.error('review error:', e);
+      document.getElementById('reviewSubmitBtn').disabled = false;
+      document.getElementById('reviewSubmitBtn').textContent = 'レビューを送信する';
+    }
+  }
+
+  async function loadReviews() {
+    if (!window.__supabase) return;
+    const { data } = await window.__supabase
+      .from('reviews')
+      .select('rating, comment, created_at')
+      .order('created_at', { ascending: false })
+      .limit(20);
+
+    if (!data || data.length === 0) {
+      document.getElementById('reviewsSection').style.display = 'none';
+      return;
+    }
+
+    document.getElementById('reviewsSection').style.display = 'block';
+
+    // カードを2セット作ってシームレスループ
+    const cards = [...data, ...data].map(r => {
+      const stars = '⭐'.repeat(r.rating);
+      return `<div class="review-card">
+        <div class="review-stars">${stars}</div>
+        <div class="review-text">「${r.comment}」</div>
+      </div>`;
+    }).join('');
+
+    document.getElementById('reviewsTrack').innerHTML = cards;
+  }
+
+  // ページ読み込み時にレビューを取得
+  setTimeout(loadReviews, 800);
 </script>
 </body>
 </html>
