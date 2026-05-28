@@ -479,7 +479,60 @@
     footer{flex-direction:column;gap:14px;text-align:center;}
   }
 
-  /* レビューフォーム */
+  /* 利用規約モーダル */
+  .terms-overlay {
+    position:fixed; inset:0; z-index:9000;
+    background:rgba(45,16,32,.7); backdrop-filter:blur(8px);
+    display:flex; align-items:center; justify-content:center;
+    padding:20px;
+  }
+  .terms-overlay.hidden { display:none; }
+  .terms-modal {
+    background:#fff5f8; border-radius:24px; padding:36px;
+    max-width:560px; width:100%;
+    box-shadow:0 32px 80px rgba(200,80,120,.2);
+    max-height:90vh; overflow-y:auto;
+  }
+  .terms-logo {
+    font-family:'Syne',sans-serif; font-size:18px; font-weight:800;
+    background:linear-gradient(135deg,#c84f72 0%,#9d6fcc 100%);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    margin-bottom:6px;
+  }
+  .terms-modal h2 {
+    font-size:17px; font-weight:700; color:var(--text);
+    margin-bottom:18px; line-height:1.5;
+  }
+  .terms-body {
+    font-size:13px; color:var(--text-light); line-height:2;
+    margin-bottom:20px;
+  }
+  .terms-body h3 {
+    font-size:13px; font-weight:700; color:var(--text);
+    margin:16px 0 6px;
+  }
+  .terms-body p { margin-bottom:8px; }
+  .terms-body ul { padding-left:18px; margin-bottom:8px; }
+  .terms-body ul li { margin-bottom:4px; }
+  .terms-check-row {
+    display:flex; align-items:flex-start; gap:10px;
+    margin-bottom:20px; cursor:pointer;
+  }
+  .terms-check-row input[type="checkbox"] {
+    width:18px; height:18px; margin-top:2px; flex-shrink:0;
+    accent-color:var(--pink-btn); cursor:pointer;
+  }
+  .terms-check-label { font-size:13px; color:var(--text); line-height:1.7; }
+  .terms-agree-btn {
+    width:100%; padding:16px; border:none; border-radius:14px;
+    background:linear-gradient(135deg,var(--pink-btn) 0%,var(--purple-deep) 100%);
+    color:white; font-family:'Zen Kaku Gothic New',sans-serif;
+    font-size:15px; font-weight:700; letter-spacing:.08em;
+    cursor:pointer; transition:opacity .2s,transform .2s;
+    box-shadow:0 8px 32px rgba(200,79,114,.25);
+  }
+  .terms-agree-btn:disabled { opacity:.4; cursor:not-allowed; transform:none; }
+  .terms-agree-btn:not(:disabled):hover { transform:translateY(-2px); }
   .review-form-panel { margin-top:22px; display:none; }
   .review-form-panel.active { display:block; }
   .review-form-inner {
@@ -519,6 +572,51 @@
 </style>
 </head>
 <body>
+
+<!-- 利用規約モーダル -->
+<div class="terms-overlay hidden" id="termsOverlay">
+  <div class="terms-modal">
+    <div class="terms-logo">AHA WARP</div>
+    <h2>ご利用の前に、利用規約への同意をお願いします</h2>
+    <div class="terms-body">
+      <h3>1. サービスの性質</h3>
+      <p>本サービスはAI技術を用いて動画を生成します。生成結果の品質・内容を保証するものではありません。</p>
+
+      <h3>2. 肖像権・著作権</h3>
+      <ul>
+        <li>登録する顔画像・動画は、ご自身が権利を有するものに限ります。</li>
+        <li>第三者の顔・肖像を無断で使用することを禁止します。</li>
+        <li>生成された動画の著作権はユーザーに帰属しますが、第三者の権利を侵害する使用は禁止します。</li>
+      </ul>
+
+      <h3>3. 禁止事項</h3>
+      <ul>
+        <li>他人を騙す目的でのディープフェイク的利用</li>
+        <li>誹謗中傷・名誉毀損を目的とした使用</li>
+        <li>性的コンテンツ・暴力的コンテンツの生成</li>
+        <li>詐欺・犯罪行為への利用</li>
+      </ul>
+
+      <h3>4. 免責事項</h3>
+      <ul>
+        <li>生成動画の使用によって生じたいかなる損害についても、運営者は責任を負いません。</li>
+        <li>サービスの停止・変更・終了を予告なく行う場合があります。</li>
+      </ul>
+
+      <h3>5. プライバシー</h3>
+      <p>登録した顔データはSeedance（BytePlus）のサーバーに送信・保存されます。ご利用にあたってはこの点にご同意いただく必要があります。</p>
+    </div>
+
+    <label class="terms-check-row">
+      <input type="checkbox" id="termsCheckbox" onchange="onTermsCheck()">
+      <span class="terms-check-label">上記の利用規約をすべて読み、内容に同意します。</span>
+    </label>
+
+    <button class="terms-agree-btn" id="termsAgreeBtn" onclick="agreeToTerms()" disabled>
+      同意してはじめる
+    </button>
+  </div>
+</div>
 
 <div class="cursor" id="cursor"></div>
 <div class="cursor-ring" id="cursorRing"></div>
@@ -806,7 +904,7 @@
     if (!window.__supabase || !window.__user) return;
     const { data } = await window.__supabase
       .from('profiles')
-      .select('credits_remaining, face_asset_id, has_reviewed')
+      .select('credits_remaining, face_asset_id, has_reviewed, agreed_at')
       .eq('id', window.__user.id)
       .single();
     if (data) {
@@ -817,7 +915,27 @@
         document.getElementById('faceAssetId').value = toShortAssetId(data.face_asset_id);
         document.getElementById('faceAssetSavedBadge').style.display = 'inline';
       }
+      // agreed_atがnullなら利用規約モーダルを表示
+      if (!data.agreed_at) {
+        document.getElementById('termsOverlay').classList.remove('hidden');
+      }
     }
+  }
+
+  function onTermsCheck() {
+    const checked = document.getElementById('termsCheckbox').checked;
+    document.getElementById('termsAgreeBtn').disabled = !checked;
+  }
+
+  async function agreeToTerms() {
+    if (!window.__supabase || !window.__user) return;
+    const btn = document.getElementById('termsAgreeBtn');
+    btn.disabled = true;
+    btn.textContent = '処理中...';
+    await window.__supabase.from('profiles')
+      .update({ agreed_at: new Date().toISOString() })
+      .eq('id', window.__user.id);
+    document.getElementById('termsOverlay').classList.add('hidden');
   }
 
   async function deductCredit() {
