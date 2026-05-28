@@ -302,6 +302,8 @@
           // メール確認不要の設定の場合、即座にセッションが発行される
           window.location.href = 'mypage.html';
         } else {
+          // PKCE flow では type=signup がハッシュに現れないため localStorage でフラグを保持する
+          localStorage.setItem('aha_welcome_pending', email);
           showSuccess('確認メールを送信しました。メールをご確認ください。');
         }
       }

@@ -295,12 +295,19 @@
   let userId = null;
 
   // メール確認完了直後にウェルカムメールを送信する
-  // Supabase は確認リンクからのリダイレクト時に URL ハッシュへ type=signup を付与する
+  // 検知方法1 (implicit flow): Supabase が URLハッシュへ type=signup を付与する
+  // 検知方法2 (PKCE flow): 登録時に localStorage へ保存したフラグで検知する
   async function maybeSendWelcomeEmail(email) {
-    const params = new URLSearchParams(window.location.hash.replace(/^#/, ''));
-    if (params.get('type') !== 'signup') return;
-    history.replaceState(null, '', window.location.pathname); // ハッシュをURLから除去
-    if (!WELCOME_WEBHOOK_URL || WELCOME_WEBHOOK_URL === 'MAKE_WELCOME_WEBHOOK_URL') return;
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+    const fromHash = hashParams.get('type') === 'signup';
+    if (fromHash) history.replaceState(null, '', window.location.pathname);
+
+    const pendingEmail = localStorage.getItem('aha_welcome_pending');
+    const fromStorage = pendingEmail === email;
+    if (fromStorage) localStorage.removeItem('aha_welcome_pending');
+
+    if (!fromHash && !fromStorage) return;
+
     try {
       await fetch(WELCOME_WEBHOOK_URL, {
         method: 'POST',
