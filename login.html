@@ -121,9 +121,13 @@
     transition:transform .2s,box-shadow .2s;
     box-shadow:0 8px 32px rgba(200,79,114,.25);
     margin-top:4px;
+    display:flex; align-items:center; justify-content:center; gap:0;
   }
+  .submit-btn.loading { gap:10px; }
+  .spinner { width:15px; height:15px; border:2px solid rgba(255,255,255,.35); border-top-color:white; border-radius:50%; animation:spin .7s linear infinite; flex-shrink:0; }
+  @keyframes spin { to { transform:rotate(360deg); } }
   .submit-btn:hover { transform:translateY(-2px); box-shadow:0 16px 50px rgba(200,79,114,.35); }
-  .submit-btn:disabled { opacity:.5; transform:none; box-shadow:none; }
+  .submit-btn:disabled { opacity:.7; transform:none; box-shadow:none; }
   .submit-btn::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(255,255,255,.18) 0%,transparent 55%); pointer-events:none; }
 
   .divider { display:flex; align-items:center; gap:12px; margin:20px 0; }
@@ -260,7 +264,8 @@
     if (password.length < 6) { showError('パスワードは6文字以上で入力してください'); return; }
 
     btn.disabled = true;
-    btn.textContent = '処理中...';
+    btn.classList.add('loading');
+    btn.innerHTML = '<span class="spinner"></span>処理中…';
 
     if (currentTab === 'login') {
       const { error } = await sb.auth.signInWithPassword({ email, password });
@@ -312,6 +317,7 @@
     }
 
     btn.disabled = false;
+    btn.classList.remove('loading');
     btn.textContent = currentTab === 'login' ? '✦ ログイン' : '✦ 新規登録';
   }
 
