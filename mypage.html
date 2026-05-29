@@ -331,8 +331,7 @@
     userId = session.user.id;
     document.getElementById('navEmail').textContent = session.user.email;
     await maybeSendWelcomeEmail(session.user.email);
-    await loadProfile();
-    await loadVideoHistory();
+    await Promise.all([loadProfile(), loadVideoHistory()]);
   });
 
   async function loadProfile() {
