@@ -54,7 +54,7 @@
     --border:      rgba(255,180,210,0.18);
     --text:        #3d1428;
     --text-light:  #7a3050;
-    --muted:       rgba(160,60,100,0.6);
+    --muted:       #8b4060;
     --card-bg:     rgba(255,255,255,0.55);
     --input-bg:    rgba(255,255,255,0.7);
   }
@@ -360,7 +360,7 @@
   .steps-list { display:flex; flex-direction:column; gap:10px; }
   .step-item {
     display:flex; align-items:center; gap:12px;
-    font-size:13px; color:rgba(160,80,110,.35); transition:color .3s;
+    font-size:13px; color:rgba(160,80,110,.6); transition:color .3s;
   }
   .step-item.active { color:var(--text); }
   .step-item.done   { color:#16a34a; }
@@ -496,10 +496,11 @@
     .features-grid{grid-template-columns:1fr;gap:16px;}
     .asset-row{grid-template-columns:1fr;}
     footer{flex-direction:column;gap:14px;text-align:center;}
+    .nav-badge{letter-spacing:.05em;padding:5px 10px;}
   }
   @media(max-width:480px){
     .hero{padding:110px 16px 60px;}
-    .app-section{padding:0 12px 80px;}
+    .app-section{padding:0 16px 80px;}
     .card{padding:24px 20px;}
     .pipeline{gap:2px;}
     .pipe-node{font-size:10px;padding:5px 10px;}
