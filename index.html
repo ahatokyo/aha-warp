@@ -27,30 +27,19 @@
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@300;400;700;900&family=Syne:wght@400;700;800&display=swap"></noscript>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  // Supabase認証チェック（ページ読み込み直後）
   (async () => {
     const { createClient } = supabase;
     const sb = createClient(
       'https://majunwobgxvdckyyunxu.supabase.co',
       'sb_publishable_p93V6Tk3LAn8HjwmPuNbKg_00cs6Z6L'
     );
-
-    // localStorageキャッシュで即時表示
-    const cachedKey = Object.keys(localStorage)
-      .find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
-    const cachedSession = cachedKey
-      ? JSON.parse(localStorage.getItem(cachedKey))?.session
-      : null;
-
-    if (!cachedSession) { window.location.href = 'login.html'; return; }
-
-    window.__supabase = sb;
-    window.__user = cachedSession.user;
-
-    // バックグラウンドで正式検証
-    sb.auth.getSession().then(({ data }) => {
-      if (!data.session) window.location.href = 'login.html';
-    });
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) {
+      window.location.href = 'login.html';
+    } else {
+      window.__supabase = sb;
+      window.__user = session.user;
+    }
   })();
 </script>
 <style>

@@ -326,26 +326,13 @@
     }
   }
 
-  // キャッシュ認証 + データ読み込みをIIFEで包む
-  (async () => {
-    const cachedKey = Object.keys(localStorage)
-      .find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
-    const cachedSession = cachedKey
-      ? JSON.parse(localStorage.getItem(cachedKey))?.session
-      : null;
-
-    if (!cachedSession) { window.location.href = 'login.html'; return; }
-
-    userId = cachedSession.user.id;
-    document.getElementById('navEmail').textContent = cachedSession.user.email;
-    await maybeSendWelcomeEmail(cachedSession.user.email);
+  sb.auth.getSession().then(async ({ data: { session } }) => {
+    if (!session) { window.location.href = 'login.html'; return; }
+    userId = session.user.id;
+    document.getElementById('navEmail').textContent = session.user.email;
+    await maybeSendWelcomeEmail(session.user.email);
     await Promise.all([loadProfile(), loadVideoHistory()]);
-
-    // バックグラウンドで正式検証
-    sb.auth.getSession().then(({ data: { session } }) => {
-      if (!session) window.location.href = 'login.html';
-    });
-  })();
+  });
 
   async function loadProfile() {
     const { data, error } = await sb
