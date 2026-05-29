@@ -163,7 +163,7 @@
   }
   .hero-title {
     font-family:'Syne',sans-serif;
-    font-size:clamp(44px,7.5vw,92px); font-weight:800; line-height:1.05;
+    font-size:clamp(36px,6.5vw,80px); font-weight:800; line-height:1.05;
     margin-bottom:28px; opacity:0; animation:fadeUp .8s ease .4s forwards;
   }
   .hero-title .line-1 {
@@ -501,6 +501,7 @@
   }
   @media(max-width:480px){
     .hero{padding:110px 16px 60px;}
+    .hero-title{font-size:clamp(30px,8vw,44px);}
     .app-section{padding:0 16px 80px;}
     .card{padding:24px 20px;}
     .pipeline{gap:2px;}
@@ -714,7 +715,7 @@
 <nav>
   <div class="logo">AHA WARP</div>
   <div style="display:flex;align-items:center;gap:12px;">
-    <a href="mypage.html" style="font-size:12px;color:var(--muted);text-decoration:none;letter-spacing:.1em;border:1px solid var(--border);padding:6px 14px;border-radius:100px;background:rgba(255,255,255,.4);">マイページ</a>
+    <a href="mypage.html" style="font-size:12px;color:var(--muted);text-decoration:none;letter-spacing:.1em;border:1px solid var(--border);padding:6px 14px;border-radius:100px;background:rgba(255,255,255,.4);white-space:nowrap;">マイページ</a>
     <div class="nav-badge" id="navCredits">読み込み中...</div>
   </div>
 </nav>
