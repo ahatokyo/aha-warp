@@ -326,49 +326,26 @@
     }
   }
 
-  // localStorageキャッシュで即時表示
-  const cachedKey = Object.keys(localStorage)
-    .find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
-  const cachedSession = cachedKey
-    ? JSON.parse(localStorage.getItem(cachedKey))?.session
-    : null;
+  // キャッシュ認証 + データ読み込みをIIFEで包む
+  (async () => {
+    const cachedKey = Object.keys(localStorage)
+      .find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
+    const cachedSession = cachedKey
+      ? JSON.parse(localStorage.getItem(cachedKey))?.session
+      : null;
 
-  if (!cachedSession) { window.location.href = 'login.html'; }
-  else {
+    if (!cachedSession) { window.location.href = 'login.html'; return; }
+
     userId = cachedSession.user.id;
     document.getElementById('navEmail').textContent = cachedSession.user.email;
     await maybeSendWelcomeEmail(cachedSession.user.email);
     await Promise.all([loadProfile(), loadVideoHistory()]);
-  }
 
-  // バックグラウンドで正式検証
-  sb.auth.getSession().then(({ data: { session } }) => {
-    if (!session) window.location.href = 'login.html';
-  });
-
-  const WELCOME_WEBHOOK_URL = 'https://hook.us2.make.com/j5w9wbxyffc7nx1srm8kb8l2bb1ladwj';
-
-  async function maybeSendWelcomeEmail(email) {
-    const hashParams = new URLSearchParams(_initHash.replace(/^#/, ''));
-    const fromHash = hashParams.get('type') === 'signup';
-    if (fromHash) history.replaceState(null, '', window.location.pathname);
-
-    const pendingEmail = localStorage.getItem('aha_welcome_pending');
-    const fromStorage = pendingEmail === email;
-    if (fromStorage) localStorage.removeItem('aha_welcome_pending');
-
-    if (!fromHash && !fromStorage) return;
-
-    try {
-      await fetch(WELCOME_WEBHOOK_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
-      });
-    } catch (e) {
-      console.error('welcome email error:', e);
-    }
-  }
+    // バックグラウンドで正式検証
+    sb.auth.getSession().then(({ data: { session } }) => {
+      if (!session) window.location.href = 'login.html';
+    });
+  })();
 
   async function loadProfile() {
     const { data, error } = await sb
