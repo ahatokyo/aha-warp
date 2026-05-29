@@ -34,13 +34,23 @@
       'https://majunwobgxvdckyyunxu.supabase.co',
       'sb_publishable_p93V6Tk3LAn8HjwmPuNbKg_00cs6Z6L'
     );
-    const { data: { session } } = await sb.auth.getSession();
-    if (!session) {
-      window.location.href = 'login.html';
-    } else {
-      window.__supabase = sb;
-      window.__user = session.user;
-    }
+
+    // localStorageキャッシュで即時表示
+    const cachedKey = Object.keys(localStorage)
+      .find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
+    const cachedSession = cachedKey
+      ? JSON.parse(localStorage.getItem(cachedKey))?.session
+      : null;
+
+    if (!cachedSession) { window.location.href = 'login.html'; return; }
+
+    window.__supabase = sb;
+    window.__user = cachedSession.user;
+
+    // バックグラウンドで正式検証
+    sb.auth.getSession().then(({ data }) => {
+      if (!data.session) window.location.href = 'login.html';
+    });
   })();
 </script>
 <style>
