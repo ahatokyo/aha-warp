@@ -276,6 +276,9 @@
 </footer>
 
 <script>
+  // Supabase JS は getSession() resolve までにハッシュを削除するため、先に同期取得しておく
+  const _initHash = window.location.hash;
+
   const { createClient } = supabase;
   const sb = createClient(
     'https://majunwobgxvdckyyunxu.supabase.co',
@@ -298,7 +301,8 @@
   // 検知方法1 (implicit flow): Supabase が URLハッシュへ type=signup を付与する
   // 検知方法2 (PKCE flow): 登録時に localStorage へ保存したフラグで検知する
   async function maybeSendWelcomeEmail(email) {
-    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+    // _initHash はスクリプト先頭で同期取得済み（Supabase による URL クリーンアップ前の値）
+    const hashParams = new URLSearchParams(_initHash.replace(/^#/, ''));
     const fromHash = hashParams.get('type') === 'signup';
     if (fromHash) history.replaceState(null, '', window.location.pathname);
 
