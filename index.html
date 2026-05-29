@@ -987,7 +987,10 @@
 
   // クレジット読み込み
   async function loadCredits() {
-    if (!window.__supabase || !window.__user) return;
+    if (!window.__supabase || !window.__user) {
+      setTimeout(loadCredits, 200);
+      return;
+    }
     const { data } = await window.__supabase
       .from('profiles')
       .select('credits_remaining, face_asset_id, has_reviewed, agreed_at')

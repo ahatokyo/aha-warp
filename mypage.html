@@ -87,8 +87,8 @@
   .asset-item { display:flex; flex-direction:column; gap:8px; }
   .asset-item-label { font-size:10px; letter-spacing:.22em; color:var(--muted); display:flex; justify-content:space-between; align-items:center; }
   .saved-badge { font-size:10px; color:#16a34a; letter-spacing:.1em; }
-  .asset-input-row { display:flex; gap:10px; }
-  .asset-input { flex:1; background:var(--input-bg); border:1px solid rgba(200,130,160,.25); border-radius:12px; padding:12px 16px; color:var(--text); font-family:'Zen Kaku Gothic New',sans-serif; font-size:13px; outline:none; transition:border-color .3s,box-shadow .3s; }
+  .asset-input-row { display:flex; gap:10px; min-width:0; }
+  .asset-input { flex:1; min-width:0; background:var(--input-bg); border:1px solid rgba(200,130,160,.25); border-radius:12px; padding:12px 16px; color:var(--text); font-family:'Zen Kaku Gothic New',sans-serif; font-size:13px; outline:none; transition:border-color .3s,box-shadow .3s; }
   .asset-input:focus { border-color:rgba(200,80,120,.4); box-shadow:0 0 0 3px rgba(200,80,120,.08); }
   .asset-input::placeholder { color:rgba(160,80,110,.35); }
   .save-asset-btn { padding:0 18px; border:none; border-radius:12px; background:linear-gradient(135deg,var(--pink-btn),var(--purple-deep)); color:white; font-family:'Zen Kaku Gothic New',sans-serif; font-size:12px; font-weight:700; letter-spacing:.1em; cursor:none; white-space:nowrap; transition:all .2s; box-shadow:0 4px 16px rgba(200,79,114,.2); }
@@ -166,7 +166,7 @@
 <nav>
   <a href="index.html" class="logo">AHA WARP</a>
   <div class="nav-right">
-    <a href="pricing.html" style="font-size:12px;color:var(--muted);text-decoration:none;letter-spacing:.1em;border:1px solid rgba(200,100,140,.25);padding:6px 14px;border-radius:100px;background:rgba(255,255,255,.4);">料金プラン</a>
+    <a href="pricing.html" style="font-size:12px;color:var(--muted);text-decoration:none;letter-spacing:.1em;border:1px solid rgba(200,100,140,.25);padding:6px 14px;border-radius:100px;background:rgba(255,255,255,.4);white-space:nowrap;">料金プラン</a>
     <span class="nav-email" id="navEmail">読み込み中...</span>
     <button class="logout-btn" onclick="handleLogout()">ログアウト</button>
   </div>
