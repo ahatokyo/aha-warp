@@ -577,6 +577,136 @@ body {
 
 .plan-card.kakutei .plan-price strong { color: var(--purple-dark); }
 
+/* ===== 三段構えプラン（縦並び・注記つき） ===== */
+.plan-grid-3 { grid-template-columns: 1fr; gap: 0.6rem; }
+.plan-price span { font-size: 0.7rem; color: #8B6BA0; font-weight: 600; }
+.plan-note { font-size: 0.68rem; color: #8B6BA0; margin-top: 0.35rem; }
+.plan-card.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: grayscale(0.4);
+}
+.plan-card.disabled .plan-badge { background: #B8A8C8; }
+
+/* ===== v2: 単発プラン（お試し全幅 + 1/2/3回の3カラム） ===== */
+.plan-card-trial { display:block; margin-bottom:0.75rem; }
+.plan-card-trial .plan-count { display:inline-block; margin-right:0.5rem; }
+.plan-card-trial .plan-price { display:inline-block; }
+.plan-grid-3reg { grid-template-columns: repeat(3, 1fr); gap:0.6rem; margin-bottom:1rem; }
+.plan-grid-3reg .plan-price strong { font-size:1rem; }
+.plan-grid-3reg .plan-price span { display:block; }
+
+/* 6種ランダムの説明ボックス */
+.gacha-info {
+  background:#FFF0F5; border:1px dashed #E8D5F0; border-radius:12px;
+  padding:0.75rem 0.9rem; font-size:0.72rem; line-height:1.6; color:var(--text);
+  text-align:center; margin-bottom:0.25rem;
+}
+.gacha-info b { color:var(--pink); }
+
+/* ===== v2: グッズ購入導線（結果画面・本命収益） ===== */
+.goods-cta {
+  background: linear-gradient(135deg, #FFF6FB, #F5F0FF);
+  border:2px solid #E8D5F0; border-radius:24px;
+  padding:1.5rem 1.25rem; text-align:center; margin-top:1.5rem;
+}
+.goods-grid {
+  display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-top:1.25rem;
+}
+.goods-item {
+  border:2px solid #E8D5F0; border-radius:16px; background:white;
+  padding:1rem 0.5rem; cursor:pointer; transition:all 0.25s; text-align:center;
+}
+.goods-item:hover { transform:translateY(-3px); border-color:var(--pink); box-shadow:0 8px 24px rgba(255,107,157,0.18); }
+.goods-item-emoji { font-size:2rem; }
+.goods-item-name  { font-family:'Zen Maru Gothic',sans-serif; font-weight:800; font-size:0.85rem; color:var(--text); margin-top:0.35rem; }
+.goods-item-price { font-size:0.78rem; color:var(--pink); font-weight:800; margin-top:0.15rem; }
+
+/* ===== ステータスバナー（会員状態・残り回数・お知らせ） ===== */
+#status-banner {
+  border-radius: 14px;
+  padding: 0.9rem 1rem;
+  margin-bottom: 1.25rem;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1.6;
+}
+#status-banner.info    { background: rgba(168,107,160,0.12); border: 1px solid rgba(168,107,160,0.35); color: var(--purple-dark); }
+#status-banner.success { background: rgba(52,211,153,0.12);  border: 1px solid rgba(52,211,153,0.4);  color: #0F766E; }
+#status-banner.warn    { background: rgba(245,158,11,0.12);  border: 1px solid rgba(245,158,11,0.4);  color: #B45309; }
+#status-banner .sb-sub { display:block; font-size:0.72rem; font-weight:600; margin-top:0.3rem; opacity:0.85; }
+#status-banner .sb-remaining { font-size:1.4rem; color:var(--pink); }
+
+/* ===== ポイントカード（マイページ §5-5） ===== */
+.points-card {
+  background: linear-gradient(135deg, #FFF0F5, #F5F0FF);
+  border: 2px solid #E8D5F0;
+  border-radius: 20px;
+  padding: 1.25rem 1.1rem;
+  margin-bottom: 1.75rem;
+  box-shadow: 0 8px 30px rgba(192,132,252,0.15);
+}
+.points-card-head { display:flex; align-items:baseline; justify-content:space-between; margin-bottom:0.85rem; }
+.points-card-title { font-family:'Zen Maru Gothic',sans-serif; font-weight:900; font-size:0.95rem; color:var(--purple-dark); }
+.points-card-count { font-size:0.8rem; color:#8B6BA0; }
+.points-card-count strong { font-size:1.5rem; color:var(--pink); font-weight:900; }
+.points-stamps {
+  display:grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap:0.4rem;
+  margin-bottom:0.85rem;
+}
+.stamp {
+  aspect-ratio:1;
+  border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:0.85rem;
+  border:2px dashed #D8B4FE;
+  color:#C9B3E0;
+  background:rgba(255,255,255,0.5);
+  transition: transform 0.3s;
+}
+.stamp.filled {
+  border-style:solid;
+  border-color:var(--pink);
+  background:linear-gradient(135deg,var(--pink),var(--purple));
+  color:white;
+}
+.stamp.milestone { border-color:var(--gold); box-shadow:0 0 0 2px rgba(245,158,11,0.3); }
+.stamp.milestone.filled { background:linear-gradient(135deg,var(--gold),#F97316); border-color:var(--gold); }
+@keyframes stampPop {
+  0% { transform: scale(0) rotate(-25deg); opacity:0; }
+  60% { transform: scale(1.35) rotate(8deg); opacity:1; }
+  100% { transform: scale(1) rotate(0); }
+}
+.stamp.pop { animation: stampPop 0.55s cubic-bezier(.2,1.3,.5,1) both; }
+.points-progress { height:8px; background:rgba(216,180,254,0.3); border-radius:100px; overflow:hidden; margin-bottom:0.6rem; }
+.points-progress-bar { height:100%; background:linear-gradient(90deg,var(--pink),var(--purple)); border-radius:100px; width:0%; transition:width 0.6s ease; }
+.points-next { font-size:0.78rem; color:#8B6BA0; text-align:center; font-weight:600; }
+.points-reward-cta {
+  display:block; width:100%; margin-top:0.85rem; padding:0.8rem;
+  border:none; border-radius:100px; cursor:pointer;
+  background:linear-gradient(135deg,var(--gold),#F97316); color:white;
+  font-family:'Zen Maru Gothic',sans-serif; font-weight:800; font-size:0.85rem;
+  box-shadow:0 6px 20px rgba(245,158,11,0.3);
+}
+
+/* ===== 開発用プレビューパネル（Stripe未接続時の状態確認用・本番では非表示） ===== */
+#dev-panel {
+  position: fixed; right: 12px; bottom: 12px; z-index: 9999;
+  background: rgba(26,10,46,0.94); color:#fff;
+  border-radius: 14px; padding: 0.75rem; width: 220px;
+  font-size: 0.7rem; box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+  font-family: sans-serif;
+}
+#dev-panel.collapsed .dev-body { display:none; }
+#dev-panel h4 { font-size:0.72rem; margin:0 0 0.5rem; display:flex; justify-content:space-between; cursor:pointer; }
+#dev-panel select, #dev-panel input { width:100%; margin-bottom:0.4rem; padding:0.3rem; border-radius:6px; border:none; font-size:0.72rem; }
+#dev-panel label { display:block; opacity:0.7; margin-bottom:0.1rem; }
+#dev-panel button.dev-apply { width:100%; padding:0.45rem; border:none; border-radius:8px; background:var(--pink); color:#fff; font-weight:700; cursor:pointer; }
+#dev-panel .dev-tag { display:inline-block; background:var(--gold); color:#1A0A2E; font-weight:800; padding:1px 6px; border-radius:6px; font-size:0.6rem; }
+
 /* 作風選択（確定ガチャのみ） */
 .style-select-section {
   display: none;
@@ -1138,13 +1268,10 @@ footer a:hover { color: var(--pink-light); }
       </button>
     </div>
 
-    <!-- ログイン後 -->
-    <div id="order-form" style="display:none;">
+    <!-- ===== ログイン後：注文フォーム（単発・買い切り） ===== -->
+    <div id="status-banner" style="display:none;"></div>
 
-      <!-- お支払い済み（生成待ち/リトライ）通知 -->
-      <div id="paid-notice" style="display:none; background:rgba(168,107,160,0.12); border:1px solid rgba(168,107,160,0.35); border-radius:12px; padding:0.85rem 1rem; margin-bottom:1.25rem; text-align:center; font-size:0.85rem; color:var(--purple-dark); font-weight:600;">
-        ✅ お支払い済みです。追加料金なしでもう一度ガチャを回せます🎰
-      </div>
+    <div id="order-form" style="display:none;">
 
       <!-- アップロード -->
       <p class="field-label">📸 ペットの写真</p>
@@ -1160,69 +1287,40 @@ footer a:hover { color: var(--pink-light); }
 
       <div class="divider"></div>
 
-      <!-- プラン選択 -->
-      <p class="field-label">🎰 プランを選ぶ</p>
+      <!-- 回数を選ぶ（単発・買い切り） -->
+      <p class="field-label">🎫 回数を選ぶ</p>
 
-      <p style="font-size:0.75rem;color:#8B6BA0;margin-bottom:0.75rem;font-weight:600;">— ノーマルガチャ（作風ランダム）—</p>
-      <div class="plan-grid" style="margin-bottom:1rem;">
-        <div class="plan-card" onclick="selectPlan('normal-1', this)">
-          <div class="plan-type" style="color:var(--pink);">🎲 ノーマル</div>
+      <!-- お試し（trial_used_at 未使用の人だけ表示） -->
+      <div class="plan-card plan-card-trial" id="plan-card-trial" onclick="selectPlan('trial', this)">
+        <div class="plan-badge">はじめての方</div>
+        <div class="plan-type" style="color:var(--pink);">🐾 お試し</div>
+        <div class="plan-count">1回</div>
+        <div class="plan-price"><strong>¥500</strong></div>
+        <div class="plan-note">お一人さま1回限り</div>
+      </div>
+
+      <div class="plan-grid plan-grid-3reg">
+        <div class="plan-card" id="plan-card-p1" onclick="selectPlan('p1', this)">
+          <div class="plan-type" style="color:var(--pink);">🎲 1回</div>
           <div class="plan-count">1回</div>
           <div class="plan-price"><strong>¥1,000</strong></div>
         </div>
-        <div class="plan-card" onclick="selectPlan('normal-2', this)">
+        <div class="plan-card" id="plan-card-p2" onclick="selectPlan('p2', this)">
           <div class="plan-badge">10%OFF</div>
-          <div class="plan-type" style="color:var(--pink);">🎲 ノーマル</div>
+          <div class="plan-type" style="color:var(--pink);">🎲 2回</div>
           <div class="plan-count">2回</div>
-          <div class="plan-price"><strong>¥1,800</strong></div>
+          <div class="plan-price"><strong>¥1,800</strong><span>900/回</span></div>
         </div>
-        <div class="plan-card" onclick="selectPlan('normal-3', this)">
-          <div class="plan-badge">10%OFF</div>
-          <div class="plan-type" style="color:var(--pink);">🎲 ノーマル</div>
+        <div class="plan-card" id="plan-card-p3" onclick="selectPlan('p3', this)">
+          <div class="plan-badge">20%OFF</div>
+          <div class="plan-type" style="color:var(--pink);">🎲 3回</div>
           <div class="plan-count">3回</div>
-          <div class="plan-price"><strong>¥2,700</strong></div>
+          <div class="plan-price"><strong>¥2,400</strong><span>800/回</span></div>
         </div>
       </div>
 
-      <p style="font-size:0.75rem;color:#8B6BA0;margin-bottom:0.75rem;font-weight:600;">— 確定ガチャ（作風選択）—</p>
-      <div class="plan-grid">
-        <div class="plan-card kakutei" onclick="selectPlan('kakutei-1', this)">
-          <div class="plan-type" style="color:var(--purple-dark);">✨ 確定</div>
-          <div class="plan-count">1回</div>
-          <div class="plan-price"><strong style="color:var(--purple-dark);">¥2,000</strong></div>
-        </div>
-        <div class="plan-card kakutei" onclick="selectPlan('kakutei-2', this)">
-          <div class="plan-badge">10%OFF</div>
-          <div class="plan-type" style="color:var(--purple-dark);">✨ 確定</div>
-          <div class="plan-count">2回</div>
-          <div class="plan-price"><strong style="color:var(--purple-dark);">¥3,600</strong></div>
-        </div>
-        <div class="plan-card kakutei" onclick="selectPlan('kakutei-3', this)">
-          <div class="plan-badge">10%OFF</div>
-          <div class="plan-type" style="color:var(--purple-dark);">✨ 確定</div>
-          <div class="plan-count">3回</div>
-          <div class="plan-price"><strong style="color:var(--purple-dark);">¥5,400</strong></div>
-        </div>
-      </div>
-
-      <!-- 作風選択（確定のみ） -->
-      <div class="style-select-section mt-2" id="style-select-section">
-        <div class="divider"></div>
-        <p class="field-label">🎨 作風を選ぶ</p>
-        <div class="style-options">
-          <div class="style-option" onclick="selectStyle('yurukawa', this)">
-            <div class="style-option-icon">🍭</div>
-            <div class="style-option-name">ゆるかわ</div>
-          </div>
-          <div class="style-option" onclick="selectStyle('simple', this)">
-            <div class="style-option-icon">✏️</div>
-            <div class="style-option-name">シンプル</div>
-          </div>
-          <div class="style-option" onclick="selectStyle('merchen', this)">
-            <div class="style-option-icon">🌙</div>
-            <div class="style-option-name">メルヘン</div>
-          </div>
-        </div>
+      <div class="gacha-info">
+        🎰 作風は <b>art / kawaii / emblem / pop / crayon</b> ＋ レア <b>limited</b> の6種からランダム！何が出るかはお楽しみ✨
       </div>
 
       <div class="divider"></div>
@@ -1234,18 +1332,6 @@ footer a:hover { color: var(--pink-light); }
         決済はStripeの安全な画面で行います
       </p>
 
-    </div>
-
-    <!-- 利用完了（1 LINE IDにつき1回） -->
-    <div id="already-used" style="display:none; text-align:center; padding:1.5rem 1rem;">
-      <div style="font-size:2.75rem; margin-bottom:0.75rem;">🐾</div>
-      <p style="font-weight:700; color:var(--purple-dark); margin-bottom:0.5rem;">ご利用ありがとうございました</p>
-      <p style="font-size:0.85rem; color:#8B6BA0; line-height:1.7; margin-bottom:1.25rem;">
-        ペチャはお一人さま1回までのご利用です。<br>作ったイラストはマイページからいつでも見られます🎨
-      </p>
-      <button class="btn-line-login" onclick="document.getElementById('mypage').scrollIntoView({behavior:'smooth'})">
-        マイページで作品を見る
-      </button>
     </div>
   </div>
 </section>
@@ -1291,16 +1377,16 @@ footer a:hover { color: var(--pink-light); }
     </button>
   </div>
 
-  <!-- シール注文CTA -->
-  <div class="sticker-cta">
-    <div style="font-size:2.5rem;margin-bottom:0.75rem;">🏷️</div>
-    <h3 class="sticker-cta-title">シールにしませんか？</h3>
+  <!-- グッズ購入導線（★本命収益 §5-6） -->
+  <div class="goods-cta">
+    <div style="font-size:2.5rem;margin-bottom:0.5rem;">🎁</div>
+    <h3 class="sticker-cta-title">このイラストでグッズを作る</h3>
     <p class="sticker-cta-desc">
-      このイラストを本物のシールにして<br>お届けします🐾
+      完成したイラストを、世界に1つのオリジナルグッズに🐾<br>1点から製作・お届けします
     </p>
-    <button class="btn-sticker" onclick="orderSticker()">
-      🏷️ シールを注文する
-    </button>
+    <div class="goods-grid" id="goods-grid">
+      <!-- JSで生成（goods catalog） -->
+    </div>
   </div>
 </section>
 
@@ -1310,6 +1396,18 @@ footer a:hover { color: var(--pink-light); }
     <p class="section-label">👤 MYPAGE</p>
     <h2 class="section-title">マイページ</h2>
     <p class="section-desc">過去に作ったイラスト一覧</p>
+  </div>
+
+  <!-- ポイントカード（サブスク会員向け §5-5） -->
+  <div id="points-card" class="points-card" style="display:none;">
+    <div class="points-card-head">
+      <span class="points-card-title">🎟️ ガチャスタンプ</span>
+      <span class="points-card-count">累計 <strong id="points-num">0</strong> 回</span>
+    </div>
+    <div class="points-stamps" id="points-stamps"></div>
+    <div class="points-progress"><div class="points-progress-bar" id="points-progress-bar"></div></div>
+    <p class="points-next" id="points-next"></p>
+    <div id="points-rewards"></div>
   </div>
 
   <div class="mypage-grid" id="mypage-grid">
@@ -1342,9 +1440,28 @@ footer a:hover { color: var(--pink-light); }
   <p style="margin-top:1.5rem;">© 2026 AHA TOKYO LLC. All rights reserved.</p>
 </footer>
 
+<!-- ===== 開発用プレビューパネル（Stripe未接続時に各状態を確認するための仮UI） =====
+     本番では PREVIEW_MODE を false にするか、このブロックごと削除すればOK -->
+<div id="dev-panel" style="display:none;">
+  <h4 onclick="document.getElementById('dev-panel').classList.toggle('collapsed')">
+    <span>🛠 状態プレビュー <span class="dev-tag">DEV</span></span><span>▾</span>
+  </h4>
+  <div class="dev-body">
+    <label>お試し利用</label>
+    <select id="dev-state">
+      <option value="fresh">お試し未使用（はじめて）</option>
+      <option value="trial_used">お試し使用済み</option>
+    </select>
+    <label>累計ガチャ回数（0〜40）</label>
+    <input id="dev-points" type="number" min="0" max="40" value="0">
+    <button class="dev-apply" onclick="devApply()">この状態でプレビュー</button>
+  </div>
+</div>
+
 <script>
 // ===== SUPABASE =====
 const SUPABASE_URL = 'https://majunwobgxvdckyyunxu.supabase.co';
+const STORAGE_BUCKET = 'petcha-images';  // 生成イラストの保存先バケット（要作成・公開）
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1hanVud29iZ3h2ZGNreXl1bnh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3NjQxNTYsImV4cCI6MjA5NTM0MDE1Nn0.SFZaaza6KcM6MW00zoxKS-B0X8jaZ71WiJ5Xus-sODk';
 
 const supabase = {
@@ -1383,6 +1500,29 @@ const supabase = {
     });
   },
 
+  // base64 を Storage(petcha-images) にアップロードして公開URLを返す
+  async uploadImage(lineUserId, b64) {
+    const bytes = base64ToBytes(b64);
+    const safeId = String(lineUserId || 'anon').replace(/[^a-zA-Z0-9_-]/g, '');
+    const path = `${safeId}/${Date.now()}_${Math.random().toString(36).slice(2, 8)}.png`;
+    const res = await fetch(
+      `${SUPABASE_URL}/storage/v1/object/${STORAGE_BUCKET}/${path}`,
+      {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Content-Type': 'image/png',
+          'x-upsert': 'true'
+        },
+        body: bytes
+      }
+    );
+    if (!res.ok) throw new Error('storage upload failed: ' + await res.text());
+    // 公開バケット前提の公開URL
+    return `${SUPABASE_URL}/storage/v1/object/public/${STORAGE_BUCKET}/${path}`;
+  },
+
   async getIllustrations(lineUserId) {
     return this.query(
       'pecha_illustrations',
@@ -1392,48 +1532,109 @@ const supabase = {
     );
   },
 
-  // 利用状況（決済・生成完了）を取得
-  async getUserStatus(lineUserId) {
+  // ユーザー行を取得（お試し利用判定＋各特典の受取済みフラグ）
+  async getUserRow(lineUserId) {
     const rows = await this.query(
       'pecha_users',
       'GET',
       null,
-      `?line_user_id=eq.${lineUserId}&select=paid_at,completed_at`
+      `?line_user_id=eq.${lineUserId}&select=trial_used_at,sticker_redeemed_at,totebag_redeemed_at,tshirt_redeemed_at,sweat_redeemed_at`
     );
     return (rows && rows.length) ? rows[0] : null;
   },
 
-  // 決済完了を記録
-  async markPaid(lineUserId) {
-    return this.query(
-      'pecha_users',
-      'PATCH',
-      { paid_at: new Date().toISOString() },
-      `?line_user_id=eq.${lineUserId}`
-    );
-  },
-
-  // 生成成功を記録（＝利用完了）
-  async markCompleted(lineUserId) {
-    return this.query(
-      'pecha_users',
-      'PATCH',
-      { completed_at: new Date().toISOString() },
-      `?line_user_id=eq.${lineUserId}`
-    );
+  // 本人の累計イラスト枚数（= 累計ガチャ回数 = ポイント）を数える
+  // PostgREST の count=exact + Content-Range ヘッダで件数だけ取得（本体は1行に絞る）
+  async countTotalRolls(lineUserId) {
+    const url = `${SUPABASE_URL}/rest/v1/pecha_illustrations`
+      + `?line_user_id=eq.${lineUserId}`
+      + `&select=id`;
+    const res = await fetch(url, {
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'Prefer': 'count=exact',
+        'Range-Unit': 'items',
+        'Range': '0-0'
+      }
+    });
+    const cr = res.headers.get('content-range') || '';   // 例: "0-0/12"
+    const total = parseInt(cr.split('/')[1] || '0', 10);
+    return isNaN(total) ? 0 : total;
   }
 };
 
 // ===== STATE =====
 const state = {
   user: null,
-  selectedPlan: null,
-  selectedStyle: null,
+  selectedPlan: null,       // 選んだプラン（trial/p1/p2/p3）
+  status: null,             // 現在のユーザー状態オブジェクト
+  prevPoints: null,         // スタンプ増加検知用
   uploadedImage: null,
   uploadedBase64: null,
   generatedImages: [],
-  alreadyPaid: false
+  lastStyles: []            // 直近の抽選作風（保存用）
 };
+
+// ===== 単発プラン（買い切り・サブスクなし） =====
+const PLANS = {
+  trial: { count: 1, price: 500,  label: 'お試し' },
+  p1:    { count: 1, price: 1000, label: '1回' },
+  p2:    { count: 2, price: 1800, label: '2回' },
+  p3:    { count: 3, price: 2400, label: '3回' }
+};
+
+// ===== ガチャ6作風（各1/6・均等ランダム。limitedはレア枠） =====
+const STYLES = ['art', 'kawaii', 'emblem', 'pop', 'crayon', 'limited'];
+const STYLE_META = {
+  art:     { emoji: '🎨', label: 'アート',   c1: '#FFF',    c2: '#C084FC' },
+  kawaii:  { emoji: '🍭', label: 'かわいい', c1: '#FFE0EC', c2: '#FFB3CC' },
+  emblem:  { emoji: '👑', label: 'エンブレム', c1: '#1A2A5A', c2: '#F59E0B' },
+  pop:     { emoji: '⚡', label: 'ポップ',   c1: '#1A0A2E', c2: '#FF6B9D' },
+  crayon:  { emoji: '🖍️', label: 'クレヨン', c1: '#FFFBF5', c2: '#FFD6E0' },
+  limited: { emoji: '✨', label: '限定',     c1: '#A78BFA', c2: '#60A5FA' }
+};
+
+// ===== ポイント特典マイルストーン（累計ガチャ回数） =====
+const MILESTONES = [
+  { n: 10, key: 'sticker', label: 'シール',       emoji: '🏷️', col: 'sticker_redeemed_at' },
+  { n: 20, key: 'totebag', label: 'トートバッグ', emoji: '👜', col: 'totebag_redeemed_at' },
+  { n: 30, key: 'tshirt',  label: 'Tシャツ',      emoji: '👕', col: 'tshirt_redeemed_at' },
+  { n: 40, key: 'sweat',   label: 'スウェット',   emoji: '🧥', col: 'sweat_redeemed_at' }
+];
+const GOAL = 40; // スタンプカードの最終ゴール
+
+// ===== グッズ購入カタログ（結果画面・本命収益 §5-6） =====
+// ※価格は売価相当の目安。確定価格は要調整
+const GOODS = [
+  { key: 'sticker', label: 'シール',       price: 600,  emoji: '🏷️' },
+  { key: 'tote',    label: 'トートバッグ', price: 3500, emoji: '👜' },
+  { key: 'tshirt',  label: 'Tシャツ',      price: 4000, emoji: '👕' },
+  { key: 'sweat',   label: 'スウェット',   price: 5800, emoji: '🧥' }
+];
+
+// ===== プレビュー判定 / Stripe・特典フォームのプレースホルダ（要設定） =====
+// file:// で開いたとき or ?preview を付けたときは「状態プレビュー」モード（Stripe/生成を実呼び出ししない）
+const PREVIEW_MODE = (location.protocol === 'file:') ||
+  new URLSearchParams(location.search).has('preview');
+
+// Stripe は「都度課金（payment mode）」。サブスクは使わない（§5-4）
+// ※テストキー(pk_test)。本番公開時は pk_live に差し替え。価格IDも本番モードのものに。
+const STRIPE_PUBLISHABLE_KEY = 'pk_test_51TbzwUCmTy1H3CXQlIStd8LaBnnE7jAby61cAS3EcfthXav7hkOQ92ngpxeD4Zzb7XwXMwit1pNvV82cj0tkvHXX00xbHZjgE8';
+const STRIPE_PRICE_IDS = {                          // Stripeで作成した価格ID（都度課金）
+  trial: 'price_1Te6C2CmTy1H3CXQ5sMCHUB0',  // お試し500円・買い切り
+  p1:    'price_1Te6CfCmTy1H3CXQQi8eMS8u',  // 1回1,000円
+  p2:    'price_1Te6CuCmTy1H3CXQwV8TRQr3',  // 2回1,800円
+  p3:    'price_1Te6D8CmTy1H3CXQzEFsqJ9p'   // 3回2,400円
+};
+const GOODS_PRICE_IDS = {                                       // ← グッズの価格ID（要作成）
+  sticker: 'YOUR_PRICE_ID_GOODS_STICKER',
+  tote:    'YOUR_PRICE_ID_GOODS_TOTE',
+  tshirt:  'YOUR_PRICE_ID_GOODS_TSHIRT',
+  sweat:   'YOUR_PRICE_ID_GOODS_SWEAT'
+};
+const CHECKOUT_ENDPOINT = '/api/create-checkout-session';      // ← Vercel側に作成予定（§5-4）
+const REWARD_FORM_URL   = 'YOUR_GOOGLE_FORM_URL';              // ← 特典受け取り（住所収集）フォーム
 
 // ===== HERO =====
 // 浮遊する泡を生成
@@ -1529,42 +1730,81 @@ async function setUser(user) {
     console.error('Supabase upsert error:', e);
   }
 
-  // --- 利用状況で画面を出し分け ---
-  let status = null;
+  // --- 会員状態で画面を出し分け ---
+  let s;
   try {
-    status = await supabase.getUserStatus(user.userId);
+    s = await loadUserStatus(user);
   } catch(e) {
     console.error('Supabase status error:', e);
+    s = emptyStatus();
   }
-  applyUserStatus(status);
+  applyUserStatus(s);
 
   // マイページを表示
   document.getElementById('mypage').classList.add('show');
   loadMypage();
 }
 
-// paid_at / completed_at から注文セクションの表示を決める
-function applyUserStatus(status) {
-  const orderForm  = document.getElementById('order-form');
-  const usedBlock  = document.getElementById('already-used');
-  const paidNotice = document.getElementById('paid-notice');
+// 空の状態オブジェクト
+function emptyStatus() {
+  return {
+    trialUsed: false,      // お試し500円 使用済み（1 LINE ID 1回・trial_used_at）
+    totalRolls: 0,         // 累計ガチャ回数（= pecha_illustrations 件数 = ポイント）
+    redeemed: {}           // { sticker:bool, totebag:bool, tshirt:bool, sweat:bool }
+  };
+}
 
-  const completed = !!(status && status.completed_at); // 生成成功済み＝利用完了
-  const paid      = !!(status && status.paid_at);      // 決済済み
-
-  // 「決済は済んでいるが、まだ生成成功していない」＝追加課金なしでリトライ可
-  state.alreadyPaid = paid && !completed;
-
-  if (completed) {
-    // 利用完了 → 注文を隠して「ご利用済み」を表示
-    orderForm.style.display = 'none';
-    usedBlock.style.display = 'block';
-  } else {
-    // 未利用 or 支払い済み生成待ち → 注文フォームを表示
-    usedBlock.style.display = 'none';
-    orderForm.style.display = 'block';
-    paidNotice.style.display = state.alreadyPaid ? 'block' : 'none';
+// pecha_users + pecha_illustrations からユーザー状態を導出
+async function loadUserStatus(user) {
+  const s = emptyStatus();
+  const row = await supabase.getUserRow(user.userId);
+  if (row) {
+    s.trialUsed = !!row.trial_used_at;
+    s.redeemed = {
+      sticker: !!row.sticker_redeemed_at,
+      totebag: !!row.totebag_redeemed_at,
+      tshirt:  !!row.tshirt_redeemed_at,
+      sweat:   !!row.sweat_redeemed_at
+    };
   }
+  try { s.totalRolls = await supabase.countTotalRolls(user.userId); } catch(e) { s.totalRolls = 0; }
+  return s;
+}
+
+// ユーザー状態から注文フォームを出し分け（§5-2）
+function applyUserStatus(s) {
+  state.status = s;
+
+  const banner    = document.getElementById('status-banner');
+  const orderForm = document.getElementById('order-form');
+  const trialCard = document.getElementById('plan-card-trial');
+
+  // --- ステータスバナー ---
+  banner.style.display = 'block';
+  if (s.trialUsed) {
+    banner.className = 'info';
+    banner.innerHTML = `おかえりなさい🐾`
+      + `<span class="sb-sub">お試しはご利用済みです。回数プランから選んでください</span>`;
+  } else {
+    banner.className = 'success';
+    banner.innerHTML = `はじめまして🐾`
+      + `<span class="sb-sub">まずはお試し500円から、気軽にどうぞ✨</span>`;
+  }
+
+  // --- 注文フォーム表示 ---
+  orderForm.style.display = 'block';
+
+  // お試しカードは未使用の人だけ表示
+  trialCard.style.display = s.trialUsed ? 'none' : 'block';
+
+  // 選択状態とボタンをリセット
+  document.querySelectorAll('#order-form .plan-card').forEach(c => c.classList.remove('selected'));
+  state.selectedPlan = null;
+  // 既にお試し選択中だったらクリア
+  checkReady();
+
+  // --- ポイントカード ---
+  renderPoints(s);
 }
 
 function restoreSession() {
@@ -1614,44 +1854,154 @@ function processFile(file) {
   reader.readAsDataURL(file);
 }
 
-// ===== PLAN SELECT =====
+// ===== 購入プラン選択（購入導線） =====
+// ===== プラン選択（単発・買い切り） =====
 function selectPlan(plan, el) {
-  document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+  document.querySelectorAll('#order-form .plan-card').forEach(c => c.classList.remove('selected'));
   el.classList.add('selected');
   state.selectedPlan = plan;
-
-  // 確定ガチャのみ作風選択を表示
-  const isKakutei = plan.startsWith('kakutei');
-  document.getElementById('style-select-section').classList.toggle('show', isKakutei);
-  if (!isKakutei) state.selectedStyle = null;
-
-  checkReady();
-}
-
-// ===== STYLE SELECT =====
-function selectStyle(style, el) {
-  document.querySelectorAll('.style-option').forEach(s => s.classList.remove('selected'));
-  el.classList.add('selected');
-  state.selectedStyle = style;
   checkReady();
 }
 
 // ===== READY CHECK =====
 function checkReady() {
-  const plan = state.selectedPlan;
-  const isKakutei = plan && plan.startsWith('kakutei');
-  const ready = state.uploadedBase64 &&
-    plan &&
-    (!isKakutei || state.selectedStyle);
-  document.getElementById('btn-gacha').disabled = !ready;
+  const ready = !!state.uploadedBase64 && !!state.selectedPlan;
+  const btn = document.getElementById('btn-gacha');
+  btn.disabled = !ready;
+  if (state.selectedPlan) {
+    const p = PLANS[state.selectedPlan];
+    btn.textContent = `🎰 ¥${p.price.toLocaleString()}で${p.count}回ガチャを回す`;
+  } else {
+    btn.textContent = '🎰 ガチャを回す';
+  }
 }
 
-// ===== GACHA =====
+// ===== GACHA：決済 → 回数ぶん生成 =====
 function startGacha() {
-  // Stripe決済→決済完了後にガチャ演出
-  // デモ用：決済なしで直接ガチャ演出
-  showGachaModal();
-  runGeneration();
+  const plan = state.selectedPlan;
+  if (!plan || !state.uploadedBase64) return;
+
+  const stripeReady = !STRIPE_PUBLISHABLE_KEY.startsWith('YOUR_')
+    && !(STRIPE_PRICE_IDS[plan] || '').startsWith('YOUR_');
+
+  // Stripe未接続 or プレビュー → 決済を飛ばして直接ガチャ（モック）
+  if (PREVIEW_MODE || !stripeReady) {
+    showGachaModal();
+    runGeneration();
+    return;
+  }
+
+  // 本番：Stripe Checkout（payment mode）へ。決済後の復帰でガチャ実行する想定（§5-4）
+  startCheckout(plan);
+}
+
+// Stripe Checkout（都度課金）を起動
+async function startCheckout(plan) {
+  // ① 決済画面へ遷移する前に、アップロード写真とプランを sessionStorage へ退避
+  //    （Stripeへ離脱→復帰で state は消えるため、復帰後に復元してガチャを実行する）
+  try {
+    const small = await shrinkForStorage(state.uploadedBase64, state.uploadedImage?.type);
+    sessionStorage.setItem('pecha_pending', JSON.stringify({
+      base64: small,
+      filename: state.uploadedImage?.name || 'pet.jpg',
+      mime: 'image/jpeg',
+      plan,
+      count: PLANS[plan]?.count || 1
+    }));
+  } catch (e) {
+    console.error('pending photo save error:', e);
+    alert('写真の一時保存に失敗しました。写真サイズを小さくして再度お試しください。');
+    return;
+  }
+
+  // ② Checkout セッションを作成して遷移
+  try {
+    const res = await fetch(CHECKOUT_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        plan,
+        mode: 'payment',                       // ★サブスクではなく都度課金
+        priceId: STRIPE_PRICE_IDS[plan],
+        count: PLANS[plan].count,
+        isTrial: plan === 'trial',             // trial時はWebhookで trial_used_at をセット
+        lineUserId: state.user?.userId
+      })
+    });
+    const { url } = await res.json();
+    if (url) window.location.href = url;
+    else throw new Error('no checkout url');
+  } catch (e) {
+    console.error('checkout error:', e);
+    alert('決済画面の起動に失敗しました。時間をおいて再度お試しください。');
+  }
+}
+
+// 退避用に画像を縮小（最大辺1280px・JPEG）。sessionStorageの容量超過を防ぎ、makeへの入力も軽くする。
+function shrinkForStorage(base64, mime) {
+  return new Promise((resolve) => {
+    if (!base64) { resolve(base64); return; }
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const maxEdge = 1280;
+        const scale = Math.min(1, maxEdge / Math.max(img.width, img.height));
+        const w = Math.round(img.width * scale);
+        const h = Math.round(img.height * scale);
+        const cv = document.createElement('canvas');
+        cv.width = w; cv.height = h;
+        cv.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(cv.toDataURL('image/jpeg', 0.85).split(',')[1]);
+      } catch (e) { resolve(base64); }
+    };
+    img.onerror = () => resolve(base64);
+    img.src = `data:${mime || 'image/png'};base64,${base64}`;
+  });
+}
+
+// 決済から復帰したとき（?paid=1&plan=..&count=..）に、退避写真を復元してN回ガチャ実行
+function checkPaymentReturn() {
+  const params = new URLSearchParams(location.search);
+
+  // キャンセルで戻ってきた場合
+  if (params.get('canceled') === '1') {
+    history.replaceState({}, '', location.pathname);
+    sessionStorage.removeItem('pecha_pending');
+    return;
+  }
+
+  if (params.get('paid') !== '1') return;
+
+  const urlPlan  = params.get('plan');
+  // URLは一度きりにする（リロードでの二重実行を防止）
+  history.replaceState({}, '', location.pathname);
+
+  // 退避した写真を復元
+  let pending = null;
+  try { pending = JSON.parse(sessionStorage.getItem('pecha_pending') || 'null'); } catch (e) {}
+  sessionStorage.removeItem('pecha_pending');
+
+  if (!pending || !pending.base64) {
+    alert('お支払いは完了しました。お手数ですが、写真を選び直してガチャを回してください（このお支払い分の追加料金はかかりません）。');
+    return;
+  }
+
+  // state へ復元
+  state.uploadedBase64 = pending.base64;
+  state.uploadedImage  = { name: pending.filename || 'pet.jpg', type: pending.mime || 'image/jpeg' };
+  state.selectedPlan   = pending.plan || urlPlan;
+
+  // ログイン復元（restoreSession→setUser）が終わるのを待ってから実行
+  waitForUserThen(() => {
+    showGachaModal();
+    runGeneration();
+  });
+}
+
+// state.user が確定するまで待つ（最大~6秒。来なければそのまま実行＝画像は表示、保存はskip）
+function waitForUserThen(fn, tries = 0) {
+  if (state.user || tries > 40) { fn(); return; }
+  setTimeout(() => waitForUserThen(fn, tries + 1), 150);
 }
 
 function showGachaModal() {
@@ -1685,13 +2035,29 @@ function createParticles() {
   }
 }
 
-const MAKE_WEBHOOK = 'YOUR_MAKE_STAMP_WEBHOOK'; // ← 要設定
+// 画像生成makeシナリオのWebhook（base64で {b64_json, style, line_user_id} を返す）
+const MAKE_WEBHOOK = 'https://hook.us2.make.com/o7411uh8t5kpl5kfnv0oa9g4w0mpum45';
+
+// プレビュー中（file:// / ?preview）はモック生成（makeを実呼び出ししない）
+const MOCK_GENERATION = PREVIEW_MODE || MAKE_WEBHOOK.startsWith('YOUR_');
+
+// 6種から均等ランダムで作風キーを引く
+function rollStyle() {
+  return STYLES[Math.floor(Math.random() * STYLES.length)];
+}
+
+// base64文字列 → バイナリ(Uint8Array)。Storageアップロード用
+function base64ToBytes(b64) {
+  const clean = (b64 || '').replace(/^data:image\/\w+;base64,/, '');
+  const bin = atob(clean);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return bytes;
+}
 
 async function runGeneration() {
   const plan = state.selectedPlan;
-  const count = parseInt(plan.split('-')[1]);
-  const isKakutei = plan.startsWith('kakutei');
-  const style = isKakutei ? state.selectedStyle : null;
+  const count = PLANS[plan]?.count || 1;     // 回数ぶん連続で引く（§5-3）
 
   const texts = ['✨ AIが描いています ✨', '🎨 色を塗っています...', '🐾 仕上げ中です...'];
   let textIdx = 0;
@@ -1701,48 +2067,107 @@ async function runGeneration() {
   }, 2000);
 
   try {
-    const promises = [];
+    const results = [];  // { url(表示用), b64(保存用), style }
     for (let i = 0; i < count; i++) {
-      const actualStyle = isKakutei ? style : ['yurukawa', 'simple', 'merchen'][Math.floor(Math.random() * 3)];
-      promises.push(fetch(MAKE_WEBHOOK, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          style: actualStyle,
-          image_base64: state.uploadedBase64,
-          filename: state.uploadedImage?.name || 'pet.jpg',
-          line_user_id: state.user?.userId || 'anonymous',
-          plan: plan
-        })
-      }).then(r => r.blob()).then(blob => URL.createObjectURL(blob)));
-    }
-    const urls = await Promise.all(promises);
-    state.generatedImages = urls;
+      let style = rollStyle();  // 各回ランダム抽選
+      let url, b64 = null;
 
+      if (MOCK_GENERATION) {
+        await new Promise(r => setTimeout(r, count > 1 ? 1400 : 2400));
+        url = makeMockImage(style);
+      } else {
+        // make に送信 → base64で受信
+        const resp = await fetch(MAKE_WEBHOOK, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            style,                                  // 抽選で決まった作風キー
+            image_base64: state.uploadedBase64,
+            filename: state.uploadedImage?.name || 'pet.jpg',
+            line_user_id: state.user?.userId || 'anonymous',
+            plan
+          })
+        });
+        if (!resp.ok) throw new Error('make webhook error: ' + resp.status);
+        const data = await resp.json();          // { b64_json, style, line_user_id }
+        b64 = data.b64_json;
+        if (data.style) style = data.style;       // makeが返した作風を優先
+        url = `data:image/png;base64,${b64}`;     // 即時表示用のデータURL
+      }
+      results.push({ url, b64, style });
+    }
+
+    state.generatedImages = results.map(r => r.url);
+    state.lastStyles = results.map(r => r.style);
     clearInterval(textInterval);
     hideGachaModal();
-    showResults(urls);
+    showResults(results);                          // ① まず即表示
+
+    // ② 累計回数に即時反映（UX用。あとでDB再取得で正確化）
+    if (state.status) {
+      state.status.totalRolls += count;
+      renderPoints(state.status);
+    }
+
+    // ③ 表示後、裏でStorageアップ→pecha_illustrationsへINSERT
+    persistResults(results);
 
   } catch (e) {
     clearInterval(textInterval);
     hideGachaModal();
+    console.error('generation error:', e);
     alert('生成中にエラーが発生しました。もう一度お試しください。');
   }
 }
 
+// 生成画像を Storage に保存して pecha_illustrations に記録（表示とは非同期）
+async function persistResults(results) {
+  if (MOCK_GENERATION || !state.user?.userId) return;
+  for (const r of results) {
+    if (!r.b64) continue;
+    try {
+      const imageUrl = await supabase.uploadImage(state.user.userId, r.b64);
+      await supabase.saveIllustration(state.user.userId, imageUrl, r.style, state.selectedPlan);
+    } catch (e) {
+      console.error('persist (upload/insert) error:', e);
+    }
+  }
+  loadMypage();  // マイページ＆累計回数を再取得（正確な件数に更新）
+}
+
+// プレビュー用のダミーイラスト（canvasでグラデ＋絵文字＋作風名）
+function makeMockImage(style) {
+  const meta = STYLE_META[style] || { emoji: '🐾', label: 'おまかせ', c1: '#FFB3CC', c2: '#C084FC' };
+  const cv = document.createElement('canvas');
+  cv.width = 360; cv.height = 640;  // 9:16
+  const ctx = cv.getContext('2d');
+  const g = ctx.createLinearGradient(0, 0, 360, 640);
+  g.addColorStop(0, meta.c1); g.addColorStop(1, meta.c2);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, 360, 640);
+  ctx.font = '170px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('🐶', 180, 300);
+  ctx.fillStyle = 'rgba(255,255,255,0.95)'; ctx.font = 'bold 28px sans-serif';
+  ctx.fillText(meta.emoji + ' ' + meta.label, 180, 470);
+  ctx.font = 'bold 20px sans-serif';
+  ctx.fillText('PREVIEW', 180, 510);
+  return cv.toDataURL('image/png');
+}
+
 // ===== RESULT =====
-async function showResults(urls) {
+async function showResults(results) {
   const section = document.getElementById('result');
   const grid = document.getElementById('result-grid');
   grid.innerHTML = '';
 
-  urls.forEach((url, i) => {
+  results.forEach(({ url, style }, i) => {
+    const meta = STYLE_META[style] || { label: '' };
     const item = document.createElement('div');
     item.className = 'result-item';
     item.style.animationDelay = `${i * 0.2}s`;
     item.innerHTML = `
       <img src="${url}" alt="生成イラスト${i+1}">
       <div class="result-actions">
+        <span style="font-size:0.75rem;color:#8B6BA0;font-weight:700;">${meta.emoji || ''} ${meta.label}</span>
         <button class="btn-download" onclick="downloadImage('${url}', ${i+1})">
           ⬇️ ダウンロード
         </button>
@@ -1751,24 +2176,57 @@ async function showResults(urls) {
     grid.appendChild(item);
   });
 
+  renderGoods();  // グッズ購入導線を描画
+
   section.classList.add('show');
   section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // ※ Storageアップ＋INSERTは runGeneration → persistResults() で表示後に実行
+}
 
-  // Supabaseに保存
-  if (state.user?.userId) {
-    const plan = state.selectedPlan;
-    const isKakutei = plan?.startsWith('kakutei');
-    const style = isKakutei ? state.selectedStyle : 'random';
-    for (const url of urls) {
-      try {
-        await supabase.saveIllustration(state.user.userId, url, style, plan);
-      } catch(e) {
-        console.error('Supabase save error:', e);
-      }
-    }
-    // マイページを更新
-    loadMypage();
+// グッズ購入カタログ（結果画面 §5-6）
+function renderGoods() {
+  const grid = document.getElementById('goods-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  GOODS.forEach(g => {
+    const el = document.createElement('div');
+    el.className = 'goods-item';
+    el.onclick = () => orderGoods(g.key);
+    el.innerHTML = `
+      <div class="goods-item-emoji">${g.emoji}</div>
+      <div class="goods-item-name">${g.label}</div>
+      <div class="goods-item-price">¥${g.price.toLocaleString()}〜</div>
+    `;
+    grid.appendChild(el);
+  });
+}
+
+// グッズ注文（Stripe都度課金。未接続時はプレビュー案内）
+function orderGoods(key) {
+  const g = GOODS.find(x => x.key === key);
+  const stripeReady = !STRIPE_PUBLISHABLE_KEY.startsWith('YOUR_')
+    && !(GOODS_PRICE_IDS[key] || '').startsWith('YOUR_');
+
+  if (PREVIEW_MODE || !stripeReady) {
+    alert('【プレビュー】Stripe未接続です。\n\n本番ではここで「' + g.label + '（¥' + g.price.toLocaleString() + '〜）」の\nStripe Checkout（都度課金）に遷移します。\n注文情報＋イラストURL＋配送先を記録します（Mobitee内製）。');
+    return;
   }
+  // 本番：選択中イラスト＋グッズ種別で都度課金Checkoutを作成（§5-6）
+  fetch(CHECKOUT_ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      kind: 'goods',
+      mode: 'payment',
+      goods: key,
+      priceId: GOODS_PRICE_IDS[key],
+      imageUrl: state.generatedImages[0] || null,
+      lineUserId: state.user?.userId
+    })
+  })
+    .then(r => r.json())
+    .then(({ url }) => { if (url) window.location.href = url; })
+    .catch(e => { console.error('goods checkout error:', e); alert('決済画面の起動に失敗しました。'); });
 }
 
 function downloadImage(url, index) {
@@ -1795,11 +2253,6 @@ function shareToThreads() {
 }
 
 // ===== STICKER =====
-function orderSticker() {
-  // シール注文モーダルを表示（後で実装）
-  alert('シール注文機能は近日公開予定です！');
-}
-
 // ===== MYPAGE =====
 function scrollToMypage() {
   document.getElementById('mypage').scrollIntoView({ behavior: 'smooth' });
@@ -1813,6 +2266,12 @@ async function loadMypage() {
 
   try {
     const illustrations = await supabase.getIllustrations(state.user.userId);
+
+    // 累計ガチャ回数（=件数）をポイントカードに反映
+    if (state.status) {
+      state.status.totalRolls = illustrations ? illustrations.length : 0;
+      renderPoints(state.status);
+    }
 
     if (!illustrations || illustrations.length === 0) {
       grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#8B6BA0;padding:2rem;font-size:0.9rem;">まだイラストがありません🐾<br>ガチャを回してみよう！</div>';
@@ -1866,13 +2325,123 @@ function initScrollAnimation() {
   document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
 }
 
+// ===== ポイントカード：累計ガチャ回数（§5-5） =====
+function renderPoints(s) {
+  const card = document.getElementById('points-card');
+  const total = s.totalRolls || 0;
+  // 常に表示（0回でも「あと10回でシール」を見せてリピート動機に）
+  card.style.display = 'block';
+
+  const filled = Math.min(GOAL, total);
+  document.getElementById('points-num').textContent = total;
+
+  // 「前回見た回数」を localStorage に保持し、増えていたら増分にスタンプ演出
+  const seenKey = 'pecha_seen_rolls_' + (state.user?.userId || 'preview');
+  let prev = parseInt(localStorage.getItem(seenKey));
+  if (isNaN(prev)) prev = filled;  // 初回は演出なし
+
+  // スタンプ40マス（10/20/30/40 がマイルストーン）
+  const milestoneAt = {};
+  MILESTONES.forEach(m => { milestoneAt[m.n] = m; });
+  const stampsEl = document.getElementById('points-stamps');
+  stampsEl.innerHTML = '';
+  for (let i = 1; i <= GOAL; i++) {
+    const d = document.createElement('div');
+    const isFilled = i <= filled;
+    const m = milestoneAt[i];
+    d.className = 'stamp' + (isFilled ? ' filled' : '') + (m ? ' milestone' : '');
+    d.textContent = m ? m.emoji : (isFilled ? '🐾' : '');
+    if (m) d.title = `${m.n}回で${m.label}`;
+    if (i > prev && i <= filled) {  // 増分にポップ演出
+      d.classList.add('pop');
+      d.style.animationDelay = `${(i - prev - 1) * 0.08}s`;
+    }
+    stampsEl.appendChild(d);
+  }
+
+  // 次のマイルストーンを探す
+  const next = MILESTONES.find(m => total < m.n);
+  // 進捗バー（直近マイルストーン区間）
+  const base = next ? MILESTONES.filter(m => m.n < next.n).reduce((a, m) => Math.max(a, m.n), 0) : GOAL;
+  const targetN = next ? next.n : GOAL;
+  const pct = targetN === base ? 100 : Math.min(100, ((total - base) / (targetN - base)) * 100);
+  document.getElementById('points-progress-bar').style.width = pct + '%';
+
+  // 次の特典案内
+  const nextEl = document.getElementById('points-next');
+  nextEl.textContent = next
+    ? `あと ${next.n - total} 回で ${next.emoji} ${next.label}`
+    : '🎉 コンプリート！全特典を達成しました';
+
+  // 特典受け取りCTA（到達 & 未受取のみ）
+  const rewards = document.getElementById('points-rewards');
+  rewards.innerHTML = '';
+  MILESTONES.forEach(m => {
+    if (total >= m.n && !(s.redeemed && s.redeemed[m.key])) {
+      addRewardCta(rewards, `${m.emoji} ${m.label}を受け取る（${m.n}回達成）`, m.key, m.label);
+    }
+  });
+
+  // 既読回数を更新（次回の増加検知用）
+  localStorage.setItem(seenKey, String(filled));
+  state.prevPoints = total;
+}
+
+function addRewardCta(container, label, key, name) {
+  const b = document.createElement('button');
+  b.className = 'points-reward-cta';
+  b.textContent = label;
+  b.onclick = () => redeemReward(key, name);
+  container.appendChild(b);
+}
+
+function redeemReward(key, name) {
+  if (!REWARD_FORM_URL.startsWith('YOUR_')) {
+    window.open(REWARD_FORM_URL, '_blank');
+    return;
+  }
+  // フォーム未設定時の案内（初期はGoogleフォームで住所収集 → 運営が *_redeemed_at を記録）
+  const col = (MILESTONES.find(m => m.key === key) || {}).col || (key + '_redeemed_at');
+  alert('特典「' + name + '」の受け取りフォーム（住所入力）へご案内します。\n'
+    + '受け取り後、運営側で受取済み（' + col + '）を記録します。\n\n'
+    + '※フォームURLは REWARD_FORM_URL に設定してください。');
+}
+
+// ===== 開発用プレビュー（Stripe未接続時に各状態を確認） =====
+function initDevPanel() {
+  if (!PREVIEW_MODE) return;
+  document.getElementById('dev-panel').style.display = 'block';
+}
+
+function devApply() {
+  const v = document.getElementById('dev-state').value;
+  const rolls = Math.max(0, Math.min(GOAL, parseInt(document.getElementById('dev-points').value) || 0));
+
+  // ダミーユーザーでログイン後UIを有効化（マイページのDB取得で上書きされないよう preview ユーザーで固定）
+  if (!state.user) {
+    state.user = { userId: 'preview-user', displayName: 'プレビュー太郎', pictureUrl: '' };
+    document.getElementById('login-required').style.display = 'none';
+    document.getElementById('user-bar').classList.add('show');
+    document.getElementById('user-name').textContent = 'プレビュー太郎';
+    document.getElementById('mypage').classList.add('show');
+  }
+
+  const s = emptyStatus();
+  s.totalRolls = rolls;
+  if (v === 'trial_used') s.trialUsed = true;
+  applyUserStatus(s);
+  document.getElementById('order').scrollIntoView({ behavior: 'smooth' });
+}
+
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
   createBubbles();
   showHeroContent();
   checkLineCallback();
-  restoreSession();
+  restoreSession();        // ログイン復元（setUserは非同期で進む）
+  checkPaymentReturn();    // 決済復帰なら写真を復元してN回ガチャ（userの確定を待って実行）
   initScrollAnimation();
+  initDevPanel();
 });
 </script>
 </body>

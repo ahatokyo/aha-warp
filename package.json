@@ -1,0 +1,11 @@
+{
+  "name": "pecha-api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "PECHA Stripe Checkout / Webhook (Vercel serverless functions)",
+  "dependencies": {
+    "stripe": "^16.12.0",
+    "@supabase/supabase-js": "^2.45.4"
+  }
+}
