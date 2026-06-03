@@ -859,6 +859,17 @@ body {
   50% { opacity: 0.6; }
 }
 
+.gacha-note {
+  color: rgba(255, 255, 255, 0.85);
+  font-family: 'Zen Maru Gothic', sans-serif;
+  font-weight: 500;
+  font-size: 0.8rem;
+  line-height: 1.7;
+  text-align: center;
+  max-width: 280px;
+  margin: 0.9rem auto 0;
+}
+
 .gacha-progress {
   margin-top: 1.5rem;
   display: flex;
@@ -1345,7 +1356,8 @@ footer a:hover { color: var(--pink-light); }
     <!-- パーティクル -->
     <div id="particles"></div>
   </div>
-  <div class="gacha-text" id="gacha-text">✨ AIが描いています ✨</div>
+  <div class="gacha-text" id="gacha-text">🎰 ガチャを回しています…</div>
+  <div class="gacha-note">1分ほどで完成します。この画面を閉じても、マイページで当たったイラストを確認できます。</div>
   <div class="gacha-progress">
     <div class="gacha-dot"></div>
     <div class="gacha-dot"></div>
@@ -2062,7 +2074,7 @@ async function runGeneration() {
   const plan = state.selectedPlan;
   const count = PLANS[plan]?.count || 1;     // 回数ぶん連続で引く（§5-3）
 
-  const texts = ['✨ AIが描いています ✨', '🎨 色を塗っています...', '🐾 仕上げ中です...'];
+  const texts = ['🎰 ガチャを回しています…', '🎨 色を塗っています…', '🐾 今回はどのイラストが当たるかな…'];
   let textIdx = 0;
   const textInterval = setInterval(() => {
     textIdx = (textIdx + 1) % texts.length;
