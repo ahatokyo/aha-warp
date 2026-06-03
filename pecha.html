@@ -59,10 +59,11 @@ body {
 .hero-overlay {
   position: absolute;
   inset: 0;
+  /* 暗めの半透明オーバーレイ（動画の上で文字を読みやすく） */
   background: linear-gradient(
     to bottom,
-    rgba(26,10,46,0.2) 0%,
-    rgba(26,10,46,0.5) 70%,
+    rgba(26,10,46,0.5) 0%,
+    rgba(26,10,46,0.6) 50%,
     rgba(26,10,46,0.9) 100%
   );
 }
@@ -1191,10 +1192,10 @@ footer a:hover { color: var(--pink-light); }
 <!-- ===== HERO ===== -->
 <section id="hero">
   <div class="hero-bg-fallback" id="hero-bg"></div>
-  <!-- 動画は後で差し替え -->
-  <!-- <video id="hero-video" autoplay muted playsinline>
-    <source src="hero.mp4" type="video/mp4">
-  </video> -->
+  <!-- ヒーロー動画：全画面・自動再生・ミュート・ループなし・controls非表示。終了したら最終フレームで停止 -->
+  <video id="hero-video" autoplay muted playsinline preload="auto">
+    <source src="PETCHA_hero1.mp4" type="video/mp4">
+  </video>
   <div class="hero-overlay"></div>
 
   <!-- 浮遊する泡 -->
@@ -1670,11 +1671,31 @@ function createBubbles() {
   }
 }
 
-// ヒーローテキストを表示
+// ヒーローテキストを表示（動画が現れてから1秒後にフェードイン）
 function showHeroContent() {
-  setTimeout(() => {
-    document.getElementById('hero-content').classList.add('visible');
-  }, 800);
+  const video = document.getElementById('hero-video');
+  let revealed = false;
+  const reveal = () => {
+    if (revealed) return;
+    revealed = true;
+    setTimeout(() => {
+      document.getElementById('hero-content').classList.add('visible');
+    }, 1000);  // 動画表示から1秒後
+  };
+
+  if (!video) { reveal(); return; }
+
+  // 動画が表示され始めたら（最初のフレーム/再生開始）→ 1秒後にテキスト表示
+  const onShown = () => { video.classList.add('loaded'); reveal(); };
+  video.addEventListener('loadeddata', onShown);
+  video.addEventListener('playing', onShown);
+
+  // 自動再生を明示的に試行（失敗してもフォールバックでテキストは出す）
+  const p = video.play && video.play();
+  if (p && p.catch) p.catch(() => { video.classList.add('loaded'); reveal(); });
+
+  // 最終保険：3秒経っても何も発火しなければ強制表示
+  setTimeout(reveal, 3000);
 }
 
 // ===== LINE LOGIN =====
