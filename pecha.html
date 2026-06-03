@@ -1621,11 +1621,11 @@ const PREVIEW_MODE = (location.protocol === 'file:') ||
 // Stripe は「都度課金（payment mode）」。サブスクは使わない（§5-4）
 // ※テストキー(pk_test)。本番公開時は pk_live に差し替え。価格IDも本番モードのものに。
 const STRIPE_PUBLISHABLE_KEY = 'pk_test_51TbzwUCmTy1H3CXQlIStd8LaBnnE7jAby61cAS3EcfthXav7hkOQ92ngpxeD4Zzb7XwXMwit1pNvV82cj0tkvHXX00xbHZjgE8';
-const STRIPE_PRICE_IDS = {                          // Stripeで作成した価格ID（都度課金）
-  trial: 'price_1Te6C2CmTy1H3CXQ5sMCHUB0',  // お試し500円・買い切り
-  p1:    'price_1Te6CfCmTy1H3CXQQi8eMS8u',  // 1回1,000円
-  p2:    'price_1Te6CuCmTy1H3CXQwV8TRQr3',  // 2回1,800円
-  p3:    'price_1Te6D8CmTy1H3CXQzEFsqJ9p'   // 3回2,400円
+const STRIPE_PRICE_IDS = {                          // Stripeで作成した価格ID（都度課金・テストモード）
+  trial: 'price_1TeAIKCmTy1H3CXQfNDPZ5OU',  // お試し500円・買い切り
+  p1:    'price_1TeAIeCmTy1H3CXQ8cIXWzeu',  // 1回1,000円
+  p2:    'price_1TeAIrCmTy1H3CXQ4LrvcMAA',  // 2回1,800円
+  p3:    'price_1TeAm8CmTy1H3CXQv2qO6ixL'   // 3回2,400円
 };
 const GOODS_PRICE_IDS = {                                       // ← グッズの価格ID（要作成）
   sticker: 'YOUR_PRICE_ID_GOODS_STICKER',
