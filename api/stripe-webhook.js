@@ -64,19 +64,41 @@ export default async function handler(req, res) {
       const md = s.metadata || {};
       const lineUserId = md.lineUserId || s.client_reference_id;
 
-      // お試し購入 → trial_used_at をセット（既に入っていれば上書きしない）
-      if (md.isTrial === '1' && lineUserId && supabase) {
-        const { error } = await supabase
-          .from('pecha_users')
-          .update({ trial_used_at: new Date().toISOString() })
-          .eq('line_user_id', lineUserId)
-          .is('trial_used_at', null);
-        if (error) console.error('trial_used_at update error:', error);
+      if (md.kind === 'gift') {
+        // ② ガチャ券プレゼント購入 → 指定トークンの券を発行（贈り主のクレジットは増やさない）
+        if (md.token && supabase) {
+          const { error } = await supabase.from('pecha_gifts').insert({
+            token: md.token,
+            sender_line_user_id: lineUserId || null,
+            credits: parseInt(md.credits || '1', 10)
+          });
+          if (error) console.error('gift insert error:', error);
+        }
+      } else if (md.kind === 'goods') {
+        // §5-6 グッズ注文。保存テーブル未定義のためログのみ。
+        console.log('goods order', { lineUserId, goods: md.goods, imageUrl: md.imageUrl });
+      } else {
+        // ① ガチャ購入 → クレジット加算（add_credits RPC = 原子的）
+        const amount = parseInt(md.credits || '1', 10);
+        if (lineUserId && supabase) {
+          const { error } = await supabase.rpc('add_credits', {
+            p_line_user_id: lineUserId,
+            p_amount: amount
+          });
+          if (error) console.error('add_credits error:', error);
+          // お試し購入 → trial_used_at をセット（既に入っていれば上書きしない）
+          if (md.isTrial === '1') {
+            const { error: e2 } = await supabase
+              .from('pecha_users')
+              .update({ trial_used_at: new Date().toISOString() })
+              .eq('line_user_id', lineUserId)
+              .is('trial_used_at', null);
+            if (e2) console.error('trial_used_at update error:', e2);
+          }
+        }
       }
 
-      // グッズ注文の記録は専用テーブル未定義（§5-6）。必要になったらここで保存。
-      // 例: await supabase.from('pecha_goods_orders').insert({ ... })
-      console.log('checkout.session.completed', { lineUserId, kind: md.kind, plan: md.plan, goods: md.goods });
+      console.log('checkout.session.completed', { lineUserId, kind: md.kind, credits: md.credits });
     }
 
     res.status(200).json({ received: true });

@@ -26,6 +26,15 @@ const PRICE_BY_GOODS = {
   sweat:   process.env.STRIPE_PRICE_GOODS_SWEAT
 };
 
+// プラン → 付与クレジット数（① クレジット制）
+const CREDITS_BY_PLAN = { trial: 1, p1: 1, p2: 2, p3: 3 };
+// ギフト枚数 → 流用する price ID（② 既存と同額。1枚=p1/2枚=p2/3枚=p3）
+const GIFT_PRICE_BY_TICKETS = {
+  1: process.env.STRIPE_PRICE_P1,
+  2: process.env.STRIPE_PRICE_P2,
+  3: process.env.STRIPE_PRICE_P3
+};
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' });
@@ -38,7 +47,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { kind, plan, goods, count, isTrial, lineUserId, imageUrl } = req.body || {};
+    const { kind, plan, goods, tickets, token, isTrial, lineUserId, imageUrl } = req.body || {};
     const origin = req.headers.origin || `https://${req.headers.host}`;
 
     let priceId, metadata, successParams;
@@ -53,23 +62,35 @@ export default async function handler(req, res) {
         lineUserId: String(lineUserId || '')
       };
       successParams = `goods=${encodeURIComponent(goods || '')}`;
+    } else if (kind === 'gift') {
+      // ----- ガチャ券プレゼント購入（② 1/2/3枚＝既存p1/p2/p3価格を流用）-----
+      const n = Math.min(3, Math.max(1, parseInt(tickets, 10) || 1));
+      priceId = GIFT_PRICE_BY_TICKETS[n];
+      metadata = {
+        kind: 'gift',
+        token: String(token || ''),     // フロント生成のトークン。Webhookでこのトークンの券を発行
+        credits: String(n),             // 付与枚数
+        lineUserId: String(lineUserId || '')  // 贈り主
+      };
+      // 復帰後、フロントは sessionStorage のトークンから共有リンクを表示
+      successParams = `gift_bought=1`;
     } else {
-      // ----- ガチャ購入（お試し/1/2/3回 §5-4）-----
+      // ----- ガチャ購入（クレジット追加：お試し/1/2/3回 ①）-----
       priceId = PRICE_BY_PLAN[plan];
       metadata = {
         kind: 'gacha',
         plan: String(plan || ''),
-        count: String(count || 1),
+        credits: String(CREDITS_BY_PLAN[plan] || 1),  // 付与クレジット
         isTrial: isTrial ? '1' : '0',
         lineUserId: String(lineUserId || '')
       };
-      // 復帰後にフロントが回数ぶんガチャを実行するためのパラメータ
-      successParams = `paid=1&plan=${encodeURIComponent(plan || '')}&count=${encodeURIComponent(count || 1)}`;
+      // 復帰後はクレジット反映を確認するだけ（連続生成は廃止）
+      successParams = `paid=1`;
     }
 
     if (!priceId) {
       // 該当 price ID 未設定（＝まだStripeで作っていない）→ 待機扱い
-      res.status(503).json({ error: `price id not set for ${kind === 'goods' ? goods : plan}` });
+      res.status(503).json({ error: `price id not set for ${kind || plan}` });
       return;
     }
 
