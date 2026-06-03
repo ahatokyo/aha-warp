@@ -1501,10 +1501,13 @@ const supabase = {
   },
 
   // base64 を Storage(petcha-images) にアップロードして公開URLを返す
-  async uploadImage(lineUserId, b64) {
+  // opts.contentType / opts.ext で入力画像(jpg等)にも対応。既定はpng（生成結果用）。
+  async uploadImage(lineUserId, b64, opts = {}) {
+    const contentType = opts.contentType || 'image/png';
+    const ext = opts.ext || 'png';
     const bytes = base64ToBytes(b64);
     const safeId = String(lineUserId || 'anon').replace(/[^a-zA-Z0-9_-]/g, '');
-    const path = `${safeId}/${Date.now()}_${Math.random().toString(36).slice(2, 8)}.png`;
+    const path = `${safeId}/${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
     const res = await fetch(
       `${SUPABASE_URL}/storage/v1/object/${STORAGE_BUCKET}/${path}`,
       {
@@ -1512,7 +1515,7 @@ const supabase = {
         headers: {
           'apikey': SUPABASE_ANON_KEY,
           'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-          'Content-Type': 'image/png',
+          'Content-Type': contentType,
           'x-upsert': 'true'
         },
         body: bytes
@@ -2067,6 +2070,15 @@ async function runGeneration() {
   }, 2000);
 
   try {
+    // makeはペット写真を pet_image_url（URL）で受け取るので、生成前に1度だけStorageへアップ
+    // （N回ぶん同じ写真を使い回す）。生成結果の保存と同じ uploadImage() を入力画像にも流用。
+    let petImageUrl = null;
+    if (!MOCK_GENERATION) {
+      const mime = state.uploadedImage?.type || 'image/jpeg';
+      const ext  = mime === 'image/png' ? 'png' : (mime === 'image/webp' ? 'webp' : 'jpg');
+      petImageUrl = await supabase.uploadImage(state.user?.userId || 'anon', state.uploadedBase64, { contentType: mime, ext });
+    }
+
     const results = [];  // { url(表示用), b64(保存用), style }
     for (let i = 0; i < count; i++) {
       let style = rollStyle();  // 各回ランダム抽選
@@ -2076,16 +2088,14 @@ async function runGeneration() {
         await new Promise(r => setTimeout(r, count > 1 ? 1400 : 2400));
         url = makeMockImage(style);
       } else {
-        // make に送信 → base64で受信
+        // make に送信（pet_image_url＋作風キー）→ base64で受信
         const resp = await fetch(MAKE_WEBHOOK, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            style,                                  // 抽選で決まった作風キー
-            image_base64: state.uploadedBase64,
-            filename: state.uploadedImage?.name || 'pet.jpg',
             line_user_id: state.user?.userId || 'anonymous',
-            plan
+            pet_image_url: petImageUrl,
+            style                                   // 抽選で決まった作風キー
           })
         });
         if (!resp.ok) throw new Error('make webhook error: ' + resp.status);
