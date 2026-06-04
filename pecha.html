@@ -1432,7 +1432,7 @@ footer a:hover { color: var(--pink-light); }
         <div id="upload-placeholder">
           <span class="upload-icon">🐾</span>
           <p class="upload-text">写真をタップして選択</p>
-          <p class="upload-sub">JPG・PNG対応 / 最大10MB</p>
+          <p class="upload-sub">JPG・PNG・iPhone(HEIC)対応 / 最大20MB</p>
         </div>
       </div>
 
@@ -2158,19 +2158,50 @@ function handleDragleave(event) {
 }
 
 function processFile(file) {
-  if (file.size > 10 * 1024 * 1024) {
-    alert('ファイルサイズは10MB以下にしてください');
+  if (file.size > 20 * 1024 * 1024) {
+    alert('ファイルサイズは20MB以下にしてください');
     return;
   }
   const reader = new FileReader();
   reader.onload = (e) => {
-    state.uploadedBase64 = e.target.result.split(',')[1];
-    state.uploadedImage = file;
-    const preview = document.getElementById('upload-preview');
-    preview.src = e.target.result;
-    preview.style.display = 'block';
-    document.getElementById('upload-placeholder').style.display = 'none';
-    checkReady();
+    // ★ アップロード画像を必ず JPEG に正規化する。
+    //   iPhoneのHEIC等、OpenAI画像APIが受け付けない形式（→「Invalid image file」）や
+    //   巨大サイズ・回転情報の問題を、canvasで再エンコードして解消する。
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const maxEdge = 1280;
+        const scale = Math.min(1, maxEdge / Math.max(img.width, img.height));
+        const w = Math.max(1, Math.round(img.width * scale));
+        const h = Math.max(1, Math.round(img.height * scale));
+        const cv = document.createElement('canvas');
+        cv.width = w; cv.height = h;
+        const ctx = cv.getContext('2d');
+        ctx.fillStyle = '#ffffff';           // 透過PNG対策（背景を白に）
+        ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(img, 0, 0, w, h);
+        const jpeg = cv.toDataURL('image/jpeg', 0.9);
+        if (!jpeg || jpeg.length < 100) throw new Error('encode failed');
+
+        state.uploadedBase64 = jpeg.split(',')[1];
+        state.uploadedImage = {
+          name: (file.name || 'pet').replace(/\.[^.]+$/, '') + '.jpg',
+          type: 'image/jpeg'
+        };
+        const preview = document.getElementById('upload-preview');
+        preview.src = jpeg;
+        preview.style.display = 'block';
+        document.getElementById('upload-placeholder').style.display = 'none';
+        checkReady();
+      } catch (err) {
+        console.error('image normalize error:', err);
+        alert('この画像を読み込めませんでした。別の写真（JPEGやPNG）でお試しください📷');
+      }
+    };
+    img.onerror = () => {
+      alert('この画像を読み込めませんでした。別の写真（JPEGやPNG）でお試しください📷');
+    };
+    img.src = e.target.result;
   };
   reader.readAsDataURL(file);
 }
