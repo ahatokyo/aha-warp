@@ -1051,6 +1051,8 @@ body {
 
 .btn-download:hover { transform: translateY(-1px); }
 
+.dl-hint { text-align: center; font-size: 0.72rem; color: #8B6BA0; margin: 0.6rem 0 0.25rem; }
+
 /* シェアボタン */
 .share-buttons {
   display: flex;
@@ -1556,6 +1558,9 @@ footer a:hover { color: var(--pink-light); }
   <div class="result-grid" id="result-grid">
     <!-- 生成画像が入る -->
   </div>
+
+  <!-- 保存案内（常時表示） -->
+  <p class="dl-hint">💡 画像を長押しすると保存できます</p>
 
   <!-- シェアボタン -->
   <div class="share-buttons">
@@ -2537,25 +2542,45 @@ function orderGoods(key) {
 }
 
 function downloadImage(url, index) {
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `pecha_illustration_${index}.png`;
-  a.click();
+  // LINEアプリ内ブラウザはダウンロード(aタグdownload/blob)が動かない → 長押し保存を案内
+  if (isLineBrowser()) {
+    alert('LINEアプリ内ブラウザではダウンロードが制限されています。\n上のイラストを長押しして「画像を保存」を選んでください📲');
+    return;
+  }
+  try {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `pecha_illustration_${index}.png`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  } catch (e) {
+    // フォールバック：別タブで画像を開く（長押しで保存）
+    window.open(url, '_blank');
+    alert('画像を長押しして保存してください📲');
+  }
 }
 
 // ===== SHARE =====
+const SHARE_URL = 'https://aha-warp.vercel.app/pecha.html';
+
 function shareToX() {
   const text = encodeURIComponent('PETCHA（ペッチャ）でうちの子のイラストを作ったよ🐾✨ #PETCHA #AHATOKYO #うちの子');
-  window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
+  const url = encodeURIComponent(SHARE_URL);
+  window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank');
 }
 
+// 画像保存は環境依存で確実に動かないため、手順を案内するUIに変更
 function shareToInstagram() {
-  if (state.generatedImages.length > 0) downloadImage(state.generatedImages[0], 1);
-  alert('画像を保存しました！Instagramアプリから投稿してください📸');
+  alert('📸 Instagramへの投稿手順\n\n'
+    + '① 上のイラストを長押しして「画像を保存」\n'
+    + '② Instagramアプリを開く\n'
+    + '③ 保存した画像を選んで投稿\n\n'
+    + 'ハッシュタグ： #PETCHA #AHATOKYO #うちの子');
 }
 
 function shareToThreads() {
-  const text = encodeURIComponent('PETCHA（ペッチャ）でうちの子のイラストを作ったよ🐾✨ #PETCHA #AHATOKYO');
+  const text = encodeURIComponent('PETCHA（ペッチャ）でうちの子のイラストを作ったよ🐾✨ #PETCHA #AHATOKYO\n' + SHARE_URL);
   window.open(`https://www.threads.net/intent/post?text=${text}`, '_blank');
 }
 
