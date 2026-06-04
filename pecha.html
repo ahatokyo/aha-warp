@@ -880,7 +880,27 @@ body {
 .gacha-stage { display: none; }
 #gacha-modal .gacha-text,
 #gacha-modal .gacha-note,
+#gacha-modal .gacha-bar,
 #gacha-modal .gacha-progress { position: relative; z-index: 1; }
+
+/* 進捗バー（紫系グラデ・角丸・文言の下） */
+.gacha-bar {
+  width: min(280px, 70vw);
+  height: 10px;
+  background: rgba(255,255,255,0.28);
+  border-radius: 100px;
+  overflow: hidden;
+  margin: 1.25rem auto 0;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.35);
+}
+.gacha-bar-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 100px;
+  background: linear-gradient(90deg, var(--pink), var(--purple));
+}
+/* バー導入により3点ドットは非表示 */
+#gacha-modal .gacha-progress { display: none; }
 
 /* カプセルマシン */
 .capsule-machine {
@@ -1528,8 +1548,8 @@ footer a:hover { color: var(--pink-light); }
 
 <!-- ===== GACHA MODAL ===== -->
 <div id="gacha-modal">
-  <!-- 生成中の背景動画（全画面・音声あり・ループ） -->
-  <video id="gacha-video" loop playsinline preload="auto">
+  <!-- 生成中の背景動画（全画面・ミュート・ループ） -->
+  <video id="gacha-video" loop muted playsinline preload="auto">
     <source src="PETCHA_generating.mp4" type="video/mp4">
   </video>
   <div class="gacha-stage">
@@ -1541,6 +1561,7 @@ footer a:hover { color: var(--pink-light); }
   </div>
   <div class="gacha-text" id="gacha-text">🎰 ガチャを回しています…</div>
   <div class="gacha-note">1分ほどで完成します。この画面を閉じても、マイページで当たったイラストを確認できます。</div>
+  <div class="gacha-bar"><div class="gacha-bar-fill" id="gacha-bar-fill"></div></div>
   <div class="gacha-progress">
     <div class="gacha-dot"></div>
     <div class="gacha-dot"></div>
@@ -2300,13 +2321,12 @@ function waitForUserThen(fn, tries = 0) {
 
 function showGachaModal() {
   document.getElementById('gacha-modal').classList.add('show');
-  // 背景動画を再生（音声あり。ユーザー操作起点なので音つき再生が許可されやすい。
-  // ブロックされたらミュートで再試行して映像だけは出す）
+  // 背景動画を再生（ミュート＝自動再生が確実に許可される）
   const v = document.getElementById('gacha-video');
   if (v) {
     v.currentTime = 0;
-    v.muted = false;
-    v.play().catch(() => { v.muted = true; v.play().catch(() => {}); });
+    v.muted = true;
+    v.play().catch(() => {});
   }
 }
 
@@ -2359,13 +2379,32 @@ function base64ToBytes(b64) {
   return bytes;
 }
 
+// 進捗バー＋文言コントローラ（85%まではタイマー、応答が返ったら100%へジャンプ）
+function startGachaProgress() {
+  const fill = document.getElementById('gacha-bar-fill');
+  const text = document.getElementById('gacha-text');
+  const timers = [];
+  const setText = t => { text.textContent = t; };
+  const move = (pct, dur) => { fill.style.transition = `width ${dur}s linear`; fill.style.width = pct + '%'; };
+
+  fill.style.transition = 'none';
+  fill.style.width = '0%';
+  void fill.offsetWidth;                  // リフローで0%を確定させてからアニメ開始
+  setText('🎰 ガチャを回しています…');
+
+  move(30, 12);                                                                    // 0→30%（12秒）
+  timers.push(setTimeout(() => move(60, 28), 12000));                              // 30→60%（28秒）
+  timers.push(setTimeout(() => { setText('🎨 色を塗っています…'); move(85, 35); }, 40000)); // 60%で文言→ 60→85%（35秒）
+  timers.push(setTimeout(() => setText('🐾 今回はどのイラストが当たるかな…'), 75000));        // 85%で文言
+
+  return {
+    finish() { timers.forEach(clearTimeout); fill.style.transition = 'width 0.5s ease'; fill.style.width = '100%'; },
+    cancel() { timers.forEach(clearTimeout); }
+  };
+}
+
 async function runGeneration() {
-  const texts = ['🎰 ガチャを回しています…', '🎨 色を塗っています…', '🐾 今回はどのイラストが当たるかな…'];
-  let textIdx = 0;
-  const textInterval = setInterval(() => {
-    textIdx = (textIdx + 1) % texts.length;
-    document.getElementById('gacha-text').textContent = texts[textIdx];
-  }, 2000);
+  const progress = startGachaProgress();
 
   try {
     // makeはペット写真を pet_image_url（URL）で受け取るので、生成前にStorageへアップ
@@ -2402,9 +2441,10 @@ async function runGeneration() {
     const results = [{ url, b64, style }];
     state.generatedImages = [url];
     state.lastStyles = [style];
-    clearInterval(textInterval);
+    progress.finish();                             // 応答が返った → 100%へジャンプ
+    await new Promise(r => setTimeout(r, 500));     // 100%を見せてから遷移
     hideGachaModal();
-    showResults(results);                          // まず即表示
+    showResults(results);                          // 結果画面へ
 
     // ① クレジット1消費（生成成功後）＋ 残数・累計を更新
     if (state.status) {
@@ -2424,7 +2464,7 @@ async function runGeneration() {
     persistResults(results);           // 裏でStorage保存→pecha_illustrations
 
   } catch (e) {
-    clearInterval(textInterval);
+    progress.cancel();
     hideGachaModal();
     console.error('generation error:', e);
     alert('生成中にエラーが発生しました。もう一度お試しください。');
