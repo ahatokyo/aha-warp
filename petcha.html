@@ -650,6 +650,18 @@ body {
 .btn-gift-accept { background:linear-gradient(135deg,var(--pink),var(--purple)); color:#fff; }
 .btn-gift-dismiss { background:transparent; color:#8B6BA0; }
 
+/* 汎用カスタムモーダル（ネイティブalert/confirm代替・PETCHAブランド） */
+#petcha-modal { display:none; position:fixed; inset:0; z-index:4000; background:rgba(26,10,46,0.88); align-items:center; justify-content:center; padding:1.5rem; }
+#petcha-modal.show { display:flex; }
+.petcha-modal-card { background:#fff; border-radius:24px; max-width:360px; width:100%; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,0.4); animation:pmPop 0.25s ease; }
+@keyframes pmPop { from { transform:scale(0.9); opacity:0; } to { transform:scale(1); opacity:1; } }
+.petcha-modal-header { background:linear-gradient(135deg,var(--pink),var(--purple)); color:#fff; font-family:'Zen Maru Gothic',sans-serif; font-weight:900; letter-spacing:0.12em; font-size:1.05rem; padding:0.85rem; text-align:center; }
+.petcha-modal-msg { padding:1.5rem 1.25rem; font-size:0.9rem; line-height:1.75; color:var(--text); text-align:center; white-space:pre-line; word-break:break-word; }
+.petcha-modal-actions { display:flex; gap:0.6rem; padding:0 1.25rem 1.25rem; }
+.petcha-modal-actions button { flex:1; padding:0.85rem; border:none; border-radius:100px; cursor:pointer; font-family:'Zen Maru Gothic',sans-serif; font-weight:800; font-size:0.95rem; }
+.pm-ok { background:linear-gradient(135deg,var(--pink),var(--purple)); color:#fff; box-shadow:0 6px 18px rgba(255,107,157,0.3); }
+.pm-cancel { background:#F0E5F7; color:var(--purple-dark); }
+
 /* ===== ⑧ レビューフォーム ===== */
 .review-form { background:#FFF6FB; border:1px solid #E8D5F0; border-radius:20px; padding:1.5rem 1.25rem; margin-top:1.5rem; }
 .review-form h3 { font-family:'Zen Maru Gothic',sans-serif; color:var(--purple-dark); font-size:1rem; text-align:center; margin-bottom:0.5rem; }
@@ -1311,6 +1323,18 @@ footer a:hover { color: var(--pink-light); }
       <button class="btn-gift-dismiss" onclick="dismissGift()">あとで / 閉じる</button>
     </div>
     <p class="gift-modal-note">※身に覚えのない場合は無視してください。</p>
+  </div>
+</div>
+
+<!-- 汎用カスタムモーダル（alert/confirm 代替） -->
+<div id="petcha-modal">
+  <div class="petcha-modal-card">
+    <div class="petcha-modal-header">🐾 PETCHA</div>
+    <div class="petcha-modal-msg" id="petcha-modal-msg"></div>
+    <div class="petcha-modal-actions">
+      <button class="pm-cancel" id="petcha-modal-cancel" style="display:none;">いいえ</button>
+      <button class="pm-ok" id="petcha-modal-ok">OK</button>
+    </div>
   </div>
 </div>
 
@@ -2167,7 +2191,7 @@ function handleDragleave(event) {
 
 function processFile(file) {
   if (file.size > 20 * 1024 * 1024) {
-    alert('ファイルサイズは20MB以下にしてください');
+    petchaAlert('ファイルサイズは20MB以下にしてください');
     return;
   }
   const reader = new FileReader();
@@ -2205,11 +2229,11 @@ function processFile(file) {
         checkReady();
       } catch (err) {
         console.error('image normalize error:', err);
-        alert('この画像を読み込めませんでした。別の写真（JPEGやPNG）でお試しください📷');
+        petchaAlert('この画像を読み込めませんでした。別の写真（JPEGやPNG）でお試しください📷');
       }
     };
     img.onerror = () => {
-      alert('この画像を読み込めませんでした。別の写真（JPEGやPNG）でお試しください📷');
+      petchaAlert('この画像を読み込めませんでした。別の写真（JPEGやPNG）でお試しください📷');
     };
     img.src = e.target.result;
   };
@@ -2238,7 +2262,7 @@ function confirmPurchase() {
     state.status = state.status || emptyStatus();
     state.status.credits += add;
     if (plan === 'trial') state.status.trialUsed = true;
-    alert('【プレビュー】Stripe未接続のため、クレジット' + add + '回分を擬似付与しました。');
+    petchaAlert('【プレビュー】Stripe未接続のため、クレジット' + add + '回分を擬似付与しました。');
     applyUserStatus(state.status);
     return;
   }
@@ -2282,7 +2306,7 @@ async function startCheckout(plan) {
     else throw new Error('no checkout url');
   } catch (e) {
     console.error('checkout error:', e);
-    alert('決済画面の起動に失敗しました。時間をおいて再度お試しください。');
+    petchaAlert('決済画面の起動に失敗しました。時間をおいて再度お試しください。');
   }
 }
 
@@ -2508,7 +2532,7 @@ async function runGeneration() {
     progress.cancel();
     hideGachaModal();
     console.error('generation error:', e);
-    alert('生成中にエラーが発生しました。もう一度お試しください。');
+    petchaAlert('生成中にエラーが発生しました。もう一度お試しください。');
   }
 }
 
@@ -2601,7 +2625,7 @@ function orderGoods(key) {
     && !(GOODS_PRICE_IDS[key] || '').startsWith('YOUR_');
 
   if (PREVIEW_MODE || !stripeReady) {
-    alert('【プレビュー】Stripe未接続です。\n\n本番ではここで「' + g.label + '（¥' + g.price.toLocaleString() + '〜）」の\nStripe Checkout（都度課金）に遷移します。\n注文情報＋イラストURL＋配送先を記録します（Mobitee内製）。');
+    petchaAlert('【プレビュー】Stripe未接続です。\n\n本番ではここで「' + g.label + '（¥' + g.price.toLocaleString() + '〜）」の\nStripe Checkout（都度課金）に遷移します。\n注文情報＋イラストURL＋配送先を記録します（Mobitee内製）。');
     return;
   }
   // 本番：選択中イラスト＋グッズ種別で都度課金Checkoutを作成（§5-6）
@@ -2619,13 +2643,13 @@ function orderGoods(key) {
   })
     .then(r => r.json())
     .then(({ url }) => { if (url) window.location.href = url; })
-    .catch(e => { console.error('goods checkout error:', e); alert('決済画面の起動に失敗しました。'); });
+    .catch(e => { console.error('goods checkout error:', e); petchaAlert('決済画面の起動に失敗しました。'); });
 }
 
 function downloadImage(url, index) {
   // LINEアプリ内ブラウザはダウンロード(aタグdownload/blob)が動かない → 長押し保存を案内
   if (isLineBrowser()) {
-    alert('LINEアプリ内ブラウザではダウンロードが制限されています。\n上のイラストを長押しして「画像を保存」を選んでください📲');
+    petchaAlert('LINEアプリ内ブラウザではダウンロードが制限されています。\n上のイラストを長押しして「画像を保存」を選んでください📲');
     return;
   }
   try {
@@ -2638,7 +2662,7 @@ function downloadImage(url, index) {
   } catch (e) {
     // フォールバック：別タブで画像を開く（長押しで保存）
     window.open(url, '_blank');
-    alert('画像を長押しして保存してください📲');
+    petchaAlert('画像を長押しして保存してください📲');
   }
 }
 
@@ -2653,7 +2677,7 @@ function shareToX() {
 
 // 画像保存は環境依存で確実に動かないため、手順を案内するUIに変更
 function shareToInstagram() {
-  alert('📸 Instagramへの投稿手順\n\n'
+  petchaAlert('📸 Instagramへの投稿手順\n\n'
     + '① 上のイラストを長押しして「画像を保存」\n'
     + '② Instagramアプリを開く\n'
     + '③ 保存した画像を選んで投稿\n\n'
@@ -2815,7 +2839,7 @@ function redeemReward(key, name) {
   }
   // フォーム未設定時の案内（初期はGoogleフォームで住所収集 → 運営が *_redeemed_at を記録）
   const col = (MILESTONES.find(m => m.key === key) || {}).col || (key + '_redeemed_at');
-  alert('特典「' + name + '」の受け取りフォーム（住所入力）へご案内します。\n'
+  petchaAlert('特典「' + name + '」の受け取りフォーム（住所入力）へご案内します。\n'
     + '受け取り後、運営側で受取済み（' + col + '）を記録します。\n\n'
     + '※フォームURLは REWARD_FORM_URL に設定してください。');
 }
@@ -2877,7 +2901,7 @@ async function confirmGift() {
     && !(STRIPE_PRICE_IDS.p1 || '').startsWith('YOUR_');
 
   if (PREVIEW_MODE || !stripeReady) {
-    alert('【プレビュー】Stripe未接続のため、ダミーの受け取りリンクを表示します。');
+    petchaAlert('【プレビュー】Stripe未接続のため、ダミーの受け取りリンクを表示します。');
     showGiftLink(token);
     return;
   }
@@ -2894,7 +2918,7 @@ async function confirmGift() {
     else throw new Error('no checkout url');
   } catch (e) {
     console.error('gift checkout error:', e);
-    alert('決済画面の起動に失敗しました。時間をおいて再度お試しください。');
+    petchaAlert('決済画面の起動に失敗しました。時間をおいて再度お試しください。');
   }
 }
 
@@ -2917,7 +2941,7 @@ function showGiftLink(token) {
 function copyGiftLink() {
   const inp = document.getElementById('gift-link-input');
   inp.select();
-  const done = () => alert('リンクをコピーしました🎁');
+  const done = () => petchaAlert('リンクをコピーしました🎁');
   if (navigator.clipboard) navigator.clipboard.writeText(inp.value).then(done, () => { document.execCommand('copy'); done(); });
   else { document.execCommand('copy'); done(); }
 }
@@ -2952,23 +2976,23 @@ async function acceptGift() {
   if (!pendingGiftToken) return;
   if (!state.user) {
     sessionStorage.setItem('pecha_pending_gift', pendingGiftToken);
-    alert('受け取りにはLINEログインが必要です。ログイン後、自動で受け取ります。');
+    await petchaAlert('受け取りにはLINEログインが必要です。ログイン後、自動で受け取ります。');
     loginWithLINE();
     return;
   }
   try {
     const r = await supabase.redeemGift(pendingGiftToken, state.user.userId);
     if (typeof r === 'number' && r > 0) {
-      alert('ガチャ券 ' + r + '回分を受け取りました🎁');
+      petchaAlert('ガチャ券 ' + r + '回分を受け取りました🎁');
       dismissGift();
       applyUserStatus(await loadUserStatus(state.user));
       document.getElementById('order').scrollIntoView({ behavior: 'smooth' });
-    } else if (r === -1) { alert('このガチャ券は使用済みです。'); dismissGift(); }
-    else if (r === -3)   { alert('自分が贈ったガチャ券は受け取れません。'); dismissGift(); }
-    else { alert('このガチャ券は無効です。'); dismissGift(); }
+    } else if (r === -1) { petchaAlert('このガチャ券は使用済みです。'); dismissGift(); }
+    else if (r === -3)   { petchaAlert('自分が贈ったガチャ券は受け取れません。'); dismissGift(); }
+    else { petchaAlert('このガチャ券は無効です。'); dismissGift(); }
   } catch (e) {
     console.error('redeem error:', e);
-    alert('受け取りに失敗しました。時間をおいて再度お試しください。');
+    petchaAlert('受け取りに失敗しました。時間をおいて再度お試しください。');
   }
 }
 
@@ -3008,7 +3032,7 @@ function resetReviewForm() {
 }
 
 async function submitReview() {
-  if (!state.rating) { alert('★の数を選んでください'); return; }
+  if (!state.rating) { petchaAlert('★の数を選んでください'); return; }
   const name = (document.getElementById('review-name').value || '').trim() || (state.user?.displayName || 'ゲスト');
   const comment = (document.getElementById('review-comment').value || '').trim();
   try {
@@ -3018,7 +3042,7 @@ async function submitReview() {
     loadVoices();
   } catch (e) {
     console.error('review submit error:', e);
-    alert('送信に失敗しました。時間をおいて再度お試しください。');
+    petchaAlert('送信に失敗しました。時間をおいて再度お試しください。');
   }
 }
 
@@ -3064,6 +3088,34 @@ function dismissLineBanner() {
   document.getElementById('line-banner').classList.remove('show');
   sessionStorage.setItem('pecha_line_banner_closed', '1');
 }
+
+// ===================================================================
+// カスタムモーダル（ネイティブ alert/confirm 代替）
+//   petchaAlert(msg)   → OKのみ。Promiseを返す（await可）
+//   petchaConfirm(msg) → はい/いいえ。Promise<boolean> を返す
+// ===================================================================
+function petchaModal(message, isConfirm) {
+  return new Promise((resolve) => {
+    const ov     = document.getElementById('petcha-modal');
+    const okBtn  = document.getElementById('petcha-modal-ok');
+    const cancel = document.getElementById('petcha-modal-cancel');
+    document.getElementById('petcha-modal-msg').textContent = String(message == null ? '' : message);
+    cancel.style.display = isConfirm ? 'block' : 'none';
+    okBtn.textContent = isConfirm ? 'はい' : 'OK';
+    const close = (val) => {
+      ov.classList.remove('show');
+      okBtn.onclick = null; cancel.onclick = null; ov.onclick = null;
+      resolve(val);
+    };
+    okBtn.onclick = () => close(true);
+    cancel.onclick = () => close(false);
+    // 背景タップで閉じる（alertはtrue扱い / confirmはfalse扱い）
+    ov.onclick = (e) => { if (e.target === ov) close(isConfirm ? false : true); };
+    ov.classList.add('show');
+  });
+}
+function petchaAlert(message)   { return petchaModal(message, false); }
+function petchaConfirm(message) { return petchaModal(message, true); }
 
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
