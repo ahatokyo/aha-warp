@@ -97,8 +97,8 @@ export default async function handler(req, res) {
     const session = await stripe.checkout.sessions.create({
       mode: 'payment', // ★サブスクではなく都度課金
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${origin}/pecha.html?${successParams}&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url:  `${origin}/pecha.html?canceled=1`,
+      success_url: `${origin}/petcha.html?${successParams}&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url:  `${origin}/petcha.html?canceled=1`,
       metadata,
       client_reference_id: lineUserId ? String(lineUserId) : undefined
     });
