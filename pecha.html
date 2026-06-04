@@ -2164,32 +2164,34 @@ function processFile(file) {
   }
   const reader = new FileReader();
   reader.onload = (e) => {
-    // ★ アップロード画像を必ず JPEG に正規化する。
-    //   iPhoneのHEIC等、OpenAI画像APIが受け付けない形式（→「Invalid image file」）や
-    //   巨大サイズ・回転情報の問題を、canvasで再エンコードして解消する。
+    // ★ アップロード画像を必ず PNG(RGBA) に正規化する。
+    //   理由: OpenAI images/edits は「Invalid image file or mode」を返すことがあり、
+    //   これはアルファチャンネルの無いJPEG等が原因。canvasは常にRGBAなので
+    //   PNGで書き出せば mode 要件を満たす。あわせてHEIC等の非対応形式・巨大サイズ・
+    //   回転情報の問題も再エンコードで解消する。
     const img = new Image();
     img.onload = () => {
       try {
-        const maxEdge = 1280;
+        const maxEdge = 1024;   // PNGはJPEGより大きいので少し抑える（OpenAIのサイズ上限対策）
         const scale = Math.min(1, maxEdge / Math.max(img.width, img.height));
         const w = Math.max(1, Math.round(img.width * scale));
         const h = Math.max(1, Math.round(img.height * scale));
         const cv = document.createElement('canvas');
         cv.width = w; cv.height = h;
         const ctx = cv.getContext('2d');
-        ctx.fillStyle = '#ffffff';           // 透過PNG対策（背景を白に）
+        ctx.fillStyle = '#ffffff';           // 不透明な背景（透過PNG入力でも黒くならない）
         ctx.fillRect(0, 0, w, h);
         ctx.drawImage(img, 0, 0, w, h);
-        const jpeg = cv.toDataURL('image/jpeg', 0.9);
-        if (!jpeg || jpeg.length < 100) throw new Error('encode failed');
+        const png = cv.toDataURL('image/png');   // RGBA PNG（mode要件を満たす）
+        if (!png || png.length < 100) throw new Error('encode failed');
 
-        state.uploadedBase64 = jpeg.split(',')[1];
+        state.uploadedBase64 = png.split(',')[1];
         state.uploadedImage = {
-          name: (file.name || 'pet').replace(/\.[^.]+$/, '') + '.jpg',
-          type: 'image/jpeg'
+          name: (file.name || 'pet').replace(/\.[^.]+$/, '') + '.png',
+          type: 'image/png'
         };
         const preview = document.getElementById('upload-preview');
-        preview.src = jpeg;
+        preview.src = png;
         preview.style.display = 'block';
         document.getElementById('upload-placeholder').style.display = 'none';
         checkReady();
