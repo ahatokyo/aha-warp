@@ -696,6 +696,68 @@ body {
 .goods-row-price { font-weight:800; font-size:0.85rem; color:var(--pink); }
 .goods-modal-close { display:block; width:calc(100% - 2rem); margin:0.25rem 1rem 1.25rem; padding:0.8rem; border:none; border-radius:100px; cursor:pointer; background:#F0E5F7; color:var(--purple-dark); font-family:'Zen Maru Gothic',sans-serif; font-weight:800; font-size:0.95rem; }
 
+/* 結果画面のグッズCTAボタン */
+.btn-make-goods { width:100%; margin-top:1.25rem; padding:0.95rem; border:none; border-radius:100px; cursor:pointer; background:linear-gradient(135deg,var(--purple),var(--purple-dark)); color:#fff; font-family:'Zen Maru Gothic',sans-serif; font-weight:800; font-size:0.95rem; box-shadow:0 8px 22px rgba(124,58,237,0.3); }
+
+/* ===== グッズ注文ウィザード ===== */
+#order-wizard { display:none; position:fixed; inset:0; z-index:4000; background:rgba(26,10,46,0.9); align-items:center; justify-content:center; padding:1.25rem; }
+#order-wizard.show { display:flex; }
+.ow-card { background:#fff; border-radius:24px; max-width:380px; width:100%; max-height:88vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,0.4); animation:pmPop 0.25s ease; }
+.ow-header { background:linear-gradient(135deg,var(--pink),var(--purple)); color:#fff; display:flex; align-items:center; justify-content:space-between; padding:0.8rem 1rem; }
+.ow-title { font-family:'Zen Maru Gothic',sans-serif; font-weight:900; letter-spacing:0.06em; font-size:1rem; }
+.ow-close { background:none; border:none; color:#fff; font-size:1.5rem; line-height:1; cursor:pointer; padding:0 0.2rem; }
+.ow-steps { display:flex; gap:0.4rem; justify-content:center; padding:0.85rem 1rem 0.4rem; }
+.ow-dot { width:8px; height:8px; border-radius:50%; background:#E0D0EC; transition:all 0.2s; }
+.ow-dot.active { background:var(--pink); transform:scale(1.4); }
+.ow-dot.done { background:var(--purple); }
+.ow-thumb { display:flex; align-items:center; gap:0.6rem; background:#FBF7FF; border:1px solid #EEE3F7; border-radius:12px; margin:0.4rem 1rem; padding:0.5rem 0.7rem; }
+.ow-thumb img { width:40px; height:40px; border-radius:8px; object-fit:cover; flex:0 0 auto; }
+.ow-thumb span { font-size:0.7rem; color:#8B6BA0; font-weight:700; }
+.ow-body { flex:1; overflow-y:auto; padding:0.5rem 1rem 1rem; }
+.ow-q { font-family:'Zen Maru Gothic',sans-serif; font-weight:800; font-size:0.92rem; color:var(--text); text-align:center; margin:0.4rem 0 0.85rem; }
+/* イラスト選択 */
+.ow-illust-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:0.5rem; }
+.ow-illust { border-radius:10px; overflow:hidden; aspect-ratio:1; border:3px solid transparent; cursor:pointer; }
+.ow-illust.sel { border-color:var(--pink); }
+.ow-illust img { width:100%; height:100%; object-fit:cover; display:block; }
+/* 商品 */
+.ow-prod-list { display:flex; flex-direction:column; gap:0.5rem; }
+.ow-prod { display:flex; align-items:center; gap:0.7rem; width:100%; text-align:left; background:#FBF7FF; border:2px solid #EEE3F7; border-radius:14px; padding:0.7rem 0.85rem; cursor:pointer; }
+.ow-prod.sel { border-color:var(--pink); background:var(--pink-pale); }
+.ow-prod-emoji { font-size:1.4rem; }
+.ow-prod-name { flex:1; font-family:'Zen Maru Gothic',sans-serif; font-weight:800; font-size:0.8rem; color:var(--text); }
+.ow-prod-price { font-weight:800; font-size:0.82rem; color:var(--pink); }
+/* カラー */
+.ow-swatches { display:flex; flex-wrap:wrap; gap:0.6rem; justify-content:center; }
+.ow-swatch { display:flex; align-items:center; gap:0.4rem; background:#fff; border:2px solid #E8D5F0; border-radius:100px; padding:0.45rem 0.9rem; cursor:pointer; font-weight:700; font-size:0.82rem; color:var(--text); }
+.ow-swatch.sel { border-color:var(--pink); background:var(--pink-pale); }
+.ow-sw-dot { width:18px; height:18px; border-radius:50%; border:1px solid rgba(0,0,0,0.15); }
+/* サイズ */
+.ow-sizes { display:grid; grid-template-columns:repeat(3,1fr); gap:0.5rem; }
+.ow-size { padding:0.7rem; border:2px solid #E8D5F0; border-radius:12px; background:#fff; cursor:pointer; font-weight:800; font-size:0.9rem; color:var(--text); }
+.ow-size.sel { border-color:var(--pink); background:var(--pink-pale); color:var(--pink); }
+.ow-link { display:block; margin:0.85rem auto 0; background:none; border:none; color:var(--purple-dark); font-weight:700; font-size:0.8rem; text-decoration:underline; cursor:pointer; }
+/* 2択 */
+.ow-twocol { display:grid; grid-template-columns:1fr 1fr; gap:0.6rem; }
+.ow-opt { padding:0.85rem; border:2px solid #E8D5F0; border-radius:14px; background:#fff; cursor:pointer; font-family:'Zen Maru Gothic',sans-serif; font-weight:800; font-size:0.85rem; color:var(--text); }
+.ow-opt.sel { border-color:var(--pink); background:var(--pink-pale); color:var(--pink); }
+.ow-text-input { width:100%; margin-top:0.75rem; padding:0.7rem; border:1px solid #D8B4FE; border-radius:10px; font-size:0.9rem; box-sizing:border-box; }
+.ow-note { font-size:0.7rem; color:#8B6BA0; text-align:center; margin-top:0.6rem; line-height:1.6; }
+/* 確認 */
+.ow-confirm-img { display:block; width:120px; height:120px; object-fit:cover; border-radius:14px; margin:0 auto 0.85rem; box-shadow:0 6px 18px rgba(192,132,252,0.25); }
+.ow-summary { background:#FBF7FF; border:1px solid #EEE3F7; border-radius:14px; padding:0.4rem 0.9rem; }
+.ow-srow { display:flex; justify-content:space-between; align-items:center; gap:0.6rem; padding:0.5rem 0; border-bottom:1px solid #EEE3F7; font-size:0.82rem; }
+.ow-srow:last-child { border-bottom:none; }
+.ow-srow span { color:#8B6BA0; }
+.ow-srow b { color:var(--text); text-align:right; }
+.ow-price { text-align:center; font-family:'Zen Maru Gothic',sans-serif; font-weight:900; font-size:1.1rem; color:var(--purple-dark); margin-top:0.85rem; }
+/* フッター */
+.ow-actions { display:flex; gap:0.6rem; padding:0.85rem 1rem calc(0.85rem + env(safe-area-inset-bottom,0px)); border-top:1px solid #F0E5F7; }
+.ow-actions > span { flex:1; }
+.ow-back { flex:1; padding:0.85rem; border:none; border-radius:100px; cursor:pointer; background:#F0E5F7; color:var(--purple-dark); font-family:'Zen Maru Gothic',sans-serif; font-weight:800; font-size:0.92rem; }
+.ow-next { flex:1; padding:0.85rem; border:none; border-radius:100px; cursor:pointer; background:linear-gradient(135deg,var(--pink),var(--purple)); color:#fff; font-family:'Zen Maru Gothic',sans-serif; font-weight:800; font-size:0.92rem; }
+.ow-next:disabled { opacity:0.4; cursor:not-allowed; }
+
 /* ② 固定メニューバー */
 #bottom-nav {
   position:fixed; bottom:0; left:0; right:0; z-index:950;
@@ -1406,13 +1468,17 @@ footer a:hover { color: var(--pink-light); }
   </div>
 </div>
 
-<!-- ① グッズ商品一覧モーダル -->
-<div id="goods-modal">
-  <div class="goods-modal-card">
-    <div class="goods-modal-header">🎁 オリジナルグッズ</div>
-    <p class="goods-modal-sub">このイラストでつくれるグッズ</p>
-    <div class="goods-modal-list" id="goods-modal-list"></div>
-    <button class="goods-modal-close" onclick="closeGoodsModal()">閉じる</button>
+<!-- グッズ注文ウィザード -->
+<div id="order-wizard">
+  <div class="ow-card">
+    <div class="ow-header">
+      <span class="ow-title">🎁 グッズをつくる</span>
+      <button class="ow-close" onclick="closeWizard()" aria-label="閉じる">×</button>
+    </div>
+    <div class="ow-steps" id="ow-steps"></div>
+    <div class="ow-thumb" id="ow-thumb" style="display:none;"></div>
+    <div class="ow-body" id="ow-body"></div>
+    <div class="ow-actions" id="ow-actions"></div>
   </div>
 </div>
 
@@ -1708,9 +1774,7 @@ footer a:hover { color: var(--pink-light); }
     <p class="sticker-cta-desc">
       完成したイラストを、世界に1つのオリジナルグッズに🐾<br>1点から製作・お届けします
     </p>
-    <div class="goods-grid" id="goods-grid">
-      <!-- JSで生成（goods catalog） -->
-    </div>
+    <button class="btn-make-goods" onclick="openWizardForIllustration(state.generatedImages[0])">🎁 このイラストでグッズをつくる</button>
   </div>
 
   <!-- ⑧ 評価・感想フォーム -->
@@ -1790,7 +1854,7 @@ footer a:hover { color: var(--pink-light); }
 <nav id="bottom-nav">
   <button onclick="navGo('hero')"><span class="bn-ico">🏠</span>ホーム</button>
   <button onclick="navGo('order')"><span class="bn-ico">🎰</span>ガチャ</button>
-  <button onclick="openGoodsModal(null)"><span class="bn-ico">🎁</span>グッズ</button>
+  <button onclick="openWizardBrowse()"><span class="bn-ico">🎁</span>グッズ</button>
   <button id="nav-mypage" class="disabled" onclick="navGo('mypage')"><span class="bn-ico">👤</span>マイページ</button>
 </nav>
 
@@ -2023,12 +2087,19 @@ const GOAL = 40; // スタンプカードの最終ゴール
 
 // ===== グッズ購入カタログ（結果画面・本命収益 §5-6） =====
 // ※価格は売価相当の目安。確定価格は要調整
-const GOODS = [
-  { key: 'sticker', label: 'シール',       price: 600,  emoji: '🏷️' },
-  { key: 'tote',    label: 'トートバッグ', price: 3500, emoji: '👜' },
-  { key: 'tshirt',  label: 'Tシャツ',      price: 4000, emoji: '👕' },
-  { key: 'sweat',   label: 'スウェット',   price: 5800, emoji: '🧥' }
+// グッズ商品カタログ（注文ウィザード用）
+// colors: null=カラー選択なし / 1つ=自動選択スキップ / 複数=選択
+// sizes:  null=サイズなし / 配列=選択   print: true=前面/背面を選ぶ
+const PRODUCTS = [
+  { key:'tshirt',    emoji:'👕', name:'プレミアムTシャツ (6.2oz)',     price:4000, colors:['白','グレー','アイボリー'], sizes:['XS','S','M','L','XL','XXL'], print:true  },
+  { key:'tshirt_ls', emoji:'👕', name:'プレミアム長袖Tシャツ (6.2oz)', price:4600, colors:['白'],                     sizes:['XS','S','M','L','XL','XXL'], print:true  },
+  { key:'tote_s',    emoji:'👜', name:'トートバッグ S',                price:3500, colors:['ナチュラル'],            sizes:null,                          print:false },
+  { key:'tote_m',    emoji:'👜', name:'トートバッグ M',                price:3800, colors:['ナチュラル'],            sizes:null,                          print:false },
+  { key:'sacoche',   emoji:'👝', name:'サコッシュ',                    price:3800, colors:['ナチュラル','グレー'],   sizes:null,                          print:false },
+  { key:'sweat',     emoji:'🧥', name:'スウェット',                    price:5800, colors:['白','グレー'],          sizes:['M','L','XL','XXL'],          print:true  },
+  { key:'sticker',   emoji:'🏷️', name:'シール (10×17cm)',             price:1200, colors:null,                      sizes:null,                          print:false }
 ];
+const COLOR_HEX = { '白':'#FFFFFF', 'グレー':'#9CA3AF', 'アイボリー':'#F5F0E1', 'ナチュラル':'#E8DCC0' };
 
 // ===== プレビュー判定 / Stripe・特典フォームのプレースホルダ（要設定） =====
 // file:// で開いたとき or ?preview を付けたときは「状態プレビュー」モード（Stripe/生成を実呼び出ししない）
@@ -2699,7 +2770,6 @@ async function showResults(results) {
     grid.appendChild(item);
   });
 
-  renderGoods();         // グッズ購入導線を描画
   resetReviewForm();     // ⑧ 評価フォームを初期化
 
   section.classList.add('show');
@@ -2707,50 +2777,250 @@ async function showResults(results) {
   // ※ Storageアップ＋INSERTは runGeneration → persistResults() で表示後に実行
 }
 
-// グッズ購入カタログ（結果画面 §5-6）
-function renderGoods() {
-  const grid = document.getElementById('goods-grid');
-  if (!grid) return;
-  grid.innerHTML = '';
-  GOODS.forEach(g => {
-    const el = document.createElement('div');
-    el.className = 'goods-item';
-    el.onclick = () => orderGoods(g.key);
-    el.innerHTML = `
-      <div class="goods-item-emoji">${g.emoji}</div>
-      <div class="goods-item-name">${g.label}</div>
-      <div class="goods-item-price">¥${g.price.toLocaleString()}〜</div>
-    `;
-    grid.appendChild(el);
-  });
+// ===================================================================
+// グッズ注文ウィザード（フェーズ1）
+// ===================================================================
+const orderState = {
+  illustration: null,   // { image_url }
+  needIllust: false,    // イラスト選択ステップを出すか（入口2）
+  illustList: [],       // 選択候補
+  product: null,
+  color: null,
+  size: null,
+  printSide: null,
+  withText: null,       // true/false（未選択はnull）
+  textContent: '',
+  step: 'product'
+};
+
+const ORDER_STEPS = ['illustration', 'product', 'color', 'size', 'print', 'text', 'confirm'];
+
+function stepApplicable(s) {
+  const p = orderState.product;
+  switch (s) {
+    case 'illustration': return orderState.needIllust;
+    case 'product':      return true;
+    case 'color':        return !!(p && p.colors && p.colors.length > 1);
+    case 'size':         return !!(p && p.sizes && p.sizes.length > 0);
+    case 'print':        return !!(p && p.print);
+    case 'text':         return !!p;
+    case 'confirm':      return !!p;
+  }
+  return false;
+}
+function applicableSteps() { return ORDER_STEPS.filter(stepApplicable); }
+
+// 入口1・3：イラストを自動選択して商品選択から
+function openWizardForIllustration(imageUrl) {
+  resetOrder();
+  orderState.illustration = { image_url: imageUrl };
+  orderState.needIllust = false;
+  orderState.step = 'product';
+  document.getElementById('order-wizard').classList.add('show');
+  renderWizard();
 }
 
-// ① グッズは近日公開。商品データは GOODS 配列で管理（将来の注文機能に備える）
-function goodsComingSoon() {
-  petchaAlert('オリジナルグッズは近日公開予定です！公開時にLINEでお知らせします🐾');
+// 入口2：メニュー「グッズ」→ イラスト選択から
+async function openWizardBrowse() {
+  resetOrder();
+  let list = [];
+  try { if (state.user?.userId) list = await supabase.getIllustrations(state.user.userId); } catch (e) {}
+  list = list || [];
+  if (list.length === 0) {
+    await petchaAlert('まずガチャを回してイラストを作りましょう！🐾');
+    navGo('order');
+    return;
+  }
+  if (list.length === 1) {
+    orderState.illustration = { image_url: list[0].image_url };
+    orderState.needIllust = false;
+    orderState.step = 'product';
+  } else {
+    orderState.illustList = list;
+    orderState.needIllust = true;
+    orderState.step = 'illustration';
+  }
+  document.getElementById('order-wizard').classList.add('show');
+  renderWizard();
 }
 
-// 結果画面のグッズ枠タップも近日公開に統一
-function orderGoods(key) {
-  goodsComingSoon();
-  // 将来: kind:'goods' で Stripe Checkout（GOODS_PRICE_IDS 設定後に有効化）
+function resetOrder() {
+  orderState.illustration = null;
+  orderState.needIllust = false;
+  orderState.illustList = [];
+  orderState.product = null;
+  orderState.color = null;
+  orderState.size = null;
+  orderState.printSide = null;
+  orderState.withText = null;
+  orderState.textContent = '';
+  orderState.step = 'product';
 }
 
-// 商品一覧モーダル（マイページ／メニューの「グッズ」から）
-let goodsModalImage = null;
-function openGoodsModal(imageUrl) {
-  goodsModalImage = imageUrl || null;   // 将来の注文機能でイラストURLとして使用
-  const list = document.getElementById('goods-modal-list');
-  list.innerHTML = GOODS.map(g =>
-    '<button class="goods-row" onclick="goodsComingSoon()">'
-    + '<span class="goods-row-emoji">' + g.emoji + '</span>'
-    + '<span class="goods-row-name">' + g.label + '</span>'
-    + '<span class="goods-row-price">¥' + g.price.toLocaleString() + '〜</span>'
-    + '</button>').join('');
-  document.getElementById('goods-modal').classList.add('show');
+function closeWizard() {
+  document.getElementById('order-wizard').classList.remove('show');
 }
-function closeGoodsModal() {
-  document.getElementById('goods-modal').classList.remove('show');
+
+// 進む/戻る
+function wizardNext() {
+  const steps = applicableSteps();
+  const i = steps.indexOf(orderState.step);
+  if (i < steps.length - 1) { orderState.step = steps[i + 1]; renderWizard(); }
+}
+function wizardBack() {
+  const steps = applicableSteps();
+  const i = steps.indexOf(orderState.step);
+  if (i > 0) { orderState.step = steps[i - 1]; renderWizard(); }
+}
+
+// 現ステップで「次へ」を押せるか
+function stepReady() {
+  switch (orderState.step) {
+    case 'illustration': return !!orderState.illustration;
+    case 'product':      return !!orderState.product;
+    case 'color':        return !!orderState.color;
+    case 'size':         return !!orderState.size;
+    case 'print':        return !!orderState.printSide;
+    case 'text':         return orderState.withText === false || (orderState.withText === true && orderState.textContent.trim().length > 0);
+    case 'confirm':      return true;
+  }
+  return false;
+}
+
+function renderWizard() {
+  const steps = applicableSteps();
+  const idx = steps.indexOf(orderState.step);
+
+  // ステップインジケーター
+  document.getElementById('ow-steps').innerHTML = steps.map((s, i) =>
+    `<span class="ow-dot ${i === idx ? 'active' : ''} ${i < idx ? 'done' : ''}"></span>`).join('');
+
+  // 選択中イラストのサムネ（商品選択以降）
+  const thumb = document.getElementById('ow-thumb');
+  if (orderState.illustration && orderState.step !== 'illustration') {
+    thumb.style.display = 'flex';
+    thumb.innerHTML = `<img src="${orderState.illustration.image_url}" alt="選択中イラスト">`
+      + `<span>このイラストでグッズを作ります</span>`;
+  } else {
+    thumb.style.display = 'none';
+  }
+
+  // 本文
+  document.getElementById('ow-body').innerHTML = renderStepBody();
+
+  // フッター（戻る／次へ）
+  const actions = document.getElementById('ow-actions');
+  const backBtn = idx > 0 ? '<button class="ow-back" onclick="wizardBack()">戻る</button>' : '<span></span>';
+  let nextBtn;
+  if (orderState.step === 'confirm') {
+    nextBtn = '<button class="ow-next" onclick="submitOrder()">注文する</button>';
+  } else {
+    nextBtn = `<button class="ow-next" onclick="wizardNext()" ${stepReady() ? '' : 'disabled'}>次へ</button>`;
+  }
+  actions.innerHTML = backBtn + nextBtn;
+}
+
+function renderStepBody() {
+  const p = orderState.product;
+  switch (orderState.step) {
+    case 'illustration':
+      return '<p class="ow-q">どのイラストでつくりますか？</p>'
+        + '<div class="ow-illust-grid">'
+        + orderState.illustList.map((it, i) =>
+            `<div class="ow-illust ${orderState.illustration && orderState.illustration.image_url === it.image_url ? 'sel' : ''}" onclick="pickIllust(${i})">`
+            + `<img src="${it.image_url}" alt="イラスト${i + 1}"></div>`).join('')
+        + '</div>';
+
+    case 'product':
+      return '<p class="ow-q">商品を選ぶ</p>'
+        + '<div class="ow-prod-list">'
+        + PRODUCTS.map(pr =>
+            `<button class="ow-prod ${p && p.key === pr.key ? 'sel' : ''}" onclick="pickProduct('${pr.key}')">`
+            + `<span class="ow-prod-emoji">${pr.emoji}</span>`
+            + `<span class="ow-prod-name">${pr.name}</span>`
+            + `<span class="ow-prod-price">¥${pr.price.toLocaleString()}</span></button>`).join('')
+        + '</div>';
+
+    case 'color':
+      return '<p class="ow-q">カラーを選ぶ</p><div class="ow-swatches">'
+        + p.colors.map(c =>
+            `<button class="ow-swatch ${orderState.color === c ? 'sel' : ''}" onclick="pickColor('${c}')">`
+            + `<span class="ow-sw-dot" style="background:${COLOR_HEX[c] || '#ccc'}"></span>${c}</button>`).join('')
+        + '</div>';
+
+    case 'size':
+      return '<p class="ow-q">サイズを選ぶ</p><div class="ow-sizes">'
+        + p.sizes.map(s =>
+            `<button class="ow-size ${orderState.size === s ? 'sel' : ''}" onclick="pickSize('${s}')">${s}</button>`).join('')
+        + '</div>'
+        + '<button class="ow-link" onclick="showSizeChart()">📏 サイズ表を見る</button>';
+
+    case 'print':
+      return '<p class="ow-q">プリント位置を選ぶ</p><div class="ow-twocol">'
+        + `<button class="ow-opt ${orderState.printSide === 'front' ? 'sel' : ''}" onclick="pickPrint('front')">前面プリント</button>`
+        + `<button class="ow-opt ${orderState.printSide === 'back' ? 'sel' : ''}" onclick="pickPrint('back')">背面プリント</button>`
+        + '</div>';
+
+    case 'text':
+      return '<p class="ow-q">文字を入れますか？</p><div class="ow-twocol">'
+        + `<button class="ow-opt ${orderState.withText === true ? 'sel' : ''}" onclick="pickText(true)">文字を入れる</button>`
+        + `<button class="ow-opt ${orderState.withText === false ? 'sel' : ''}" onclick="pickText(false)">文字なし</button>`
+        + '</div>'
+        + (orderState.withText === true
+            ? '<input type="text" class="ow-text-input" id="ow-text-input" maxlength="30" placeholder="例：ペットの名前" '
+              + `value="${orderState.textContent.replace(/"/g, '&quot;')}" oninput="orderState.textContent=this.value; renderWizardActions()">`
+              + '<p class="ow-note">文字の色・フォント・位置・サイズは AHA TOKYO におまかせいただきます🐾</p>'
+            : '');
+
+    case 'confirm': {
+      const rows = [
+        ['商品', p.name],
+        orderState.color ? ['カラー', orderState.color] : null,
+        orderState.size ? ['サイズ', orderState.size] : null,
+        orderState.printSide ? ['プリント位置', orderState.printSide === 'front' ? '前面' : '背面'] : null,
+        ['文字入れ', orderState.withText ? ('あり：「' + orderState.textContent + '」') : 'なし']
+      ].filter(Boolean);
+      return '<p class="ow-q">ご注文内容の確認</p>'
+        + (orderState.illustration ? `<img class="ow-confirm-img" src="${orderState.illustration.image_url}" alt="イラスト">` : '')
+        + '<div class="ow-summary">'
+        + rows.map(r => `<div class="ow-srow"><span>${r[0]}</span><b>${r[1]}</b></div>`).join('')
+        + '</div>'
+        + '<p class="ow-note">※ 完成イメージはご注文後にLINEでお送りします</p>'
+        + `<div class="ow-price">合計：¥${p.price.toLocaleString()}</div>`;
+    }
+  }
+  return '';
+}
+
+// 「次へ」の活性だけ再評価（文字入力中）
+function renderWizardActions() {
+  const actions = document.getElementById('ow-actions');
+  if (!actions) return;
+  const nextBtn = actions.querySelector('.ow-next');
+  if (nextBtn && orderState.step !== 'confirm') nextBtn.disabled = !stepReady();
+}
+
+// 各選択
+function pickIllust(i) { orderState.illustration = { image_url: orderState.illustList[i].image_url }; renderWizard(); }
+function pickProduct(key) {
+  orderState.product = PRODUCTS.find(p => p.key === key);
+  // 単一カラーは自動選択（ステップはスキップされる）
+  orderState.color = (orderState.product.colors && orderState.product.colors.length === 1) ? orderState.product.colors[0] : null;
+  orderState.size = null; orderState.printSide = null; orderState.withText = null; orderState.textContent = '';
+  renderWizard();
+}
+function pickColor(c) { orderState.color = c; renderWizard(); }
+function pickSize(s) { orderState.size = s; renderWizard(); }
+function pickPrint(side) { orderState.printSide = side; renderWizard(); }
+function pickText(v) { orderState.withText = v; if (!v) orderState.textContent = ''; renderWizard(); }
+
+function showSizeChart() { petchaAlert('サイズ表は準備中です。\n近日公開予定です🐾'); }
+
+// ⑦ 注文確定（フェーズ1：Stripeグッズ未設定のため近日公開で仮置き）
+function submitOrder() {
+  petchaAlert('グッズ注文は近日公開予定です！公開時にLINEでお知らせします🐾');
+  // 将来: pecha_orders へINSERT → Stripe Checkout（グッズ用price ID設定後）
+  // 例: supabase.query('pecha_orders','POST',{ line_user_id, illustration_id, product_type:orderState.product.key, color, size, print_side, text_content, amount:orderState.product.price, status:'pending' });
 }
 
 // ② 固定メニューバー：対象セクションへスムーズスクロール
@@ -2852,7 +3122,7 @@ async function loadMypage() {
       const btn = document.createElement('button');
       btn.className = 'mypage-goods-btn';
       btn.innerHTML = '🎁 このイラストでグッズをつくる';
-      btn.onclick = () => openGoodsModal(item.image_url);
+      btn.onclick = () => openWizardForIllustration(item.image_url);
 
       cell.appendChild(card);
       cell.appendChild(btn);
