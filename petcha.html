@@ -662,6 +662,37 @@ body {
 .pm-ok { background:linear-gradient(135deg,var(--pink),var(--purple)); color:#fff; box-shadow:0 6px 18px rgba(255,107,157,0.3); }
 .pm-cancel { background:#F0E5F7; color:var(--purple-dark); }
 
+/* ① グッズ商品一覧モーダル */
+#goods-modal { display:none; position:fixed; inset:0; z-index:4000; background:rgba(26,10,46,0.88); align-items:center; justify-content:center; padding:1.5rem; }
+#goods-modal.show { display:flex; }
+.goods-modal-card { background:#fff; border-radius:24px; max-width:360px; width:100%; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,0.4); animation:pmPop 0.25s ease; }
+.goods-modal-header { background:linear-gradient(135deg,var(--pink),var(--purple)); color:#fff; font-family:'Zen Maru Gothic',sans-serif; font-weight:900; letter-spacing:0.08em; font-size:1.05rem; padding:0.85rem; text-align:center; }
+.goods-modal-sub { font-size:0.74rem; color:#8B6BA0; text-align:center; padding:0.9rem 1rem 0.4rem; }
+.goods-modal-list { padding:0.4rem 1rem 0.5rem; max-height:48vh; overflow-y:auto; }
+.goods-row { display:flex; align-items:center; gap:0.75rem; width:100%; text-align:left; background:#FBF7FF; border:1px solid #EEE3F7; border-radius:14px; padding:0.7rem 0.9rem; margin-bottom:0.5rem; cursor:pointer; }
+.goods-row:active { background:#F0E5F7; }
+.goods-row-emoji { font-size:1.5rem; }
+.goods-row-name { flex:1; font-family:'Zen Maru Gothic',sans-serif; font-weight:800; font-size:0.9rem; color:var(--text); }
+.goods-row-price { font-weight:800; font-size:0.85rem; color:var(--pink); }
+.goods-modal-close { display:block; width:calc(100% - 2rem); margin:0.25rem 1rem 1.25rem; padding:0.8rem; border:none; border-radius:100px; cursor:pointer; background:#F0E5F7; color:var(--purple-dark); font-family:'Zen Maru Gothic',sans-serif; font-weight:800; font-size:0.95rem; }
+
+/* ② 固定メニューバー */
+#bottom-nav {
+  position:fixed; bottom:0; left:0; right:0; z-index:950;
+  display:flex; background:rgba(26,10,46,0.96); backdrop-filter:blur(10px);
+  border-top:1px solid rgba(192,132,252,0.3); box-shadow:0 -4px 20px rgba(0,0,0,0.3);
+}
+#bottom-nav button {
+  flex:1; background:none; border:none; cursor:pointer; color:rgba(255,255,255,0.85);
+  font-family:'Zen Maru Gothic',sans-serif; font-size:0.6rem; font-weight:700;
+  padding:0.5rem 0.2rem calc(0.55rem + env(safe-area-inset-bottom, 0px));
+  display:flex; flex-direction:column; align-items:center; gap:0.15rem;
+}
+#bottom-nav button .bn-ico { font-size:1.3rem; }
+#bottom-nav button:active { color:#fff; }
+#bottom-nav button.disabled { opacity:0.32; pointer-events:none; }
+body { padding-bottom:64px; }   /* 固定メニューバー分の余白 */
+
 /* ===== ⑧ レビューフォーム ===== */
 .review-form { background:#FFF6FB; border:1px solid #E8D5F0; border-radius:20px; padding:1.5rem 1.25rem; margin-top:1.5rem; }
 .review-form h3 { font-family:'Zen Maru Gothic',sans-serif; color:var(--purple-dark); font-size:1rem; text-align:center; margin-bottom:0.5rem; }
@@ -1172,11 +1203,28 @@ body {
 
 .mypage-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.75rem;
-  max-width: 600px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  max-width: 560px;
   margin: 2rem auto 0;
 }
+
+.mypage-cell { display: flex; flex-direction: column; gap: 0.5rem; }
+
+.mypage-goods-btn {
+  border: none;
+  border-radius: 100px;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--purple), var(--purple-dark));
+  color: #fff;
+  font-family: 'Zen Maru Gothic', sans-serif;
+  font-weight: 700;
+  font-size: 0.66rem;
+  line-height: 1.3;
+  padding: 0.55rem 0.4rem;
+  box-shadow: 0 4px 14px rgba(124,58,237,0.25);
+}
+.mypage-goods-btn:active { transform: scale(0.97); }
 
 .mypage-item {
   border-radius: 16px;
@@ -1335,6 +1383,16 @@ footer a:hover { color: var(--pink-light); }
       <button class="pm-cancel" id="petcha-modal-cancel" style="display:none;">いいえ</button>
       <button class="pm-ok" id="petcha-modal-ok">OK</button>
     </div>
+  </div>
+</div>
+
+<!-- ① グッズ商品一覧モーダル -->
+<div id="goods-modal">
+  <div class="goods-modal-card">
+    <div class="goods-modal-header">🎁 オリジナルグッズ</div>
+    <p class="goods-modal-sub">このイラストでつくれるグッズ</p>
+    <div class="goods-modal-list" id="goods-modal-list"></div>
+    <button class="goods-modal-close" onclick="closeGoodsModal()">閉じる</button>
   </div>
 </div>
 
@@ -1704,6 +1762,14 @@ footer a:hover { color: var(--pink-light); }
   </div>
   <p style="margin-top:1.5rem;">© 2026 AHA TOKYO LLC. All rights reserved.</p>
 </footer>
+
+<!-- ② 固定メニューバー -->
+<nav id="bottom-nav">
+  <button onclick="navGo('hero')"><span class="bn-ico">🏠</span>ホーム</button>
+  <button onclick="navGo('order')"><span class="bn-ico">🎰</span>ガチャ</button>
+  <button onclick="openGoodsModal(null)"><span class="bn-ico">🎁</span>グッズ</button>
+  <button id="nav-mypage" class="disabled" onclick="navGo('mypage')"><span class="bn-ico">👤</span>マイページ</button>
+</nav>
 
 <!-- ===== 開発用プレビューパネル（Stripe未接続時に各状態を確認するための仮UI） =====
      本番では PREVIEW_MODE を false にするか、このブロックごと削除すればOK -->
@@ -2155,6 +2221,10 @@ function applyUserStatus(s) {
 
   // ギフト導線はログイン後つねに表示
   giftEntry.style.display = 'block';
+
+  // ② メニューバーの「マイページ」を有効化（ログイン後）
+  const navMy = document.getElementById('nav-mypage');
+  if (navMy && state.user) navMy.classList.remove('disabled');
 
   checkReady();
   renderPoints(s);
@@ -2618,32 +2688,38 @@ function renderGoods() {
   });
 }
 
-// グッズ注文（Stripe都度課金。未接続時はプレビュー案内）
-function orderGoods(key) {
-  const g = GOODS.find(x => x.key === key);
-  const stripeReady = !STRIPE_PUBLISHABLE_KEY.startsWith('YOUR_')
-    && !(GOODS_PRICE_IDS[key] || '').startsWith('YOUR_');
+// ① グッズは近日公開。商品データは GOODS 配列で管理（将来の注文機能に備える）
+function goodsComingSoon() {
+  petchaAlert('オリジナルグッズは近日公開予定です！公開時にLINEでお知らせします🐾');
+}
 
-  if (PREVIEW_MODE || !stripeReady) {
-    petchaAlert('【プレビュー】Stripe未接続です。\n\n本番ではここで「' + g.label + '（¥' + g.price.toLocaleString() + '〜）」の\nStripe Checkout（都度課金）に遷移します。\n注文情報＋イラストURL＋配送先を記録します（Mobitee内製）。');
-    return;
-  }
-  // 本番：選択中イラスト＋グッズ種別で都度課金Checkoutを作成（§5-6）
-  fetch(CHECKOUT_ENDPOINT, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      kind: 'goods',
-      mode: 'payment',
-      goods: key,
-      priceId: GOODS_PRICE_IDS[key],
-      imageUrl: state.generatedImages[0] || null,
-      lineUserId: state.user?.userId
-    })
-  })
-    .then(r => r.json())
-    .then(({ url }) => { if (url) window.location.href = url; })
-    .catch(e => { console.error('goods checkout error:', e); petchaAlert('決済画面の起動に失敗しました。'); });
+// 結果画面のグッズ枠タップも近日公開に統一
+function orderGoods(key) {
+  goodsComingSoon();
+  // 将来: kind:'goods' で Stripe Checkout（GOODS_PRICE_IDS 設定後に有効化）
+}
+
+// 商品一覧モーダル（マイページ／メニューの「グッズ」から）
+let goodsModalImage = null;
+function openGoodsModal(imageUrl) {
+  goodsModalImage = imageUrl || null;   // 将来の注文機能でイラストURLとして使用
+  const list = document.getElementById('goods-modal-list');
+  list.innerHTML = GOODS.map(g =>
+    '<button class="goods-row" onclick="goodsComingSoon()">'
+    + '<span class="goods-row-emoji">' + g.emoji + '</span>'
+    + '<span class="goods-row-name">' + g.label + '</span>'
+    + '<span class="goods-row-price">¥' + g.price.toLocaleString() + '〜</span>'
+    + '</button>').join('');
+  document.getElementById('goods-modal').classList.add('show');
+}
+function closeGoodsModal() {
+  document.getElementById('goods-modal').classList.remove('show');
+}
+
+// ② 固定メニューバー：対象セクションへスムーズスクロール
+function navGo(id) {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: 'smooth' });
 }
 
 function downloadImage(url, index) {
@@ -2720,16 +2796,28 @@ async function loadMypage() {
       const date = new Date(item.created_at).toLocaleDateString('ja-JP', {
         year: 'numeric', month: 'numeric', day: 'numeric'
       });
-      const el = document.createElement('div');
-      el.className = 'mypage-item';
-      el.innerHTML = `
+      const cell = document.createElement('div');
+      cell.className = 'mypage-cell';
+
+      const card = document.createElement('div');
+      card.className = 'mypage-item';
+      card.innerHTML = `
         <img src="${item.image_url}" alt="イラスト" onerror="this.parentElement.style.background='linear-gradient(135deg,#FFB3CC,#C084FC)'">
         <div class="mypage-item-overlay">
           <span class="mypage-item-date">${date}</span>
         </div>
       `;
-      el.onclick = () => openMypageModal(item);
-      grid.appendChild(el);
+      card.onclick = () => openMypageModal(item);
+
+      // ① このイラストでグッズをつくる
+      const btn = document.createElement('button');
+      btn.className = 'mypage-goods-btn';
+      btn.innerHTML = '🎁 このイラストでグッズをつくる';
+      btn.onclick = () => openGoodsModal(item.image_url);
+
+      cell.appendChild(card);
+      cell.appendChild(btn);
+      grid.appendChild(cell);
     });
   } catch(e) {
     console.error('Supabase fetch error:', e);
