@@ -28,7 +28,8 @@ const PRICE_BY_GOODS = {
   sweat:     process.env.STRIPE_PRICE_GOODS_SWEAT,
   sticker:   process.env.STRIPE_PRICE_GOODS_STICKER
 };
-const GOODS_SHIPPING_JPY = 600;   // 送料（固定）
+const GOODS_SHIPPING_JPY = 600;                                   // 送料（固定）
+const TEXT_OPTION_PRICE = process.env.STRIPE_PRICE_GOODS_TEXT;    // 文字入れオプション ¥400
 
 // プラン → 付与クレジット数（① クレジット制）
 const CREDITS_BY_PLAN = { trial: 1, p1: 1, p2: 2, p3: 3 };
@@ -51,7 +52,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { kind, plan, goods, color, size, printSide, textContent, illustrationUrl,
+    const { kind, plan, goods, color, size, printSide, textContent, withText, illustrationUrl,
             tickets, token, tokens, isTrial, lineUserId } = req.body || {};
     const origin = req.headers.origin || `https://${req.headers.host}`;
 
@@ -67,6 +68,7 @@ export default async function handler(req, res) {
         size: String(size || ''),
         printSide: String(printSide || ''),
         textContent: String(textContent || '').slice(0, 100),
+        withText: withText ? '1' : '0',
         illustrationUrl: String(illustrationUrl || '').slice(0, 480),
         lineUserId: String(lineUserId || '')
       };
@@ -103,9 +105,15 @@ export default async function handler(req, res) {
       return;
     }
 
+    const lineItems = [{ price: priceId, quantity: 1 }];
+    // ① 文字入れオプション ¥400（該当時は2行目に追加）
+    if (kind === 'goods' && withText && TEXT_OPTION_PRICE) {
+      lineItems.push({ price: TEXT_OPTION_PRICE, quantity: 1 });
+    }
+
     const sessionConfig = {
       mode: 'payment', // ★サブスクではなく都度課金
-      line_items: [{ price: priceId, quantity: 1 }],
+      line_items: lineItems,
       success_url: `${origin}/petcha.html?${successParams}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url:  `${origin}/petcha.html?canceled=1`,
       metadata,

@@ -651,10 +651,11 @@ body {
 .mg-badge.shared   { background:#F0E5FF; color:var(--purple-dark); border:1px solid rgba(124,58,237,0.35); }
 .mg-badge.used     { background:#EAEAF2; color:#8B6BA0; border:1px solid #D8D2E4; }
 .mg-date { font-size:0.66rem; color:#8B6BA0; }
-.mg-row2 { display:flex; gap:0.4rem; }
-.mg-row2 input { flex:1; min-width:0; padding:0.5rem; border-radius:8px; border:1px solid #D8B4FE; font-size:0.64rem; }
+.mg-row2 { display:flex; align-items:center; gap:0.4rem; }
+.mg-row2 input { flex:1; min-width:0; padding:0.5rem; border-radius:8px; border:1px solid #D8B4FE; font-size:0.64rem; color:#3D1A5A; background:#fff; }
 .mg-row2 button { flex:0 0 auto; border:none; border-radius:8px; padding:0.5rem 0.85rem; cursor:pointer; background:linear-gradient(135deg,var(--purple),var(--purple-dark)); color:#fff; font-weight:800; font-size:0.72rem; }
-.mg-used { font-size:0.78rem; font-weight:700; color:#8B6BA0; text-align:center; padding:0.3rem; }
+.mg-row2.used input { color:#7A7390; background:#F2F0F6; border-color:#E0DCEC; }
+.mg-used-tag { flex:0 0 auto; font-size:0.7rem; font-weight:800; color:#8B6BA0; white-space:nowrap; }
 .gift-link-box input { width:100%; padding:0.6rem; border-radius:8px; border:1px solid #D8B4FE; font-size:0.72rem; margin:0.5rem 0; text-align:center; }
 .gift-link-box button { border:none; border-radius:100px; padding:0.55rem 1.2rem; cursor:pointer; background:linear-gradient(135deg,var(--purple),var(--purple-dark)); color:#fff; font-weight:800; font-size:0.82rem; }
 
@@ -799,6 +800,19 @@ body { padding-bottom:64px; }   /* 固定メニューバー分の余白 */
 .voice-stars { color:var(--gold); font-size:0.9rem; letter-spacing:1px; }
 .voice-name { font-weight:800; font-size:0.82rem; color:var(--purple-dark); margin:0.35rem 0 0.4rem; }
 .voice-comment { font-size:0.8rem; color:var(--text); line-height:1.6; }
+
+/* ===== ⑤ みんなのギャラリー（自動横スクロール） ===== */
+#gallery { padding:3.5rem 0; overflow:hidden; }
+.gallery-track { display:flex; gap:0.85rem; width:max-content; animation:voicesScroll 50s linear infinite; margin-top:1.5rem; padding:0 1rem; }
+.gallery-track:hover { animation-play-state:paused; }
+.gallery-card { flex:0 0 auto; width:160px; height:160px; border-radius:14px; overflow:hidden; box-shadow:0 6px 20px rgba(192,132,252,0.18); background:#F0E5FF; }
+.gallery-card img { width:100%; height:100%; object-fit:cover; display:block; }
+
+/* ⑤ 掲載許可トグル（結果画面） */
+.gallery-optin { display:flex; align-items:flex-start; gap:0.55rem; justify-content:center; max-width:320px; margin:0.6rem auto 0; cursor:pointer; }
+.gallery-optin input { width:20px; height:20px; accent-color:var(--pink); flex:0 0 auto; margin-top:0.05rem; }
+.gallery-optin span { font-size:0.78rem; color:var(--text); font-weight:700; line-height:1.5; text-align:left; }
+.gallery-optin small { display:block; font-size:0.66rem; color:#8B6BA0; font-weight:500; }
 
 /* ===== ⑦ LINEで開く案内バナー ===== */
 #line-banner { display:none; position:fixed; top:0; left:0; right:0; z-index:3000; background:#06C755; color:#fff; padding:0.7rem 0.9rem; align-items:center; gap:0.6rem; font-size:0.8rem; box-shadow:0 2px 12px rgba(0,0,0,0.2); }
@@ -1301,12 +1315,13 @@ body { padding-bottom:64px; }   /* 固定メニューバー分の余白 */
   color: #fff;
   font-family: 'Zen Maru Gothic', sans-serif;
   font-weight: 700;
-  font-size: 0.66rem;
-  line-height: 1.3;
+  font-size: 0.72rem;
+  white-space: nowrap;
   padding: 0.55rem 0.4rem;
   box-shadow: 0 4px 14px rgba(124,58,237,0.25);
 }
 .mypage-goods-btn:active { transform: scale(0.97); }
+.btn-make-goods { white-space: nowrap; }
 
 .mypage-item {
   border-radius: 16px;
@@ -1570,6 +1585,15 @@ footer a:hover { color: var(--pink-light); }
   <div class="voices-track" id="voices-track"><!-- JSで生成 --></div>
 </section>
 
+<!-- ===== ⑤ みんなのギャラリー ===== -->
+<section id="gallery" style="display:none;">
+  <div class="vo-head fade-up">
+    <p class="section-label">🖼️ GALLERY</p>
+    <h2 class="section-title">みんなの作品</h2>
+  </div>
+  <div class="gallery-track" id="gallery-track"><!-- JSで生成 --></div>
+</section>
+
 <!-- ===== ORDER ===== -->
 <section id="order">
   <div class="fade-up">
@@ -1754,6 +1778,12 @@ footer a:hover { color: var(--pink-light); }
   <!-- 保存案内（常時表示） -->
   <p class="dl-hint">💡 画像を長押しすると保存できます</p>
 
+  <!-- ⑤ ギャラリー掲載許可 -->
+  <label class="gallery-optin">
+    <input type="checkbox" id="gallery-optin" checked onchange="onGalleryOptIn()">
+    <span>みんなのギャラリーに掲載する<small>（イラストのみ表示・個人情報は出ません）</small></span>
+  </label>
+
   <!-- シェアボタン -->
   <div class="share-buttons">
     <button class="btn-share btn-share-x" onclick="shareToX()">
@@ -1771,10 +1801,10 @@ footer a:hover { color: var(--pink-light); }
   <div class="goods-cta">
     <div style="font-size:2.5rem;margin-bottom:0.5rem;">🎁</div>
     <h3 class="sticker-cta-title">このイラストでグッズを作る</h3>
-    <p class="sticker-cta-desc">
-      完成したイラストを、世界に1つのオリジナルグッズに🐾<br>1点から製作・お届けします
+    <p class="sticker-cta-desc" style="font-size:0.76rem;line-height:1.7;">
+      <span style="white-space:nowrap;">完成したイラストを、世界に1つのオリジナルグッズに🐾</span><br>1点から製作。お届けします
     </p>
-    <button class="btn-make-goods" onclick="openWizardForIllustration(state.generatedImages[0], state.lastIllustrationUrl)">🎁 このイラストでグッズをつくる</button>
+    <button class="btn-make-goods" onclick="openWizardForIllustration(state.generatedImages[0], state.lastIllustrationUrl)">🎁 グッズをつくる</button>
   </div>
 
   <!-- ⑧ 評価・感想フォーム -->
@@ -2020,6 +2050,17 @@ const supabase = {
   getReviews() {
     return this.query('pecha_reviews', 'GET', null,
       '?rating=gte.4&order=created_at.desc&limit=20&select=display_name,rating,comment');
+  },
+
+  // ⑤ ギャラリー：公開許可のあるイラスト
+  getPublicIllustrations() {
+    return this.query('pecha_illustrations', 'GET', null,
+      '?public_display=eq.true&order=created_at.desc&limit=30&select=image_url');
+  },
+
+  // 結果画面のトグルから公開ON/OFF更新（security definer RPC）
+  setIllustrationPublic(id, isPublic) {
+    return this.rpc('set_illustration_public', { p_id: id, p_public: isPublic });
   },
 
   // 本人の累計イラスト枚数（= 累計ガチャ回数 = ポイント）を数える
@@ -2731,13 +2772,19 @@ async function persistResults(results) {
     if (!r.b64) continue;
     try {
       const imageUrl = await supabase.uploadImage(state.user.userId, r.b64);
-      await supabase.saveIllustration(state.user.userId, imageUrl, r.style, 'gacha');
+      const saved = await supabase.saveIllustration(state.user.userId, imageUrl, r.style, 'gacha');
       state.lastIllustrationUrl = imageUrl;   // 結果画面からのグッズ注文の記録用（Storage URL）
+      state.lastIllustrationId = (Array.isArray(saved) && saved[0]) ? saved[0].id : null;
+      // ⑤ 公開トグルが「掲載しない」なら反映（保存時点ではDB default=true）
+      if (state.lastIllustrationId && state.galleryOptIn === false) {
+        try { await supabase.setIllustrationPublic(state.lastIllustrationId, false); } catch (e) {}
+      }
     } catch (e) {
       console.error('persist (upload/insert) error:', e);
     }
   }
-  loadMypage();  // マイページ＆累計回数を再取得（正確な件数に更新）
+  loadMypage();   // マイページ＆累計回数を再取得
+  loadGallery();  // ⑤ ギャラリー更新
 }
 
 // プレビュー用のダミーイラスト（canvasでグラデ＋絵文字＋作風名）
@@ -2782,6 +2829,10 @@ async function showResults(results) {
   });
 
   resetReviewForm();     // ⑧ 評価フォームを初期化
+  // ⑤ 掲載許可トグルを初期化（デフォルトON）
+  state.galleryOptIn = true;
+  const optin = document.getElementById('gallery-optin');
+  if (optin) optin.checked = true;
 
   section.classList.add('show');
   section.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -2981,24 +3032,27 @@ function renderStepBody() {
         + (orderState.withText === true
             ? '<input type="text" class="ow-text-input" id="ow-text-input" maxlength="30" placeholder="例：ペットの名前" '
               + `value="${orderState.textContent.replace(/"/g, '&quot;')}" oninput="orderState.textContent=this.value; renderWizardActions()">`
-              + '<p class="ow-note">文字の色・フォント・位置・サイズは AHA TOKYO におまかせいただきます🐾</p>'
+              + '<p class="ow-note">文字入れは <b>+¥400</b> です。<br>文字の色・フォント・位置・サイズなどはご注文完了後、完成イメージをお送りする際にご提案いたします🐾</p>'
             : '');
 
     case 'confirm': {
+      const textFee = orderState.withText ? 400 : 0;
+      const total = p.price + textFee;
       const rows = [
         ['商品', p.name],
         orderState.color ? ['カラー', orderState.color] : null,
         orderState.size ? ['サイズ', orderState.size] : null,
         orderState.printSide ? ['プリント位置', orderState.printSide === 'front' ? '前面' : '背面'] : null,
-        ['文字入れ', orderState.withText ? ('あり：「' + orderState.textContent + '」') : 'なし']
+        ['文字入れ', orderState.withText ? ('あり：「' + orderState.textContent + '」') : 'なし'],
+        orderState.withText ? ['文字入れオプション', '¥400'] : null
       ].filter(Boolean);
       return '<p class="ow-q">ご注文内容の確認</p>'
         + (orderState.illustration ? `<img class="ow-confirm-img" src="${orderState.illustration.display}" alt="イラスト">` : '')
         + '<div class="ow-summary">'
         + rows.map(r => `<div class="ow-srow"><span>${r[0]}</span><b>${r[1]}</b></div>`).join('')
         + '</div>'
-        + '<p class="ow-note">※ 完成イメージはご注文後にLINEでお送りします</p>'
-        + `<div class="ow-price">合計：¥${p.price.toLocaleString()}</div>`;
+        + '<p class="ow-note">※ 送料¥600が別途かかります（次の画面で合算）<br>※ 完成イメージはご注文後にLINEでお送りします</p>'
+        + `<div class="ow-price">商品計：¥${total.toLocaleString()}</div>`;
     }
   }
   return '';
@@ -3051,6 +3105,7 @@ async function submitOrder() {
         color: orderState.color || '',
         size: orderState.size || '',
         printSide: orderState.printSide || '',
+        withText: orderState.withText === true,
         textContent: orderState.withText ? orderState.textContent : '',
         illustrationUrl: orderState.illustration?.ref || '',
         lineUserId: state.user?.userId
@@ -3093,7 +3148,8 @@ function downloadImage(url, index) {
 }
 
 // ===== SHARE =====
-const SHARE_URL = 'https://aha-warp.vercel.app/petcha.html';
+const SITE_URL  = 'https://petcha.aha-tokyo.com/petcha.html';   // 公開URL（カスタムドメイン）
+const SHARE_URL = SITE_URL;
 
 function shareToX() {
   const text = encodeURIComponent('PETCHA（ペッチャ）でうちの子のイラストを作ったよ🐾✨ #PETCHA #AHATOKYO #うちの子');
@@ -3164,7 +3220,7 @@ async function loadMypage() {
       // ① このイラストでグッズをつくる
       const btn = document.createElement('button');
       btn.className = 'mypage-goods-btn';
-      btn.innerHTML = '🎁 このイラストでグッズをつくる';
+      btn.innerHTML = '🎁 グッズをつくる';
       btn.onclick = () => openWizardForIllustration(item.image_url, item.image_url);
 
       cell.appendChild(card);
@@ -3365,7 +3421,7 @@ async function confirmGift() {
 }
 
 function giftLink(token) {
-  return location.origin + location.pathname.replace(/[^/]*$/, 'petcha.html') + '?gift=' + token;
+  return SITE_URL + '?gift=' + token;   // カスタムドメインで統一
 }
 
 // テキストをクリップボードへコピー（共通）
@@ -3418,7 +3474,11 @@ function giftItemHtml(g) {
   const date = new Date(g.created_at).toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' });
   let body;
   if (used) {
-    body = '<div class="mg-used">受け取り済み</div>';
+    // 使用済みでもURLは読める色で表示（グレーアウト・コピー不可）
+    body = '<div class="mg-row2 used">'
+      + '<input type="text" readonly value="' + giftLink(g.token) + '">'
+      + '<span class="mg-used-tag">受け取り済み</span>'
+      + '</div>';
   } else {
     body = '<div class="mg-row2">'
       + '<input type="text" readonly value="' + giftLink(g.token) + '" id="mgurl-' + g.token + '">'
@@ -3571,6 +3631,31 @@ function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
 }
 
+// ===== ⑤ みんなのギャラリー（公開許可のあるイラストを自動横スクロール） =====
+async function loadGallery() {
+  let imgs = [];
+  try { imgs = await supabase.getPublicIllustrations(); } catch (e) {}
+  const section = document.getElementById('gallery');
+  const track = document.getElementById('gallery-track');
+  if (!imgs || imgs.length === 0) { section.style.display = 'none'; return; }
+  const cards = imgs.map(it =>
+    '<div class="gallery-card"><img src="' + it.image_url + '" alt="作品" loading="lazy"></div>');
+  // ループ用に2セット（少数のときは見栄えのため最低数まで増やす）
+  let set = cards;
+  while (set.length < 8 && cards.length) set = set.concat(cards);
+  track.innerHTML = set.join('') + set.join('');
+  section.style.display = 'block';
+}
+
+// 結果画面の掲載許可トグル
+function onGalleryOptIn() {
+  const on = document.getElementById('gallery-optin').checked;
+  state.galleryOptIn = on;
+  if (state.lastIllustrationId) {
+    supabase.setIllustrationPublic(state.lastIllustrationId, on).then(loadGallery).catch(() => {});
+  }
+}
+
 // ===================================================================
 // ⑦ 外部ブラウザ → 「LINEで開く」案内バナー
 // ===================================================================
@@ -3633,6 +3718,7 @@ document.addEventListener('DOMContentLoaded', () => {
   checkGiftRedeem();       // ② ?gift=TOKEN の受け取り
   resumePendingGift();     // ② ログイン経由の受け取り再開
   loadVoices();            // ⑧ お客様の声
+  loadGallery();           // ⑤ みんなのギャラリー
   initScrollAnimation();
   initDevPanel();
 });
