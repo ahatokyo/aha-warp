@@ -634,7 +634,27 @@ body {
 }
 .gift-link-box { margin-top:1rem; background:#F5F0FF; border:1px solid #E8D5F0; border-radius:14px; padding:0.85rem; text-align:center; }
 .gift-link-box .gl-title { font-weight:800; color:var(--purple-dark); font-size:0.72rem; white-space:nowrap; margin-bottom:0.35rem; }
-.gift-link-box .gl-desc { font-size:0.66rem; color:#8B6BA0; white-space:nowrap; }
+.gift-link-box .gl-desc { font-size:0.66rem; color:#8B6BA0; white-space:nowrap; margin-bottom:0.5rem; }
+/* 発行された各URL行 */
+.gift-url-row { display:flex; gap:0.4rem; margin-top:0.4rem; }
+.gift-url-row input { flex:1; min-width:0; padding:0.5rem; border-radius:8px; border:1px solid #D8B4FE; font-size:0.64rem; }
+.gift-url-row button { flex:0 0 auto; border:none; border-radius:8px; padding:0.5rem 0.75rem; cursor:pointer; background:linear-gradient(135deg,var(--purple),var(--purple-dark)); color:#fff; font-weight:800; font-size:0.7rem; }
+
+/* ② マイページ：贈ったガチャ券 */
+#my-gifts-section { max-width:560px; margin:2rem auto 0; }
+.mg-title { font-family:'Zen Maru Gothic',sans-serif; font-weight:900; font-size:0.95rem; color:var(--purple-dark); text-align:center; margin-bottom:0.85rem; }
+.mg-list { display:flex; flex-direction:column; gap:0.6rem; }
+.mg-item { background:#fff; border:1px solid #E8D5F0; border-radius:14px; padding:0.75rem 0.85rem; box-shadow:0 4px 14px rgba(192,132,252,0.1); }
+.mg-row1 { display:flex; align-items:center; justify-content:space-between; margin-bottom:0.5rem; }
+.mg-badge { font-size:0.68rem; font-weight:800; padding:0.18rem 0.6rem; border-radius:100px; }
+.mg-badge.unshared { background:#FFF0F5; color:var(--pink); border:1px solid rgba(255,107,157,0.4); }
+.mg-badge.shared   { background:#F0E5FF; color:var(--purple-dark); border:1px solid rgba(124,58,237,0.35); }
+.mg-badge.used     { background:#EAEAF2; color:#8B6BA0; border:1px solid #D8D2E4; }
+.mg-date { font-size:0.66rem; color:#8B6BA0; }
+.mg-row2 { display:flex; gap:0.4rem; }
+.mg-row2 input { flex:1; min-width:0; padding:0.5rem; border-radius:8px; border:1px solid #D8B4FE; font-size:0.64rem; }
+.mg-row2 button { flex:0 0 auto; border:none; border-radius:8px; padding:0.5rem 0.85rem; cursor:pointer; background:linear-gradient(135deg,var(--purple),var(--purple-dark)); color:#fff; font-weight:800; font-size:0.72rem; }
+.mg-used { font-size:0.78rem; font-weight:700; color:#8B6BA0; text-align:center; padding:0.3rem; }
 .gift-link-box input { width:100%; padding:0.6rem; border-radius:8px; border:1px solid #D8B4FE; font-size:0.72rem; margin:0.5rem 0; text-align:center; }
 .gift-link-box button { border:none; border-radius:100px; padding:0.55rem 1.2rem; cursor:pointer; background:linear-gradient(135deg,var(--purple),var(--purple-dark)); color:#fff; font-weight:800; font-size:0.82rem; }
 
@@ -1748,6 +1768,9 @@ footer a:hover { color: var(--pink-light); }
       <div class="mypage-item-overlay"><span class="mypage-item-date">2026/05/15</span></div>
     </div>
   </div>
+
+  <!-- ② 贈ったガチャ券の管理 -->
+  <div id="my-gifts-section" style="display:none;"></div>
 </section>
 
 <!-- ===== FOOTER ===== -->
@@ -1908,6 +1931,18 @@ const supabase = {
     const rows = await this.query('pecha_gifts', 'GET', null,
       `?token=eq.${encodeURIComponent(token)}&select=token,credits,redeemed_at`);
     return (rows && rows.length) ? rows[0] : null;
+  },
+
+  // 自分が贈ったガチャ券一覧（マイページ管理用）
+  getMyGifts(lineUserId) {
+    return this.query('pecha_gifts', 'GET', null,
+      `?sender_line_user_id=eq.${encodeURIComponent(lineUserId)}&order=created_at.desc`
+      + `&select=token,credits,shared_at,redeemed_at,created_at`);
+  },
+
+  // 「コピー」押下 → shared_at をセット
+  markGiftShared(token) {
+    return this.rpc('mark_gift_shared', { p_token: token });
   },
 
   // レビュー投稿
@@ -2411,16 +2446,18 @@ function checkPaymentReturn() {
     return;
   }
 
-  // ② ガチャ券購入から復帰 → 受け取りリンクを表示
+  // ② ガチャ券購入から復帰 → 発行された各リンクを一覧表示
   if (params.get('gift_bought') === '1') {
     history.replaceState({}, '', location.pathname);
-    const token = sessionStorage.getItem('pecha_gift_token');
-    sessionStorage.removeItem('pecha_gift_token');
+    let tokens = [];
+    try { tokens = JSON.parse(sessionStorage.getItem('pecha_gift_tokens') || '[]'); } catch (e) {}
+    sessionStorage.removeItem('pecha_gift_tokens');
     waitForUserThen(() => {
       document.getElementById('gift-entry').style.display = 'block';
       document.getElementById('gift-panel').style.display = 'block';
-      if (token) showGiftLink(token);
+      if (tokens.length) showGiftLinks(tokens);
       document.getElementById('order').scrollIntoView({ behavior: 'smooth' });
+      loadMyGifts();   // マイページの一覧も更新
     });
     return;
   }
@@ -2774,6 +2811,8 @@ function scrollToMypage() {
 async function loadMypage() {
   if (!state.user?.userId) return;
 
+  loadMyGifts();   // ② 贈ったガチャ券の一覧（イラスト有無に関わらず）
+
   const grid = document.getElementById('mypage-grid');
   grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#8B6BA0;padding:2rem;font-size:0.9rem;">読み込み中...</div>';
 
@@ -2976,30 +3015,32 @@ function selectGift(n, el) {
   btn.textContent = `¥${price.toLocaleString()}でガチャ券${n}枚を購入`;
 }
 
-function randomToken() {
-  return 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+function randomToken(i) {
+  return 'g' + Date.now().toString(36) + (i || 0) + Math.random().toString(36).slice(2, 8);
 }
 
 async function confirmGift() {
   const n = state.selectedGift;
   if (!n || !state.user) return;
-  const token = randomToken();
+  // ① 枚数ぶん個別トークンを発行（1枚=1URL=1レコード）
+  const tokens = [];
+  for (let i = 0; i < n; i++) tokens.push(randomToken(i));
 
   const stripeReady = !STRIPE_PUBLISHABLE_KEY.startsWith('YOUR_')
     && !(STRIPE_PRICE_IDS.p1 || '').startsWith('YOUR_');
 
   if (PREVIEW_MODE || !stripeReady) {
     petchaAlert('【プレビュー】Stripe未接続のため、ダミーの受け取りリンクを表示します。');
-    showGiftLink(token);
+    showGiftLinks(tokens);
     return;
   }
 
-  sessionStorage.setItem('pecha_gift_token', token);  // 復帰後にリンク表示
+  sessionStorage.setItem('pecha_gift_tokens', JSON.stringify(tokens));  // 復帰後にリンク表示
   try {
     const res = await fetch(CHECKOUT_ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ kind: 'gift', tickets: n, token, lineUserId: state.user.userId })
+      body: JSON.stringify({ kind: 'gift', tickets: n, tokens: tokens.join(','), lineUserId: state.user.userId })
     });
     const { url } = await res.json();
     if (url) window.location.href = url;
@@ -3014,24 +3055,87 @@ function giftLink(token) {
   return location.origin + location.pathname.replace(/[^/]*$/, 'petcha.html') + '?gift=' + token;
 }
 
-function showGiftLink(token) {
-  const link = giftLink(token);
+// テキストをクリップボードへコピー（共通）
+function copyText(text, inputEl) {
+  return new Promise((resolve) => {
+    try { if (inputEl) { inputEl.focus(); inputEl.select(); } } catch (e) {}
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(text).then(() => resolve(true), () => { try { document.execCommand('copy'); } catch (e) {} resolve(true); });
+    } else { try { document.execCommand('copy'); } catch (e) {} resolve(true); }
+  });
+}
+
+// 購入完了：発行されたトークンぶんのURLを一覧表示（各コピーボタン付き）
+function showGiftLinks(tokens) {
   const box = document.getElementById('gift-result');
   box.style.display = 'block';
   box.innerHTML =
     '<p class="gl-title">🎁 ガチャ券リンクが発行されました！</p>'
-    + '<p class="gl-desc">このリンクを贈りたい相手に送ってください。</p>'
-    + '<input type="text" id="gift-link-input" readonly value="' + link + '">'
-    + '<button onclick="copyGiftLink()">リンクをコピー</button>';
+    + '<p class="gl-desc">1枚ずつ、贈りたい相手に送ってください。</p>'
+    + tokens.map(giftUrlRowHtml).join('');
   box.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
-function copyGiftLink() {
-  const inp = document.getElementById('gift-link-input');
-  inp.select();
-  const done = () => petchaAlert('リンクをコピーしました🎁');
-  if (navigator.clipboard) navigator.clipboard.writeText(inp.value).then(done, () => { document.execCommand('copy'); done(); });
-  else { document.execCommand('copy'); done(); }
+function giftUrlRowHtml(token) {
+  const link = giftLink(token);
+  return '<div class="gift-url-row">'
+    + '<input type="text" readonly value="' + link + '" id="gurl-' + token + '">'
+    + '<button id="gcopy-' + token + '" onclick="copyGiftUrl(\'' + token + '\')">コピー</button>'
+    + '</div>';
+}
+
+// 発行直後リスト用コピー（shared_at もセット）
+async function copyGiftUrl(token) {
+  await copyText(giftLink(token), document.getElementById('gurl-' + token));
+  const b = document.getElementById('gcopy-' + token);
+  if (b) b.textContent = 'コピー済';
+  try { await supabase.markGiftShared(token); } catch (e) {}
+}
+
+// ②④ マイページ：贈ったガチャ券の一覧と管理
+function giftStatus(g) {
+  if (g.redeemed_at) return { label: '使用済', cls: 'used' };
+  if (g.shared_at)   return { label: '共有済', cls: 'shared' };
+  return { label: '未共有', cls: 'unshared' };
+}
+
+function giftItemHtml(g) {
+  const st = giftStatus(g);
+  const used = !!g.redeemed_at;
+  const date = new Date(g.created_at).toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' });
+  let body;
+  if (used) {
+    body = '<div class="mg-used">受け取り済み</div>';
+  } else {
+    body = '<div class="mg-row2">'
+      + '<input type="text" readonly value="' + giftLink(g.token) + '" id="mgurl-' + g.token + '">'
+      + '<button id="mgcopy-' + g.token + '" onclick="copyMyGift(\'' + g.token + '\')">コピー</button>'
+      + '</div>';
+  }
+  return '<div class="mg-item">'
+    + '<div class="mg-row1"><span class="mg-badge ' + st.cls + '">' + st.label + '</span>'
+    + '<span class="mg-date">' + date + ' 発行</span></div>'
+    + body + '</div>';
+}
+
+async function loadMyGifts() {
+  const sec = document.getElementById('my-gifts-section');
+  if (!sec || !state.user?.userId) { if (sec) sec.style.display = 'none'; return; }
+  let gifts = [];
+  try { gifts = await supabase.getMyGifts(state.user.userId); } catch (e) {}
+  if (!gifts || gifts.length === 0) { sec.style.display = 'none'; return; }
+  sec.style.display = 'block';
+  sec.innerHTML = '<h3 class="mg-title">🎁 贈ったガチャ券</h3>'
+    + '<div class="mg-list">' + gifts.map(giftItemHtml).join('') + '</div>';
+}
+
+// ④ マイページからの再コピー（使用済以外）。shared_at をセットしてバッジ更新
+async function copyMyGift(token) {
+  await copyText(giftLink(token), document.getElementById('mgurl-' + token));
+  const b = document.getElementById('mgcopy-' + token);
+  if (b) b.textContent = 'コピー済';
+  try { await supabase.markGiftShared(token); } catch (e) {}
+  loadMyGifts();   // バッジを「共有済」に更新
 }
 
 // 受け取り側：?gift=TOKEN を検出してモーダル表示

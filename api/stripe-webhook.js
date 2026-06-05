@@ -65,13 +65,15 @@ export default async function handler(req, res) {
       const lineUserId = md.lineUserId || s.client_reference_id;
 
       if (md.kind === 'gift') {
-        // ② ガチャ券プレゼント購入 → 指定トークンの券を発行（贈り主のクレジットは増やさない）
-        if (md.token && supabase) {
-          const { error } = await supabase.from('pecha_gifts').insert({
-            token: md.token,
+        // ② ガチャ券プレゼント購入 → トークンごとに credits=1 のレコードを発行（1枚=1URL）
+        const tokens = String(md.tokens || md.token || '').split(',').map(s => s.trim()).filter(Boolean);
+        if (tokens.length && supabase) {
+          const rows = tokens.map(t => ({
+            token: t,
             sender_line_user_id: lineUserId || null,
-            credits: parseInt(md.credits || '1', 10)
-          });
+            credits: 1
+          }));
+          const { error } = await supabase.from('pecha_gifts').insert(rows);
           if (error) console.error('gift insert error:', error);
         }
       } else if (md.kind === 'goods') {

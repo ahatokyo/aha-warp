@@ -47,7 +47,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { kind, plan, goods, tickets, token, isTrial, lineUserId, imageUrl } = req.body || {};
+    const { kind, plan, goods, tickets, token, tokens, isTrial, lineUserId, imageUrl } = req.body || {};
     const origin = req.headers.origin || `https://${req.headers.host}`;
 
     let priceId, metadata, successParams;
@@ -63,16 +63,16 @@ export default async function handler(req, res) {
       };
       successParams = `goods=${encodeURIComponent(goods || '')}`;
     } else if (kind === 'gift') {
-      // ----- ガチャ券プレゼント購入（② 1/2/3枚＝既存p1/p2/p3価格を流用）-----
-      const n = Math.min(3, Math.max(1, parseInt(tickets, 10) || 1));
+      // ----- ガチャ券プレゼント購入（② 1枚=1トークン=1レコード。価格は枚数でp1/p2/p3流用）-----
+      const tokenList = String(tokens || token || '').split(',').map(s => s.trim()).filter(Boolean);
+      const n = Math.min(3, Math.max(1, tokenList.length || parseInt(tickets, 10) || 1));
       priceId = GIFT_PRICE_BY_TICKETS[n];
       metadata = {
         kind: 'gift',
-        token: String(token || ''),     // フロント生成のトークン。Webhookでこのトークンの券を発行
-        credits: String(n),             // 付与枚数
-        lineUserId: String(lineUserId || '')  // 贈り主
+        tokens: tokenList.slice(0, 3).join(','),  // フロント生成の個別トークン（最大3）。各1クレジットの券を発行
+        lineUserId: String(lineUserId || '')      // 贈り主
       };
-      // 復帰後、フロントは sessionStorage のトークンから共有リンクを表示
+      // 復帰後、フロントは sessionStorage のトークン配列から各リンクを表示
       successParams = `gift_bought=1`;
     } else {
       // ----- ガチャ購入（クレジット追加：お試し/1/2/3回 ①）-----
