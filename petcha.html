@@ -1774,7 +1774,7 @@ footer a:hover { color: var(--pink-light); }
     <p class="sticker-cta-desc">
       完成したイラストを、世界に1つのオリジナルグッズに🐾<br>1点から製作・お届けします
     </p>
-    <button class="btn-make-goods" onclick="openWizardForIllustration(state.generatedImages[0])">🎁 このイラストでグッズをつくる</button>
+    <button class="btn-make-goods" onclick="openWizardForIllustration(state.generatedImages[0], state.lastIllustrationUrl)">🎁 このイラストでグッズをつくる</button>
   </div>
 
   <!-- ⑧ 評価・感想フォーム -->
@@ -2517,6 +2517,16 @@ function checkPaymentReturn() {
     return;
   }
 
+  // グッズ注文の決済から復帰
+  if (params.get('goods_ordered') === '1') {
+    history.replaceState({}, '', location.pathname);
+    waitForUserThen(() => {
+      petchaAlert('ご注文ありがとうございます🎁\n完成イメージは後日LINEでお送りします！');
+      navGo('mypage');
+    });
+    return;
+  }
+
   // ② ガチャ券購入から復帰 → 発行された各リンクを一覧表示
   if (params.get('gift_bought') === '1') {
     history.replaceState({}, '', location.pathname);
@@ -2722,6 +2732,7 @@ async function persistResults(results) {
     try {
       const imageUrl = await supabase.uploadImage(state.user.userId, r.b64);
       await supabase.saveIllustration(state.user.userId, imageUrl, r.style, 'gacha');
+      state.lastIllustrationUrl = imageUrl;   // 結果画面からのグッズ注文の記録用（Storage URL）
     } catch (e) {
       console.error('persist (upload/insert) error:', e);
     }
@@ -2811,9 +2822,10 @@ function stepApplicable(s) {
 function applicableSteps() { return ORDER_STEPS.filter(stepApplicable); }
 
 // 入口1・3：イラストを自動選択して商品選択から
-function openWizardForIllustration(imageUrl) {
+// display = サムネ表示用URL（結果画面はdataURL可）／ref = 注文記録用の短いURL（Storage URL）
+function openWizardForIllustration(displayUrl, refUrl) {
   resetOrder();
-  orderState.illustration = { image_url: imageUrl };
+  orderState.illustration = { display: displayUrl, ref: refUrl || (displayUrl && displayUrl.startsWith('data:') ? '' : displayUrl) };
   orderState.needIllust = false;
   orderState.step = 'product';
   document.getElementById('order-wizard').classList.add('show');
@@ -2832,7 +2844,7 @@ async function openWizardBrowse() {
     return;
   }
   if (list.length === 1) {
-    orderState.illustration = { image_url: list[0].image_url };
+    orderState.illustration = { display: list[0].image_url, ref: list[0].image_url };
     orderState.needIllust = false;
     orderState.step = 'product';
   } else {
@@ -2899,7 +2911,7 @@ function renderWizard() {
   const thumb = document.getElementById('ow-thumb');
   if (orderState.illustration && orderState.step !== 'illustration') {
     thumb.style.display = 'flex';
-    thumb.innerHTML = `<img src="${orderState.illustration.image_url}" alt="選択中イラスト">`
+    thumb.innerHTML = `<img src="${orderState.illustration.display}" alt="選択中イラスト">`
       + `<span>このイラストでグッズを作ります</span>`;
   } else {
     thumb.style.display = 'none';
@@ -2927,7 +2939,7 @@ function renderStepBody() {
       return '<p class="ow-q">どのイラストでつくりますか？</p>'
         + '<div class="ow-illust-grid">'
         + orderState.illustList.map((it, i) =>
-            `<div class="ow-illust ${orderState.illustration && orderState.illustration.image_url === it.image_url ? 'sel' : ''}" onclick="pickIllust(${i})">`
+            `<div class="ow-illust ${orderState.illustration && orderState.illustration.ref === it.image_url ? 'sel' : ''}" onclick="pickIllust(${i})">`
             + `<img src="${it.image_url}" alt="イラスト${i + 1}"></div>`).join('')
         + '</div>';
 
@@ -2981,7 +2993,7 @@ function renderStepBody() {
         ['文字入れ', orderState.withText ? ('あり：「' + orderState.textContent + '」') : 'なし']
       ].filter(Boolean);
       return '<p class="ow-q">ご注文内容の確認</p>'
-        + (orderState.illustration ? `<img class="ow-confirm-img" src="${orderState.illustration.image_url}" alt="イラスト">` : '')
+        + (orderState.illustration ? `<img class="ow-confirm-img" src="${orderState.illustration.display}" alt="イラスト">` : '')
         + '<div class="ow-summary">'
         + rows.map(r => `<div class="ow-srow"><span>${r[0]}</span><b>${r[1]}</b></div>`).join('')
         + '</div>'
@@ -3001,7 +3013,7 @@ function renderWizardActions() {
 }
 
 // 各選択
-function pickIllust(i) { orderState.illustration = { image_url: orderState.illustList[i].image_url }; renderWizard(); }
+function pickIllust(i) { const u = orderState.illustList[i].image_url; orderState.illustration = { display: u, ref: u }; renderWizard(); }
 function pickProduct(key) {
   orderState.product = PRODUCTS.find(p => p.key === key);
   // 単一カラーは自動選択（ステップはスキップされる）
@@ -3016,11 +3028,42 @@ function pickText(v) { orderState.withText = v; if (!v) orderState.textContent =
 
 function showSizeChart() { petchaAlert('サイズ表は準備中です。\n近日公開予定です🐾'); }
 
-// ⑦ 注文確定（フェーズ1：Stripeグッズ未設定のため近日公開で仮置き）
-function submitOrder() {
-  petchaAlert('グッズ注文は近日公開予定です！公開時にLINEでお知らせします🐾');
-  // 将来: pecha_orders へINSERT → Stripe Checkout（グッズ用price ID設定後）
-  // 例: supabase.query('pecha_orders','POST',{ line_user_id, illustration_id, product_type:orderState.product.key, color, size, print_side, text_content, amount:orderState.product.price, status:'pending' });
+// ⑦ 注文確定 → Stripe Checkout（商品price＋送料¥600＋配送先入力）
+async function submitOrder() {
+  const p = orderState.product;
+  if (!p) return;
+
+  const stripeReady = !STRIPE_PUBLISHABLE_KEY.startsWith('YOUR_');
+  if (PREVIEW_MODE || !stripeReady) {
+    petchaAlert('【プレビュー】Stripe未接続のため決済はスキップします。\n本番では「' + p.name + '」のCheckout（送料¥600込み・配送先入力）に進みます🐾');
+    return;
+  }
+
+  const btn = document.querySelector('#ow-actions .ow-next');
+  if (btn) { btn.disabled = true; btn.textContent = '進んでいます…'; }
+  try {
+    const res = await fetch(CHECKOUT_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        kind: 'goods',
+        goods: p.key,
+        color: orderState.color || '',
+        size: orderState.size || '',
+        printSide: orderState.printSide || '',
+        textContent: orderState.withText ? orderState.textContent : '',
+        illustrationUrl: orderState.illustration?.ref || '',
+        lineUserId: state.user?.userId
+      })
+    });
+    const { url } = await res.json();
+    if (url) window.location.href = url;
+    else throw new Error('no checkout url');
+  } catch (e) {
+    console.error('order checkout error:', e);
+    if (btn) { btn.disabled = false; btn.textContent = '注文する'; }
+    petchaAlert('注文画面の起動に失敗しました。時間をおいて再度お試しください。');
+  }
 }
 
 // ② 固定メニューバー：対象セクションへスムーズスクロール
@@ -3122,7 +3165,7 @@ async function loadMypage() {
       const btn = document.createElement('button');
       btn.className = 'mypage-goods-btn';
       btn.innerHTML = '🎁 このイラストでグッズをつくる';
-      btn.onclick = () => openWizardForIllustration(item.image_url);
+      btn.onclick = () => openWizardForIllustration(item.image_url, item.image_url);
 
       cell.appendChild(card);
       cell.appendChild(btn);

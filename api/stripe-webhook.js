@@ -77,8 +77,22 @@ export default async function handler(req, res) {
           if (error) console.error('gift insert error:', error);
         }
       } else if (md.kind === 'goods') {
-        // §5-6 グッズ注文。保存テーブル未定義のためログのみ。
-        console.log('goods order', { lineUserId, goods: md.goods, imageUrl: md.imageUrl });
+        // グッズ注文 → pecha_orders に保存（配送先住所はStripe側に保持）
+        if (supabase) {
+          const { error } = await supabase.from('pecha_orders').insert({
+            line_user_id: lineUserId || null,
+            illustration_id: md.illustrationUrl || null,
+            product_type: md.product || null,
+            color: md.color || null,
+            size: md.size || null,
+            print_side: md.printSide || null,
+            text_content: md.textContent || null,
+            amount: (s.amount_total != null ? s.amount_total : null),
+            stripe_payment_id: s.payment_intent || s.id || null,
+            status: 'paid'
+          });
+          if (error) console.error('order insert error:', error);
+        }
       } else {
         // ① ガチャ購入 → クレジット加算（add_credits RPC = 原子的）
         const amount = parseInt(md.credits || '1', 10);

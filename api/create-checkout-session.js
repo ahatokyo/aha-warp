@@ -20,11 +20,15 @@ const PRICE_BY_PLAN = {
   p3:    process.env.STRIPE_PRICE_P3     // 3回2,400円
 };
 const PRICE_BY_GOODS = {
-  sticker: process.env.STRIPE_PRICE_GOODS_STICKER,
-  tote:    process.env.STRIPE_PRICE_GOODS_TOTE,
-  tshirt:  process.env.STRIPE_PRICE_GOODS_TSHIRT,
-  sweat:   process.env.STRIPE_PRICE_GOODS_SWEAT
+  tshirt:    process.env.STRIPE_PRICE_GOODS_TSHIRT,
+  tshirt_ls: process.env.STRIPE_PRICE_GOODS_TSHIRT_LS,
+  tote_s:    process.env.STRIPE_PRICE_GOODS_TOTE_S,
+  tote_m:    process.env.STRIPE_PRICE_GOODS_TOTE_M,
+  sacoche:   process.env.STRIPE_PRICE_GOODS_SACOCHE,
+  sweat:     process.env.STRIPE_PRICE_GOODS_SWEAT,
+  sticker:   process.env.STRIPE_PRICE_GOODS_STICKER
 };
+const GOODS_SHIPPING_JPY = 600;   // 送料（固定）
 
 // プラン → 付与クレジット数（① クレジット制）
 const CREDITS_BY_PLAN = { trial: 1, p1: 1, p2: 2, p3: 3 };
@@ -47,21 +51,26 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { kind, plan, goods, tickets, token, tokens, isTrial, lineUserId, imageUrl } = req.body || {};
+    const { kind, plan, goods, color, size, printSide, textContent, illustrationUrl,
+            tickets, token, tokens, isTrial, lineUserId } = req.body || {};
     const origin = req.headers.origin || `https://${req.headers.host}`;
 
     let priceId, metadata, successParams;
 
     if (kind === 'goods') {
-      // ----- グッズ購入（結果画面 §5-6）-----
+      // ----- グッズ注文（フェーズ1：商品price＋送料＋配送先収集）-----
       priceId = PRICE_BY_GOODS[goods];
       metadata = {
         kind: 'goods',
-        goods: String(goods || ''),
-        imageUrl: String(imageUrl || ''),
+        product: String(goods || ''),
+        color: String(color || ''),
+        size: String(size || ''),
+        printSide: String(printSide || ''),
+        textContent: String(textContent || '').slice(0, 100),
+        illustrationUrl: String(illustrationUrl || '').slice(0, 480),
         lineUserId: String(lineUserId || '')
       };
-      successParams = `goods=${encodeURIComponent(goods || '')}`;
+      successParams = `goods_ordered=1`;
     } else if (kind === 'gift') {
       // ----- ガチャ券プレゼント購入（② 1枚=1トークン=1レコード。価格は枚数でp1/p2/p3流用）-----
       const tokenList = String(tokens || token || '').split(',').map(s => s.trim()).filter(Boolean);
@@ -94,15 +103,29 @@ export default async function handler(req, res) {
       return;
     }
 
-    const session = await stripe.checkout.sessions.create({
+    const sessionConfig = {
       mode: 'payment', // ★サブスクではなく都度課金
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${origin}/petcha.html?${successParams}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url:  `${origin}/petcha.html?canceled=1`,
       metadata,
       client_reference_id: lineUserId ? String(lineUserId) : undefined
-    });
+    };
 
+    // グッズは物販 → 配送先住所の収集＋送料（固定¥600）
+    if (kind === 'goods') {
+      sessionConfig.shipping_address_collection = { allowed_countries: ['JP'] };
+      sessionConfig.phone_number_collection = { enabled: true };
+      sessionConfig.shipping_options = [{
+        shipping_rate_data: {
+          type: 'fixed_amount',
+          fixed_amount: { amount: GOODS_SHIPPING_JPY, currency: 'jpy' },
+          display_name: '送料'
+        }
+      }];
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionConfig);
     res.status(200).json({ url: session.url });
   } catch (e) {
     console.error('create-checkout-session error:', e);
