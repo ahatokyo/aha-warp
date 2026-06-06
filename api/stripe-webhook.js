@@ -1,7 +1,7 @@
 // ============================================================
 // PECHA §5-4: Stripe Webhook 受け（都度課金）
 // 置き場所: pecha.html と同じ Vercel プロジェクトの api/ 配下
-//   → 公開URL: https://aha-warp.vercel.app/api/stripe-webhook
+//   → 公開URL: https://petcha.aha-tokyo.com/api/stripe-webhook
 //   → Stripe ダッシュボード「Webhooks」でこのURLを登録し、
 //     checkout.session.completed を購読 → 取得した signing secret を
 //     環境変数 STRIPE_WEBHOOK_SECRET に設定する。

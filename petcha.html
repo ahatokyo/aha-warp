@@ -6,6 +6,9 @@
 <title>PETCHA by AHA TOKYO</title>
 <meta property="og:title" content="PETCHA by AHA TOKYO">
 <meta property="og:site_name" content="PETCHA by AHA TOKYO">
+<meta property="og:url" content="https://petcha.aha-tokyo.com/petcha.html">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://petcha.aha-tokyo.com/petcha.html">
 
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-8965M1N2NH"></script>
@@ -2213,12 +2216,10 @@ function showHeroContent() {
 
 // ===== LINE LOGIN =====
 const LINE_CLIENT_ID = '2010266562'; // ← 要設定
-// ※ petcha.html リネーム後も、LINEログインのredirect_uriは pecha.html のまま据え置き。
-//   理由: この値は LINE Developers のコールバックURL登録 と make認証シナリオの
-//   token交換時 redirect_uri と完全一致が必須で、3つ揃えないとログインが壊れるため。
-//   pecha.html は petcha.html へ透過リダイレクトするので、コールバックは正常に橋渡しされる。
-//   完全移行する場合は、この値を petcha.html にし、LINE Console と make も petcha.html に更新する。
-const REDIRECT_URI = encodeURIComponent('https://aha-warp.vercel.app/pecha.html');
+// LINEログインのリダイレクト先（カスタムドメイン＋現ファイル名 petcha.html）。
+// ※ この値は「LINE Developers のコールバックURL登録」と「make認証シナリオの
+//   token交換時 redirect_uri」と1文字単位で完全一致が必須（3つ揃わないとログインが壊れる）。
+const REDIRECT_URI = encodeURIComponent('https://petcha.aha-tokyo.com/petcha.html');
 
 function loginWithLINE() {
   const state_param = Math.random().toString(36).substring(2);

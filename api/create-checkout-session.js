@@ -1,7 +1,7 @@
 // ============================================================
 // PECHA §5-4: Stripe Checkout セッション作成（都度課金 / payment mode）
 // 置き場所: pecha.html と同じ Vercel プロジェクトの api/ 配下
-//   → 公開URL: https://aha-warp.vercel.app/api/create-checkout-session
+//   → 公開URL: https://petcha.aha-tokyo.com/api/create-checkout-session
 // 状態: price ID（環境変数）が未設定のうちは 503 を返して「待ち」。
 //        Stripeで商品を作って Vercel の環境変数に price ID を入れれば自動的に有効化される。
 // ============================================================
