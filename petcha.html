@@ -2727,7 +2727,24 @@ async function runGeneration() {
         })
       });
       if (!resp.ok) throw new Error('make webhook error: ' + resp.status);
-      const data = await resp.json();          // { b64_json, style, line_user_id }
+      const data = await resp.json();          // { b64_json, style, line_user_id } または { error, ... }
+
+      // makeのエラーレスポンス分岐（いずれもHTTP200・bodyのerrorキーで判定）
+      // ※ クレジット消費は生成成功後に行うため、ここで return すれば未消費（返却不要）
+      if (data.error === 'not_a_pet') {
+        progress.cancel();
+        hideGachaModal();                       // 生成中動画・進捗バーを停止/非表示
+        petchaAlert('この写真からはイラストを作れませんでした。\nペットが写っている写真を選んでください。\n\n※ ガチャ回数は消費されていません');
+        return;
+      }
+      if (data.error === 'generation_failed' || !data.b64_json) {
+        // generation_failed、または想定外（errorなし＆b64_json空）も同文言で
+        progress.cancel();
+        hideGachaModal();
+        petchaAlert('イラストの生成に失敗しました。\nお手数ですが、もう一度お試しください。\n\n※ ガチャ回数は消費されていません');
+        return;
+      }
+
       b64 = data.b64_json;
       if (data.style) style = data.style;
       url = `data:image/png;base64,${b64}`;
