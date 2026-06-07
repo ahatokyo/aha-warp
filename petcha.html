@@ -860,6 +860,22 @@ body { padding-bottom:64px; }   /* 固定メニューバー分の余白 */
 #status-banner .sb-remaining { font-size:1.4rem; color:var(--pink); }
 
 /* ===== ポイントカード（マイページ §5-5） ===== */
+/* 会員番号(登録番号)バッジ */
+.member-no {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: fit-content;
+  margin: 0.7rem auto 0;
+  padding: 0.32rem 0.95rem;
+  border-radius: 100px;
+  background: linear-gradient(135deg, rgba(245,158,11,0.14), rgba(192,132,252,0.14));
+  border: 1px solid rgba(245,158,11,0.4);
+  box-shadow: 0 4px 14px rgba(245,158,11,0.12);
+}
+.member-no .mn-label { font-size: 0.64rem; font-weight: 700; color: #8B6BA0; letter-spacing: 0.06em; }
+.member-no .mn-num { font-family: 'Zen Maru Gothic', sans-serif; font-weight: 900; font-size: 0.98rem; color: var(--purple-dark); letter-spacing: 0.03em; }
+
 .points-card {
   background: linear-gradient(135deg, #FFF0F5, #F5F0FF);
   border: 2px solid #E8D5F0;
@@ -1836,6 +1852,8 @@ footer a:hover { color: var(--pink-light); }
     <p class="section-label">👤 MYPAGE</p>
     <h2 class="section-title">マイページ</h2>
     <p class="section-desc">過去に作ったイラスト一覧</p>
+    <!-- 会員番号(登録番号) -->
+    <div id="member-no" class="member-no" style="display:none;"></div>
   </div>
 
   <!-- ポイントカード（サブスク会員向け §5-5） -->
@@ -1986,15 +2004,20 @@ const supabase = {
     );
   },
 
-  // ユーザー行を取得（お試し利用判定＋各特典の受取済みフラグ）
+  // ユーザー行を取得（会員番号＋お試し利用判定＋各特典の受取済みフラグ）
   async getUserRow(lineUserId) {
     const rows = await this.query(
       'pecha_users',
       'GET',
       null,
-      `?line_user_id=eq.${lineUserId}&select=credits,trial_used_at,sticker_redeemed_at,totebag_redeemed_at,tshirt_redeemed_at,sweat_redeemed_at`
+      `?line_user_id=eq.${lineUserId}&select=member_no,credits,trial_used_at,sticker_redeemed_at,totebag_redeemed_at,tshirt_redeemed_at,sweat_redeemed_at`
     );
     return (rows && rows.length) ? rows[0] : null;
+  },
+
+  // 会員番号(登録番号)を初回登録時に採番（再ログイン時は既存値を返すだけ・原子的）
+  assignMemberNo(lineUserId) {
+    return this.rpc('assign_member_no', { p_line_user_id: lineUserId });
   },
 
   // 汎用RPC呼び出し
@@ -2285,6 +2308,13 @@ async function setUser(user) {
     console.error('Supabase upsert error:', e);
   }
 
+  // 会員番号(登録番号)を採番（初回登録時のみ確定。再ログインは既存値のまま）
+  try {
+    await supabase.assignMemberNo(user.userId);
+  } catch(e) {
+    console.error('assign_member_no error:', e);
+  }
+
   // --- 会員状態で画面を出し分け ---
   let s;
   try {
@@ -2303,6 +2333,7 @@ async function setUser(user) {
 // 空の状態オブジェクト
 function emptyStatus() {
   return {
+    memberNo: null,        // 会員番号(登録番号)。null=未採番（表示しない）
     credits: 0,            // ① 残りクレジット
     trialUsed: false,      // お試し500円 使用済み（1 LINE ID 1回・trial_used_at）
     totalRolls: 0,         // 累計ガチャ回数（= pecha_illustrations 件数 = ポイント）
@@ -2315,6 +2346,7 @@ async function loadUserStatus(user) {
   const s = emptyStatus();
   const row = await supabase.getUserRow(user.userId);
   if (row) {
+    s.memberNo  = (row.member_no === null || row.member_no === undefined) ? null : Number(row.member_no);
     s.credits   = row.credits || 0;
     s.trialUsed = !!row.trial_used_at;
     s.redeemed = {
@@ -2376,6 +2408,16 @@ function applyUserStatus(s) {
 
   checkReady();
   renderPoints(s);
+  renderMemberNo(s);
+}
+
+// 会員番号(登録番号)をマイページに表示。null=非表示。0/0.5(運営)/整数いずれもそのまま表示
+function renderMemberNo(s) {
+  const el = document.getElementById('member-no');
+  if (!el) return;
+  if (s.memberNo === null || s.memberNo === undefined) { el.style.display = 'none'; return; }
+  el.style.display = 'flex';
+  el.innerHTML = '<span class="mn-label">登録番号</span><span class="mn-num">#' + s.memberNo + '</span>';
 }
 
 function restoreSession() {
