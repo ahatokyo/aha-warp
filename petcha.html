@@ -3662,6 +3662,22 @@ async function submitReview() {
   const comment = (document.getElementById('review-comment').value || '').trim();
   try {
     await supabase.addReview(state.user?.userId || null, name, state.rating, comment);
+    // 記録用の副次処理：make Webhook にもPOST（失敗してもレビュー投稿は成功扱い）
+    try {
+      await fetch('https://hook.us2.make.com/6yd4htuilioop39awtiy87oyotwsozlt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          display_name: name,
+          rating: Number(state.rating),
+          comment: comment,
+          line_user_id: state.user?.userId || null,
+          created_at: new Date().toISOString()
+        })
+      });
+    } catch (whErr) {
+      console.warn('review webhook failed (ignored):', whErr);
+    }
     document.getElementById('btn-review-submit').style.display = 'none';
     document.getElementById('review-done').style.display = 'block';
     loadVoices();
