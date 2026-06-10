@@ -733,6 +733,8 @@ body {
 .ow-prod-name { flex:1; font-family:'Zen Maru Gothic',sans-serif; font-weight:800; font-size:0.8rem; color:var(--text); }
 .ow-prod-price { font-weight:800; font-size:0.82rem; color:var(--pink); }
 /* カラー */
+.ow-prod-img { margin:0 auto 0.9rem; text-align:center; }
+.ow-prod-img img { max-width:100%; max-height:200px; border-radius:14px; background:#FBF7FF; display:block; margin:0 auto; }
 .ow-swatches { display:flex; flex-wrap:wrap; gap:0.6rem; justify-content:center; }
 .ow-swatch { display:flex; align-items:center; gap:0.4rem; background:#fff; border:2px solid #E8D5F0; border-radius:100px; padding:0.45rem 0.9rem; cursor:pointer; font-weight:700; font-size:0.82rem; color:var(--text); }
 .ow-swatch.sel { border-color:var(--pink); background:var(--pink-pale); }
@@ -2183,6 +2185,26 @@ const PRODUCTS = [
 ];
 const COLOR_HEX = { '白':'#FFFFFF', 'グレー':'#9CA3AF', 'アイボリー':'#F5F0E1', 'ナチュラル':'#E8DCC0' };
 
+// ===== グッズ商品画像（第一弾：カラー画像表示。products/ 配下を相対参照） =====
+// 商品キー × カラー → 画像ファイル名（拡張子なし）。未定義の商品/カラーは画像なし（テキスト表示のまま）。
+const PRODUCT_IMAGE_BASE = 'products/';
+const PRODUCT_IMAGES = {
+  tshirt:    { '白':'Petcha_T-shirt_white', 'グレー':'Petcha_T-shirt_gray', 'アイボリー':'Petcha_T-shirt_ivory' },
+  tshirt_ls: { '白':'Petcha_long_T-shirt_white' },                 // 長袖は白のみ
+  sweat:     { '白':'Petcha_sweat_white', 'グレー':'Petcha_sweat_gray' },
+  tote_s:    { 'ナチュラル':'Petcha_totebag_S' },                  // カラー選択なし（単色）
+  tote_m:    { 'ナチュラル':'Petcha_totebag_M' }                   // カラー選択なし（単色）
+  // sacoche / sticker は画像なし → 従来通りテキスト表示
+};
+// 選択中の商品＋カラーに対応する画像URL（無ければ null）
+function productImageUrl(product, color) {
+  if (!product) return null;
+  const m = PRODUCT_IMAGES[product.key];
+  if (!m) return null;
+  const file = m[color];
+  return file ? (PRODUCT_IMAGE_BASE + file + '.png') : null;
+}
+
 // ===== プレビュー判定 / Stripe・特典フォームのプレースホルダ（要設定） =====
 // file:// で開いたとき or ?preview を付けたときは「状態プレビュー」モード（Stripe/生成を実呼び出ししない）
 const PREVIEW_MODE = (location.protocol === 'file:') ||
@@ -3060,7 +3082,22 @@ function renderWizard() {
   }
 
   // 本文
-  document.getElementById('ow-body').innerHTML = renderStepBody();
+  const body = document.getElementById('ow-body');
+  body.innerHTML = renderStepBody();
+
+  // 商品画像プレビュー（第一弾：カラー選択時の画像表示）。
+  // colorステップで選択カラーに応じて切替。単色商品（長袖T/トート）はcolor stepが無いため
+  // size/textステップでも商品画像を表示。画像のない商品（サコッシュ/シール）や未定義カラーは何も出さない。
+  if (['color', 'size', 'text'].includes(orderState.step)) {
+    const imgUrl = productImageUrl(orderState.product, orderState.color);
+    if (imgUrl) {
+      const wrap = document.createElement('div');
+      wrap.className = 'ow-prod-img';
+      wrap.innerHTML = `<img src="${imgUrl}" alt="${(orderState.product && orderState.product.name) || '商品'}画像" `
+        + `onerror="this.closest('.ow-prod-img').style.display='none'">`;
+      body.insertBefore(wrap, body.firstChild);
+    }
+  }
 
   // フッター（戻る／次へ）
   const actions = document.getElementById('ow-actions');
