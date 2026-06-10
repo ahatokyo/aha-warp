@@ -2205,14 +2205,21 @@ const GOODS_PRICE_IDS = {                                       // ← グッズ
 };
 const CHECKOUT_ENDPOINT = '/api/create-checkout-session';      // ← Vercel側に作成予定（§5-4）
 // 特典受け取り（住所収集）Googleフォーム：イラスト選択 → 事前入力URLを生成して新規タブで開く
-const REWARD_FORM_BASE  = 'https://docs.google.com/forms/d/e/1FAIpQLScs0-RmcQEVBu88xsPUTxM2kjjs-LE1WJ4f4WWxcTe8vIq52A/viewform';
+const REWARD_FORM_BASE  = 'https://docs.google.com/forms/d/e/1FAIpQLSccncubIpuhU94cd6Jmi8nGWcjtsX7NoMbwhV6sGmkjWm6Skg/viewform';
 const REWARD_FORM_ENTRY = {
-  rewardType: 'entry.2106393993',  // 特典の種類（シール / トートバッグ / Tシャツ / スウェット）
-  memberNo:   'entry.1203357377',  // 会員番号（member_no）
-  lineUserId: 'entry.250776883',   // LINEユーザーID（line_user_id）
-  url1:       'entry.1584608152',  // イラストURL1（必須）
-  url2:       'entry.1459529519',  // イラストURL2（シール2枚目）
-  url3:       'entry.986358495'    // イラストURL3（シール3枚目）
+  rewardType: 'entry.1940734744',  // 特典の種類（シール / トートバッグ / Tシャツ / スウェット）
+  color:      'entry.1761422462',  // カラー（Tシャツ/スウェットのみ）
+  size:       'entry.693607008',   // サイズ（Tシャツ/スウェットのみ）
+  memberNo:   'entry.1324495033',  // 会員番号（member_no）
+  lineUserId: 'entry.1603028713',  // LINEユーザーID（line_user_id）
+  url1:       'entry.822108528',   // イラストURL1（必須）
+  url2:       'entry.61774474',    // イラストURL2（シール2枚目）
+  url3:       'entry.2003138190'   // イラストURL3（シール3枚目）
+};
+// 特典のカラー・サイズ選択肢（Tシャツ/スウェットのみ。PETCHA側で定義）
+const REWARD_OPTIONS = {
+  tshirt: { colors: ['白', 'グレー', 'アイボリー'], sizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'] },
+  sweat:  { colors: ['白', 'グレー'],               sizes: ['M', 'L', 'XL', 'XXL'] }
 };
 
 // ===== HERO =====
@@ -3424,8 +3431,15 @@ const rewardState = {
   label: null,      // フォーム表記（シール 等）
   max: 1,           // 選べるイラスト枚数（シールのみ3）
   list: [],         // 生成済みイラスト
-  selected: []      // 選択したイラストURL（順序保持）
+  selected: [],     // 選択したイラストURL（順序保持）
+  step: 'illust',   // illust → (option) → フォーム
+  options: null,    // カラー・サイズの選択肢（Tシャツ/スウェットのみ。なければnull）
+  color: null,      // 選択カラー
+  size: null        // 選択サイズ
 };
+
+// この特典がカラー・サイズ選択を要するか（Tシャツ/スウェットのみ）
+function rewardNeedsOptions() { return !!rewardState.options; }
 
 // 第1段：特典を確定 → イラスト一覧を取得して選択UIへ
 async function redeemReward(key, name) {
@@ -3434,6 +3448,10 @@ async function redeemReward(key, name) {
   rewardState.max = (key === 'sticker') ? 3 : 1;  // シールは最大3枚、他は1枚
   rewardState.selected = [];
   rewardState.list = [];
+  rewardState.step = 'illust';
+  rewardState.options = REWARD_OPTIONS[key] || null;  // tshirt/sweat のみ選択肢を持つ
+  rewardState.color = null;
+  rewardState.size = null;
 
   let list = [];
   try { if (state.user?.userId) list = await supabase.getIllustrations(state.user.userId); } catch (e) {}
@@ -3453,8 +3471,14 @@ function closeRewardWizard() {
   document.getElementById('reward-wizard').classList.remove('show');
 }
 
-// 第2段：イラスト選択UI（既存 ow-illust-grid を流用）
+// ステップ式：イラスト選択 →（Tシャツ/スウェットならカラー・サイズ）→ フォーム
 function renderRewardWizard() {
+  if (rewardState.step === 'option') { renderRewardOptionStep(); return; }
+  renderRewardIllustStep();
+}
+
+// 第2段-A：イラスト選択UI（既存 ow-illust-grid を流用）
+function renderRewardIllustStep() {
   const max = rewardState.max;
   const body = document.getElementById('rw-body');
   const q = (max > 1)
@@ -3477,8 +3501,11 @@ function renderRewardWizard() {
 
   const actions = document.getElementById('rw-actions');
   const canGo = rewardState.selected.length >= 1;
-  actions.innerHTML = '<button class="ow-back" onclick="closeRewardWizard()">キャンセル</button>'
-    + `<button class="ow-next" onclick="submitReward()" ${canGo ? '' : 'disabled'}>フォームへ進む</button>`;
+  // Tシャツ/スウェットはカラー・サイズへ「次へ」、それ以外は直接フォームへ
+  const nextBtn = rewardNeedsOptions()
+    ? `<button class="ow-next" onclick="rewardGoOptions()" ${canGo ? '' : 'disabled'}>次へ</button>`
+    : `<button class="ow-next" onclick="submitReward()" ${canGo ? '' : 'disabled'}>フォームへ進む</button>`;
+  actions.innerHTML = '<button class="ow-back" onclick="closeRewardWizard()">キャンセル</button>' + nextBtn;
 }
 
 function toggleRewardIllust(url) {
@@ -3491,16 +3518,53 @@ function toggleRewardIllust(url) {
     rewardState.selected.push(url);               // 複数選択は上限まで追加
   }
   // 上限に達している状態で別の未選択を押した場合は何もしない
+  renderRewardIllustStep();
+}
+
+function rewardGoOptions() {
+  if (!rewardState.selected.length || !rewardNeedsOptions()) return;
+  rewardState.step = 'option';
   renderRewardWizard();
 }
+
+// 第2段-B：カラー・サイズ選択（Tシャツ/スウェットのみ。order-wizardのswatch/sizeデザインを流用）
+function renderRewardOptionStep() {
+  const opt = rewardState.options;
+  const body = document.getElementById('rw-body');
+  body.innerHTML = '<p class="ow-q">カラーを選ぶ</p><div class="ow-swatches">'
+    + opt.colors.map(c =>
+        `<button class="ow-swatch ${rewardState.color === c ? 'sel' : ''}" onclick="pickRewardColor('${c}')">`
+        + `<span class="ow-sw-dot" style="background:${COLOR_HEX[c] || '#ccc'}"></span>${c}</button>`).join('')
+    + '</div>'
+    + '<p class="ow-q" style="margin-top:1rem;">サイズを選ぶ</p><div class="ow-sizes">'
+    + opt.sizes.map(s =>
+        `<button class="ow-size ${rewardState.size === s ? 'sel' : ''}" onclick="pickRewardSize('${s}')">${s}</button>`).join('')
+    + '</div>';
+
+  const actions = document.getElementById('rw-actions');
+  const canGo = !!(rewardState.color && rewardState.size);  // 両方選ばないと進めない
+  actions.innerHTML = '<button class="ow-back" onclick="rewardBackToIllust()">戻る</button>'
+    + `<button class="ow-next" onclick="submitReward()" ${canGo ? '' : 'disabled'}>フォームへ進む</button>`;
+}
+
+function pickRewardColor(c) { rewardState.color = c; renderRewardOptionStep(); }
+function pickRewardSize(s)  { rewardState.size = s;  renderRewardOptionStep(); }
+function rewardBackToIllust() { rewardState.step = 'illust'; renderRewardWizard(); }
 
 // 第3段：選択結果を事前入力したGoogleフォームを新規タブで開く
 function submitReward() {
   if (!rewardState.selected.length) return;
+  // Tシャツ/スウェットはカラー・サイズ必須
+  if (rewardNeedsOptions() && !(rewardState.color && rewardState.size)) return;
   const memberNo   = (state.status && state.status.memberNo != null) ? String(state.status.memberNo) : '';
   const lineUserId = state.user?.userId || '';
   const parts = ['usp=pp_url'];
   parts.push(REWARD_FORM_ENTRY.rewardType + '=' + encodeURIComponent(rewardState.label));
+  // カラー・サイズは tshirt/sweat のときだけ付与（sticker/totebag は空＝付けない）
+  if (rewardNeedsOptions()) {
+    parts.push(REWARD_FORM_ENTRY.color + '=' + encodeURIComponent(rewardState.color));
+    parts.push(REWARD_FORM_ENTRY.size  + '=' + encodeURIComponent(rewardState.size));
+  }
   parts.push(REWARD_FORM_ENTRY.memberNo   + '=' + encodeURIComponent(memberNo));
   parts.push(REWARD_FORM_ENTRY.lineUserId + '=' + encodeURIComponent(lineUserId));
   const urlKeys = [REWARD_FORM_ENTRY.url1, REWARD_FORM_ENTRY.url2, REWARD_FORM_ENTRY.url3];
