@@ -2299,7 +2299,11 @@ const REDIRECT_URI = encodeURIComponent('https://petcha.aha-tokyo.com/petcha.htm
 
 function loginWithLINE() {
   const state_param = Math.random().toString(36).substring(2);
-  sessionStorage.setItem('line_state', state_param);
+  // CSRF用のstateは認可リダイレクトの往復をまたいで保持される必要がある。
+  // sessionStorageはLINEアプリ内ブラウザ等で往復時にコンテキストが切り替わり失われることがあり、
+  // 1回目の照合が失敗→2回目で成功という不具合の原因になる。オリジン単位で永続する
+  // localStorageに保存し（照合成功後に削除＝ワンタイム化）、1回目から確実に照合できるようにする。
+  localStorage.setItem('line_state', state_param);
   const url = `https://access.line.me/oauth2/v2.1/authorize`
     + `?response_type=code`
     + `&client_id=${LINE_CLIENT_ID}`
@@ -2313,9 +2317,13 @@ function checkLineCallback() {
   const params = new URLSearchParams(window.location.search);
   const code = params.get('code');
   const lineState = params.get('state');
-  if (code && lineState === sessionStorage.getItem('line_state')) {
+  if (!code) return;
+  // stateの厳密な検証は維持（保存値と完全一致した場合のみ続行）。
+  const savedState = localStorage.getItem('line_state');
+  if (lineState && lineState === savedState) {
+    localStorage.removeItem('line_state');   // ワンタイム化（再利用・リプレイ防止）
     exchangeLineToken(code);
-    window.history.replaceState({}, '', window.location.pathname);
+    window.history.replaceState({}, '', window.location.pathname);  // URLから code/state を掃除
   }
 }
 
