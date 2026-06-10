@@ -2298,17 +2298,12 @@ const LINE_CLIENT_ID = '2010266562'; // ← 要設定
 const REDIRECT_URI = encodeURIComponent('https://petcha.aha-tokyo.com/petcha.html');
 
 function loginWithLINE() {
+  // stateはCSRF対策の慣習として認可URLに付与するが、戻り時の照合には使わない（保存もしない）。
+  // 理由: LINE内ブラウザは認可往復で実行コンテキストがリセットされ、storage(local/session)も
+  //       cookieも往復をまたいで保持されないことが診断で確定した。そのため「開始時に保存→戻り時に照合」
+  //       というクライアント側のstateバインディングが原理的に不可能（保存しても1回目は必ず消えるだけ）。
+  //       → 保存処理は撤去。根本対応はLIFFへの移行で別途行う（後続タスク）。
   const state_param = Math.random().toString(36).substring(2);
-  // CSRF用のstateは認可リダイレクトの往復をまたいで保持される必要がある。
-  // sessionStorageはLINEアプリ内ブラウザ等で往復時にコンテキストが切り替わり失われることがあり、
-  // 1回目の照合が失敗→2回目で成功という不具合の原因になる。オリジン単位で永続する
-  // localStorageに保存し（照合成功後に削除＝ワンタイム化）、1回目から確実に照合できるようにする。
-  localStorage.setItem('line_state', state_param);
-  // === 一時デバッグ（LINE内ブラウザ調査用・確認後に削除）===
-  // どのstorageが認可往復をまたいで保持されるか比較するため、両方に保存しておく。
-  sessionStorage.setItem('line_state', state_param);
-  try { document.cookie = 'line_state_dbg=' + state_param + '; path=/; max-age=600; SameSite=Lax'; } catch (e) {}
-  // === /一時デバッグ ===
   const url = `https://access.line.me/oauth2/v2.1/authorize`
     + `?response_type=code`
     + `&client_id=${LINE_CLIENT_ID}`
@@ -2323,26 +2318,16 @@ function checkLineCallback() {
   const code = params.get('code');
   const lineState = params.get('state');
   if (!code) return;
-  // stateの厳密な検証は維持（保存値と完全一致した場合のみ続行）。
-  const savedState = localStorage.getItem('line_state');
-  // === 一時デバッグ（LINE内ブラウザ調査用・確認後に削除）===
-  // 認可往復後に各storageへ保存値が残っているか／受信stateと一致するかを可視化する。
-  const savedSession = sessionStorage.getItem('line_state');
-  const cookieMatch = document.cookie.match(/(?:^|;\s*)line_state_dbg=([^;]+)/);
-  const savedCookie = cookieMatch ? cookieMatch[1] : null;
-  alert('[LINE auth debug]\n'
-    + '受信 state: ' + lineState + '\n'
-    + 'localStorage: ' + savedState + '\n'
-    + 'sessionStorage: ' + savedSession + '\n'
-    + 'cookie: ' + savedCookie + '\n'
-    + '一致(localStorage): ' + (lineState === savedState) + '\n'
-    + '一致(cookie): ' + (lineState === savedCookie));
-  // === /一時デバッグ ===
-  if (lineState && lineState === savedState) {
-    localStorage.removeItem('line_state');   // ワンタイム化（再利用・リプレイ防止）
-    exchangeLineToken(code);
-    window.history.replaceState({}, '', window.location.pathname);  // URLから code/state を掃除
-  }
+  // --- state照合は行わない（LINE内ブラウザ対策・案1） ---
+  // LINE内ブラウザは認可往復で実行コンテキストがリセットされ storage/cookie が全て消えるため、
+  // 開始時に保存したstateと戻り値を突き合わせるCSRFバインディングが原理的に不可能（PC外部ブラウザでは
+  // 可能だが、両環境で1回目から確実に動かすため保存非依存に統一）。完全ノーガードは避け、stateが
+  // 存在し書式が妥当（英数字等）かのサニティチェックのみ残す。codeはLINE側でワンタイム・短命（使い捨て）
+  // のため、コードのリプレイは実質的に防がれる。残存リスクはログインCSRFだが、PETCHAはアカウントに
+  // 決済情報を持たず（StripeはCheckoutで都度収集）影響は限定的。根本対応はLIFF移行（後続タスク）で行う。
+  if (!lineState || !/^[A-Za-z0-9._-]{1,128}$/.test(lineState)) return;
+  exchangeLineToken(code);
+  window.history.replaceState({}, '', window.location.pathname);  // URLから code/state を掃除
 }
 
 async function exchangeLineToken(code) {
