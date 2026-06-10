@@ -704,8 +704,9 @@ body {
 .btn-make-goods { width:100%; margin-top:1.25rem; padding:0.95rem; border:none; border-radius:100px; cursor:pointer; background:linear-gradient(135deg,var(--purple),var(--purple-dark)); color:#fff; font-family:'Zen Maru Gothic',sans-serif; font-weight:800; font-size:0.95rem; box-shadow:0 8px 22px rgba(124,58,237,0.3); }
 
 /* ===== グッズ注文ウィザード ===== */
-#order-wizard { display:none; position:fixed; inset:0; z-index:4000; background:rgba(26,10,46,0.9); align-items:center; justify-content:center; padding:1.25rem; }
-#order-wizard.show { display:flex; }
+#order-wizard, #reward-wizard { display:none; position:fixed; inset:0; z-index:4000; background:rgba(26,10,46,0.9); align-items:center; justify-content:center; padding:1.25rem; }
+#order-wizard.show, #reward-wizard.show { display:flex; }
+.rw-count { font-size:0.78rem; color:#8B6BA0; text-align:center; font-weight:700; margin-bottom:0.6rem; }
 .ow-card { background:#fff; border-radius:24px; max-width:380px; width:100%; max-height:88vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,0.4); animation:pmPop 0.25s ease; }
 .ow-header { background:linear-gradient(135deg,var(--pink),var(--purple)); color:#fff; display:flex; align-items:center; justify-content:space-between; padding:0.8rem 1rem; }
 .ow-title { font-family:'Zen Maru Gothic',sans-serif; font-weight:900; letter-spacing:0.06em; font-size:1rem; }
@@ -1516,6 +1517,18 @@ footer a:hover { color: var(--pink-light); }
   </div>
 </div>
 
+<!-- ポイント特典 受け取りウィザード（イラスト選択 → 事前入力フォーム） -->
+<div id="reward-wizard">
+  <div class="ow-card">
+    <div class="ow-header">
+      <span class="ow-title" id="rw-title">🎁 特典を受け取る</span>
+      <button class="ow-close" onclick="closeRewardWizard()" aria-label="閉じる">×</button>
+    </div>
+    <div class="ow-body" id="rw-body"></div>
+    <div class="ow-actions" id="rw-actions"></div>
+  </div>
+</div>
+
 <!-- ユーザーバー -->
 <div class="user-bar" id="user-bar">
   <img class="user-avatar" id="user-avatar" src="" alt="">
@@ -2191,7 +2204,16 @@ const GOODS_PRICE_IDS = {                                       // ← グッズ
   sweat:   'YOUR_PRICE_ID_GOODS_SWEAT'
 };
 const CHECKOUT_ENDPOINT = '/api/create-checkout-session';      // ← Vercel側に作成予定（§5-4）
-const REWARD_FORM_URL   = 'YOUR_GOOGLE_FORM_URL';              // ← 特典受け取り（住所収集）フォーム
+// 特典受け取り（住所収集）Googleフォーム：イラスト選択 → 事前入力URLを生成して新規タブで開く
+const REWARD_FORM_BASE  = 'https://docs.google.com/forms/d/e/1FAIpQLScs0-RmcQEVBu88xsPUTxM2kjjs-LE1WJ4f4WWxcTe8vIq52A/viewform';
+const REWARD_FORM_ENTRY = {
+  rewardType: 'entry.2106393993',  // 特典の種類（シール / トートバッグ / Tシャツ / スウェット）
+  memberNo:   'entry.1203357377',  // 会員番号（member_no）
+  lineUserId: 'entry.250776883',   // LINEユーザーID（line_user_id）
+  url1:       'entry.1584608152',  // イラストURL1（必須）
+  url2:       'entry.1459529519',  // イラストURL2（シール2枚目）
+  url3:       'entry.986358495'    // イラストURL3（シール3枚目）
+};
 
 // ===== HERO =====
 // 浮遊する泡を生成
@@ -3373,7 +3395,7 @@ function renderPoints(s) {
   rewards.innerHTML = '';
   MILESTONES.forEach(m => {
     if (total >= m.n && !(s.redeemed && s.redeemed[m.key])) {
-      addRewardCta(rewards, `${m.emoji} ${m.label}を受け取る（${m.n}回達成）`, m.key, m.label);
+      addRewardCta(rewards, `${m.emoji} ${m.label}の特典をゲットする（${m.n}回達成）`, m.key, m.label);
     }
   });
 
@@ -3390,16 +3412,104 @@ function addRewardCta(container, label, key, name) {
   container.appendChild(b);
 }
 
-function redeemReward(key, name) {
-  if (!REWARD_FORM_URL.startsWith('YOUR_')) {
-    window.open(REWARD_FORM_URL, '_blank');
+// ===================================================================
+// ポイント特典 受け取り（三段構え）
+//   第1段：renderPoints のCTA → redeemReward(key, name) で特典を確定
+//   第2段：生成済みイラストから特典に使う1〜3枚を選択（既存のイラスト選択UIを流用）
+//   第3段：選択結果を事前入力したGoogleフォームを新規タブで開く
+// ※有料のグッズ注文ウィザード（order-wizard）とは別導線。
+// ===================================================================
+const rewardState = {
+  key: null,        // sticker / totebag / tshirt / sweat
+  label: null,      // フォーム表記（シール 等）
+  max: 1,           // 選べるイラスト枚数（シールのみ3）
+  list: [],         // 生成済みイラスト
+  selected: []      // 選択したイラストURL（順序保持）
+};
+
+// 第1段：特典を確定 → イラスト一覧を取得して選択UIへ
+async function redeemReward(key, name) {
+  rewardState.key = key;
+  rewardState.label = name;                       // MILESTONES.label（シール/トートバッグ/Tシャツ/スウェット）
+  rewardState.max = (key === 'sticker') ? 3 : 1;  // シールは最大3枚、他は1枚
+  rewardState.selected = [];
+  rewardState.list = [];
+
+  let list = [];
+  try { if (state.user?.userId) list = await supabase.getIllustrations(state.user.userId); } catch (e) {}
+  list = list || [];
+  if (list.length === 0) {
+    await petchaAlert('まずガチャを回してイラストを作りましょう！🐾\n作ったイラストを特典に使えます。');
     return;
   }
-  // フォーム未設定時の案内（初期はGoogleフォームで住所収集 → 運営が *_redeemed_at を記録）
-  const col = (MILESTONES.find(m => m.key === key) || {}).col || (key + '_redeemed_at');
-  petchaAlert('特典「' + name + '」の受け取りフォーム（住所入力）へご案内します。\n'
-    + '受け取り後、運営側で受取済み（' + col + '）を記録します。\n\n'
-    + '※フォームURLは REWARD_FORM_URL に設定してください。');
+  rewardState.list = list;
+
+  document.getElementById('rw-title').textContent = `🎁 ${name}の特典を受け取る`;
+  document.getElementById('reward-wizard').classList.add('show');
+  renderRewardWizard();
+}
+
+function closeRewardWizard() {
+  document.getElementById('reward-wizard').classList.remove('show');
+}
+
+// 第2段：イラスト選択UI（既存 ow-illust-grid を流用）
+function renderRewardWizard() {
+  const max = rewardState.max;
+  const body = document.getElementById('rw-body');
+  const q = (max > 1)
+    ? `特典に使うイラストを選んでください（最大${max}枚）`
+    : '特典に使うイラストを選んでください';
+  body.innerHTML = '<p class="ow-q">' + q + '</p>'
+    + (max > 1 ? `<p class="rw-count">選択中：${rewardState.selected.length} / ${max} 枚</p>` : '')
+    + '<div class="ow-illust-grid">'
+    + rewardState.list.map(it => {
+        const sel = rewardState.selected.includes(it.image_url);
+        const order = sel ? (rewardState.selected.indexOf(it.image_url) + 1) : '';
+        return `<div class="ow-illust ${sel ? 'sel' : ''}" onclick="toggleRewardIllust('${it.image_url.replace(/'/g, "\\'")}')">`
+          + `<img src="${it.image_url}" alt="イラスト">`
+          + (sel && max > 1 ? `<span style="position:absolute;top:2px;right:4px;background:var(--pink);color:#fff;border-radius:100px;font-size:0.7rem;font-weight:800;width:18px;height:18px;display:flex;align-items:center;justify-content:center;">${order}</span>` : '')
+          + '</div>';
+      }).join('')
+    + '</div>';
+  // ow-illust に position:relative を効かせる（バッジ表示用）
+  body.querySelectorAll('.ow-illust').forEach(el => { el.style.position = 'relative'; });
+
+  const actions = document.getElementById('rw-actions');
+  const canGo = rewardState.selected.length >= 1;
+  actions.innerHTML = '<button class="ow-back" onclick="closeRewardWizard()">キャンセル</button>'
+    + `<button class="ow-next" onclick="submitReward()" ${canGo ? '' : 'disabled'}>フォームへ進む</button>`;
+}
+
+function toggleRewardIllust(url) {
+  const i = rewardState.selected.indexOf(url);
+  if (i >= 0) {
+    rewardState.selected.splice(i, 1);            // 選択解除
+  } else if (rewardState.max === 1) {
+    rewardState.selected = [url];                 // 単一選択は置き換え
+  } else if (rewardState.selected.length < rewardState.max) {
+    rewardState.selected.push(url);               // 複数選択は上限まで追加
+  }
+  // 上限に達している状態で別の未選択を押した場合は何もしない
+  renderRewardWizard();
+}
+
+// 第3段：選択結果を事前入力したGoogleフォームを新規タブで開く
+function submitReward() {
+  if (!rewardState.selected.length) return;
+  const memberNo   = (state.status && state.status.memberNo != null) ? String(state.status.memberNo) : '';
+  const lineUserId = state.user?.userId || '';
+  const parts = ['usp=pp_url'];
+  parts.push(REWARD_FORM_ENTRY.rewardType + '=' + encodeURIComponent(rewardState.label));
+  parts.push(REWARD_FORM_ENTRY.memberNo   + '=' + encodeURIComponent(memberNo));
+  parts.push(REWARD_FORM_ENTRY.lineUserId + '=' + encodeURIComponent(lineUserId));
+  const urlKeys = [REWARD_FORM_ENTRY.url1, REWARD_FORM_ENTRY.url2, REWARD_FORM_ENTRY.url3];
+  rewardState.selected.forEach((u, idx) => {
+    if (urlKeys[idx]) parts.push(urlKeys[idx] + '=' + encodeURIComponent(u));
+  });
+  const formUrl = REWARD_FORM_BASE + '?' + parts.join('&');
+  window.open(formUrl, '_blank');
+  closeRewardWizard();
 }
 
 // ===== 開発用プレビュー（Stripe未接続時に各状態を確認） =====
