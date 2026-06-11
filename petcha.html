@@ -681,6 +681,7 @@ body {
 @keyframes pmPop { from { transform:scale(0.9); opacity:0; } to { transform:scale(1); opacity:1; } }
 .petcha-modal-header { background:linear-gradient(135deg,var(--pink),var(--purple)); color:#fff; font-family:'Zen Maru Gothic',sans-serif; font-weight:900; letter-spacing:0.12em; font-size:1.05rem; padding:0.85rem; text-align:center; }
 .petcha-modal-msg { padding:1.5rem 1.25rem; font-size:0.9rem; line-height:1.75; color:var(--text); text-align:center; white-space:pre-line; word-break:break-word; }
+.petcha-modal-sub { padding:0 1.25rem 0.5rem; margin-top:-0.6rem; font-size:0.72rem; line-height:1.6; color:#8B6BA0; text-align:center; white-space:pre-line; word-break:break-word; }
 .petcha-modal-actions { display:flex; gap:0.6rem; padding:0 1.25rem 1.25rem; }
 .petcha-modal-actions button { flex:1; padding:0.85rem; border:none; border-radius:100px; cursor:pointer; font-family:'Zen Maru Gothic',sans-serif; font-weight:800; font-size:0.95rem; }
 .pm-ok { background:linear-gradient(135deg,var(--pink),var(--purple)); color:#fff; box-shadow:0 6px 18px rgba(255,107,157,0.3); }
@@ -1516,6 +1517,7 @@ footer a:hover { color: var(--pink-light); }
   <div class="petcha-modal-card">
     <div class="petcha-modal-header">🐾 PETCHA</div>
     <div class="petcha-modal-msg" id="petcha-modal-msg"></div>
+    <div class="petcha-modal-sub" id="petcha-modal-sub" style="display:none;"></div>
     <div class="petcha-modal-actions">
       <button class="pm-cancel" id="petcha-modal-cancel" style="display:none;">いいえ</button>
       <button class="pm-ok" id="petcha-modal-ok">OK</button>
@@ -2230,8 +2232,9 @@ const PRODUCT_IMAGES = {
   tshirt_ls: { '白':'Petcha_long_T-shirt_white' },                 // 長袖は白のみ
   sweat:     { '白':'Petcha_sweat_white', 'グレー':'Petcha_sweat_gray' },
   tote_s:    { 'ナチュラル':'Petcha_totebag_S' },                  // カラー選択なし（単色）
-  tote_m:    { 'ナチュラル':'Petcha_totebag_M' }                   // カラー選択なし（単色）
-  // sacoche / sticker は画像なし → 従来通りテキスト表示
+  tote_m:    { 'ナチュラル':'Petcha_totebag_M_v2' },               // カラー選択なし（単色）。商品画像をv2に差し替え
+  sacoche:   { 'ナチュラル':'Petcha_Sacoche_natural', 'グレー':'Petcha_Sacoche_gray' }
+  // sticker は画像なし → 用紙サイズ画像(STICKER_INFO_IMG)を商品説明/確認で表示
 };
 // 選択中の商品＋カラーに対応する画像URL（無ければ null）
 function productImageUrl(product, color) {
@@ -2241,6 +2244,32 @@ function productImageUrl(product, color) {
   const file = m[color];
   return file ? (PRODUCT_IMAGE_BASE + file + '.png') : null;
 }
+
+// プリント位置(前面/背面)の見本画像。前面は従来_sample_front、背面はv2に差し替え。対応は tshirt/tshirt_ls/sweat のみ。
+const PRODUCT_PRINT_SAMPLE = {
+  tshirt:    { front: 'Petcha_T-shirt_sample_front',      back: 'Petcha_T-shirt_sample_back_v2' },
+  tshirt_ls: { front: 'Petcha_long_T-shirt_sample_front', back: 'Petcha_long_T-shirt_sample_back_v2' },
+  sweat:     { front: 'Petcha_sweat_sample_front',        back: 'Petcha_sweat_sample_back_v2' }
+};
+function printSampleUrl(product, side) {
+  if (!product || !side) return null;
+  const m = PRODUCT_PRINT_SAMPLE[product.key];
+  const file = m && m[side];
+  return file ? (PRODUCT_IMAGE_BASE + file + '.png') : null;
+}
+// サイズ表画像（ある商品のみ「サイズ表を見る」を表示）。トート/サコッシュ/シールは無し。
+const PRODUCT_SIZE_CHART = {
+  tshirt:    'Petcha_T-shirt_size',
+  tshirt_ls: 'Petcha_long_T-shirt_size',
+  sweat:     'Petcha_sweat_size'
+};
+function sizeChartUrl(product) {
+  if (!product) return null;
+  const file = PRODUCT_SIZE_CHART[product.key];
+  return file ? (PRODUCT_IMAGE_BASE + file + '.png') : null;
+}
+// シールの用紙サイズが分かる画像（商品説明・確認の文脈で表示）
+const STICKER_INFO_IMG = PRODUCT_IMAGE_BASE + 'Petcha_sticker.png';
 
 // ===== プレビュー判定 / Stripe・特典フォームのプレースホルダ（要設定） =====
 // file:// で開いたとき or ?preview を付けたときは「状態プレビュー」モード（Stripe/生成を実呼び出ししない）
@@ -2706,7 +2735,9 @@ function checkPaymentReturn() {
   if (params.get('goods_ordered') === '1') {
     history.replaceState({}, '', location.pathname);
     waitForUserThen(() => {
-      petchaAlert('ご注文ありがとうございます🎁\n完成イメージは後日LINEでお送りします！');
+      petchaModal('ご注文ありがとうございます🎁\n完成イメージを2営業日以内にモバティbyAHA TOKYO公式LINEよりお送りします！',
+        false,
+        'ご不明な点等ございましたら、同LINEのチャットにてお気軽にご連絡ください。');
       navGo('mypage');
     });
     return;
@@ -3192,16 +3223,25 @@ function renderStepBody() {
         + p.sizes.map(s =>
             `<button class="ow-size ${orderState.size === s ? 'sel' : ''}" onclick="pickSize('${s}')">${s}</button>`).join('')
         + '</div>'
-        + '<button class="ow-link" onclick="showSizeChart()">📏 サイズ表を見る</button>';
+        // ④ サイズ表がある商品のみ「サイズ表を見る」を表示（クリックでポップアップ）
+        + (sizeChartUrl(p) ? '<button class="ow-link" onclick="showSizeChart()">📏 サイズ表を見る</button>' : '');
 
-    case 'print':
+    case 'print': {
+      // ⑤ 選択中のプリント位置に対応する見本（前面=_sample_front / 背面=_sample_back_v2）を表示
+      const ps = printSampleUrl(p, orderState.printSide);
       return '<p class="ow-q">プリント位置を選ぶ</p><div class="ow-twocol">'
         + `<button class="ow-opt ${orderState.printSide === 'front' ? 'sel' : ''}" onclick="pickPrint('front')">前面プリント</button>`
         + `<button class="ow-opt ${orderState.printSide === 'back' ? 'sel' : ''}" onclick="pickPrint('back')">背面プリント</button>`
-        + '</div>';
+        + '</div>'
+        + (ps ? `<div class="ow-prod-img"><img src="${ps}" alt="プリント見本" onerror="this.closest('.ow-prod-img').style.display='none'"></div>` : '');
+    }
 
     case 'text':
-      return '<p class="ow-q">文字を入れますか？</p><div class="ow-twocol">'
+      // ⑥ シールはカラー/サイズ/プリント選択がないため、商品説明として用紙サイズ画像を表示
+      return (p && p.key === 'sticker'
+              ? `<div class="ow-prod-img"><img src="${STICKER_INFO_IMG}" alt="シール 用紙サイズ" onerror="this.closest('.ow-prod-img').style.display='none'"></div>`
+              : '')
+        + '<p class="ow-q">文字を入れますか？</p><div class="ow-twocol">'
         + `<button class="ow-opt ${orderState.withText === true ? 'sel' : ''}" onclick="pickText(true)">文字を入れる</button>`
         + `<button class="ow-opt ${orderState.withText === false ? 'sel' : ''}" onclick="pickText(false)">文字なし</button>`
         + '</div>'
@@ -3224,6 +3264,10 @@ function renderStepBody() {
       ].filter(Boolean);
       return '<p class="ow-q">ご注文内容の確認</p>'
         + (orderState.illustration ? `<img class="ow-confirm-img" src="${orderState.illustration.display}" alt="イラスト">` : '')
+        // ⑥ シールは確認画面でも用紙サイズ画像を表示
+        + (p && p.key === 'sticker'
+            ? `<div class="ow-prod-img"><img src="${STICKER_INFO_IMG}" alt="シール 用紙サイズ" onerror="this.closest('.ow-prod-img').style.display='none'"></div>`
+            : '')
         + '<div class="ow-summary">'
         + rows.map(r => `<div class="ow-srow"><span>${r[0]}</span><b>${r[1]}</b></div>`).join('')
         + '</div>'
@@ -3256,7 +3300,12 @@ function pickSize(s) { orderState.size = s; renderWizard(); }
 function pickPrint(side) { orderState.printSide = side; renderWizard(); }
 function pickText(v) { orderState.withText = v; if (!v) orderState.textContent = ''; renderWizard(); }
 
-function showSizeChart() { petchaAlert('サイズ表は準備中です。\n近日公開予定です🐾'); }
+// ④ サイズ表をポップアップ表示（サイズ表がある商品＝tshirt/tshirt_ls/sweat のみ）
+function showSizeChart() {
+  const url = sizeChartUrl(orderState.product);
+  if (!url) return;
+  showSamplePopup((orderState.product?.name || '商品') + ' サイズ表', [{ src: url, caption: '' }], false);
+}
 
 // ⑦ 注文確定 → Stripe Checkout（商品price＋送料¥600＋配送先入力）
 async function submitOrder() {
@@ -3666,21 +3715,24 @@ let sampleSlides = [];
 let sampleIndex = 0;
 let sampleShowNote = false;
 
+// 見本ポップアップの共通コア（特典見本／サイズ表 等で再利用）
+function showSamplePopup(title, slides, showNote) {
+  sampleSlides = slides;
+  sampleShowNote = !!showNote;
+  sampleIndex = 0;
+  document.getElementById('sample-modal-title').textContent = title;
+  renderSample();
+  document.getElementById('sample-modal').classList.add('show');
+}
+
 function openRewardSample(key) {
   if (key === 'sticker') {
-    sampleSlides = STICKER_SAMPLES.slice();   // 3枚カルーセル
-    sampleShowNote = true;                    // 「サイズ・配置などのデザインはお任せ」
-    document.getElementById('sample-modal-title').textContent = 'シールの完成イメージ';
+    showSamplePopup('シールの完成イメージ', STICKER_SAMPLES.slice(), true);  // 3枚カルーセル＋お任せ注記
   } else {
     const info = REWARD_SAMPLE[key];
     if (!info) return;
-    sampleSlides = [{ src: info.src, caption: '' }];
-    sampleShowNote = false;
-    document.getElementById('sample-modal-title').textContent = info.title;
+    showSamplePopup(info.title, [{ src: info.src, caption: '' }], false);
   }
-  sampleIndex = 0;
-  renderSample();
-  document.getElementById('sample-modal').classList.add('show');
 }
 
 function closeSampleModal() {
@@ -4116,12 +4168,18 @@ function dismissLineBanner() {
 //   petchaAlert(msg)   → OKのみ。Promiseを返す（await可）
 //   petchaConfirm(msg) → はい/いいえ。Promise<boolean> を返す
 // ===================================================================
-function petchaModal(message, isConfirm) {
+function petchaModal(message, isConfirm, subText) {
   return new Promise((resolve) => {
     const ov     = document.getElementById('petcha-modal');
     const okBtn  = document.getElementById('petcha-modal-ok');
     const cancel = document.getElementById('petcha-modal-cancel');
     document.getElementById('petcha-modal-msg').textContent = String(message == null ? '' : message);
+    // 任意の補足テキスト（小さめフォント）。未指定なら非表示。
+    const subEl = document.getElementById('petcha-modal-sub');
+    if (subEl) {
+      if (subText) { subEl.textContent = String(subText); subEl.style.display = 'block'; }
+      else { subEl.textContent = ''; subEl.style.display = 'none'; }
+    }
     cancel.style.display = isConfirm ? 'block' : 'none';
     okBtn.textContent = isConfirm ? 'はい' : 'OK';
     const close = (val) => {
