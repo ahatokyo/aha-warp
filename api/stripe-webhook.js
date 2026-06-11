@@ -192,8 +192,22 @@ export default async function handler(req, res) {
       } else if (md.kind === 'goods') {
         // グッズ注文 → pecha_orders に保存（配送先も保存）。記録を最優先し、メールは後段で別try/catch。
         const cust = s.customer_details || {};
-        const ship = s.shipping_details || s.shipping || {};
-        const addr = (ship && ship.address) || cust.address || {};
+        // 配送先の格納先はAPIバージョンで異なる：
+        //   新: s.collected_information.shipping_details.address
+        //   旧: s.shipping_details.address / s.shipping.address
+        //   最終手段: customer_details.address（請求先。shipping収集時は空のことが多い）
+        const ci = s.collected_information || {};
+        const ship = ci.shipping_details || s.shipping_details || s.shipping || {};
+        const addr = ship.address || cust.address || {};
+        // ▼▼▼ 一時デバッグ（住所フィールド特定用・Vercelログで確認後に除去）▼▼▼
+        console.log('[goods addr debug]', JSON.stringify({
+          customer_details: s.customer_details || null,
+          shipping_details: s.shipping_details || null,
+          shipping: s.shipping || null,
+          collected_information: s.collected_information || null,
+          resolved_addr: addr
+        }));
+        // ▲▲▲ 一時デバッグ ▲▲▲
         const orderRow = {
           line_user_id: lineUserId || null,
           illustration_id: md.illustrationUrl || null,
