@@ -149,6 +149,75 @@ async function sendOrderEmails({ md, session, orderRow, orderId }) {
   }
 }
 
+// カート注文1明細（cartItem）のHTMLテーブル
+function cartItemRowsHtml(it) {
+  const rows = [['商品', it.name || GOODS_NAMES[it.sku] || it.sku || '商品']];
+  if (it.color)     rows.push(['カラー', it.color]);
+  if (it.size)      rows.push(['サイズ', it.size]);
+  if (it.print_pos) rows.push(['プリント位置', it.print_pos === 'front' ? '前面' : (it.print_pos === 'back' ? '背面' : it.print_pos)]);
+  rows.push(['文字入れ', (it.text != null && String(it.text) !== '') ? ('あり：「' + it.text + '」') : 'なし']);
+  rows.push(['数量', String(it.quantity || 1)]);
+  if (Array.isArray(it.illustration_urls) && it.illustration_urls.length) rows.push(['イラストURL', it.illustration_urls.join(' , ')]);
+  return '<table style="border-collapse:collapse;font-size:14px;margin:4px 0 10px;">'
+    + rows.map(r => `<tr><td style="padding:3px 14px 3px 0;color:#666;white-space:nowrap;vertical-align:top;">${escapeHtml(r[0])}</td>`
+        + `<td style="padding:3px 0;font-weight:bold;word-break:break-all;">${escapeHtml(r[1])}</td></tr>`).join('')
+    + '</table>';
+}
+
+// カート注文（複数商品）の購入者＋運営メール。row.items をループして全商品を一覧表示。
+async function sendCartOrderEmails({ row, session }) {
+  const items = Array.isArray(row && row.items) ? row.items : [];
+  const amount = session.amount_total;
+  const itemsHtml = items.map((it, i) =>
+    `<div style="border-top:1px solid #eee;padding-top:6px;"><b style="font-size:13px;color:#999;">商品 ${i + 1}</b>${cartItemRowsHtml(it)}</div>`).join('');
+  const amountHtml = (amount != null) ? `<p style="font-weight:bold;">お支払い金額（送料込み）：¥${Number(amount).toLocaleString()}</p>` : '';
+
+  // --- 購入者への注文確認メール ---
+  const buyerEmail = row && row.buyer_email;
+  if (buyerEmail) {
+    const html = `<div style="font-family:sans-serif;color:#333;line-height:1.7;max-width:560px;">
+      <p>この度はPETCHA（ペッチャ）のグッズをご注文いただき、ありがとうございます🐾</p>
+      <p>以下の内容でご注文を承りました。</p>
+      ${itemsHtml}
+      ${amountHtml}
+      <p style="margin-top:18px;">完成イメージを<b>2営業日以内</b>に、モバティ by AHA TOKYO 公式LINEよりお送りします。</p>
+      <p style="font-size:13px;color:#666;">ご不明な点等ございましたら、同LINEのチャットにてお気軽にご連絡ください。</p>
+      <p style="font-size:12px;color:#999;margin-top:20px;">PETCHA by AHA TOKYO</p>
+    </div>`;
+    try { await sendResendEmail({ to: buyerEmail, subject: '【PETCHA】ご注文ありがとうございます', html }); }
+    catch (e) { console.error('buyer email failed (ignored):', e); }
+  } else {
+    console.warn('購入者メールアドレス未取得 → 購入者メールはスキップ');
+  }
+
+  // --- 運営への新規注文通知メール（1通で出荷情報を全把握）---
+  const to = process.env.ORDER_NOTIFY_TO || 'info@aha-tokyo.com';
+  const shipHtml = '<table style="border-collapse:collapse;font-size:14px;">'
+    + [['氏名', row && row.recipient_name], ['郵便番号', row && row.postal_code], ['住所', row && row.address],
+       ['電話', row && row.phone], ['購入者メール', row && row.buyer_email]]
+        .map(r => `<tr><td style="padding:4px 14px 4px 0;color:#666;white-space:nowrap;vertical-align:top;">${escapeHtml(r[0])}</td>`
+          + `<td style="padding:4px 0;font-weight:bold;">${escapeHtml(r[1] || '（未取得）')}</td></tr>`).join('')
+    + '</table>';
+  const refHtml = '<table style="border-collapse:collapse;font-size:13px;color:#666;">'
+    + [['Supabase行ID', row && row.id], ['会員番号', row && row.member_no], ['line_user_id', row && row.line_user_id],
+       ['Stripe決済ID', row && row.stripe_payment_id]]
+        .map(r => `<tr><td style="padding:3px 14px 3px 0;white-space:nowrap;vertical-align:top;">${escapeHtml(r[0])}</td>`
+          + `<td style="padding:3px 0;word-break:break-all;">${escapeHtml(r[1] || '-')}</td></tr>`).join('')
+    + '</table>';
+  const adminHtml = `<div style="font-family:sans-serif;color:#333;line-height:1.7;max-width:600px;">
+    <p style="font-weight:bold;font-size:15px;">🎁 新規グッズ注文が入りました（全${items.length}点）</p>
+    <h3 style="margin:14px 0 4px;font-size:14px;">注文内容</h3>
+    ${itemsHtml}
+    ${amountHtml}
+    <h3 style="margin:18px 0 4px;font-size:14px;">配送先</h3>
+    ${shipHtml}
+    <h3 style="margin:18px 0 4px;font-size:14px;">参照情報</h3>
+    ${refHtml}
+  </div>`;
+  try { await sendResendEmail({ to, subject: '【PETCHA】新規グッズ注文', html: adminHtml }); }
+  catch (e) { console.error('admin email failed (ignored):', e); }
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).end();
@@ -189,8 +258,39 @@ export default async function handler(req, res) {
           const { error } = await supabase.from('pecha_gifts').insert(rows);
           if (error) console.error('gift insert error:', error);
         }
+      } else if (md.kind === 'goods_cart') {
+        // カート注文 → pending行を paid に更新＋配送先を書き込み。記録を最優先し、メールは後段で別try/catch。
+        // ※ kind一致のみで分岐（order_id欠落時もガチャ加算へ誤って落ちないようにする）。
+        const cust = s.customer_details || {};
+        const ci = s.collected_information || {};
+        const ship = ci.shipping_details || s.shipping_details || s.shipping || {};
+        const addr = ship.address || cust.address || {};
+        const patch = {
+          status: 'paid',
+          amount: (s.amount_total != null ? s.amount_total : null),
+          stripe_payment_id: s.payment_intent || s.id || null,
+          recipient_name: ship.name || cust.name || null,
+          postal_code: addr.postal_code || null,
+          address: formatJpAddress(addr),
+          phone: cust.phone || ship.phone || null,
+          buyer_email: cust.email || null
+        };
+        let row = null;
+        if (supabase && md.order_id) {
+          const { data, error } = await supabase.from('pecha_orders').update(patch).eq('id', md.order_id).select().single();
+          if (error) console.error('cart order update error:', error);
+          else row = data;
+        } else {
+          console.error('cart order: order_id 欠落のため更新スキップ', { order_id: md.order_id });
+        }
+        // 通知メール（Resend）。失敗してもwebhookは200で返す（記録は上で完了済み）。
+        try {
+          if (row) await sendCartOrderEmails({ row, session: s });
+        } catch (mailErr) {
+          console.error('cart order email error (ignored):', mailErr);
+        }
       } else if (md.kind === 'goods') {
-        // グッズ注文 → pecha_orders に保存（配送先も保存）。記録を最優先し、メールは後段で別try/catch。
+        // グッズ注文（単品・後方互換）→ pecha_orders に保存（配送先も保存）。記録優先、メールは別try/catch。
         const cust = s.customer_details || {};
         // 配送先の格納先はAPIバージョンで異なる：
         //   新: s.collected_information.shipping_details.address

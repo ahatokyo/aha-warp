@@ -791,6 +791,29 @@ body {
 .ow-next { flex:1; padding:0.85rem; border:none; border-radius:100px; cursor:pointer; background:linear-gradient(135deg,var(--pink),var(--purple)); color:#fff; font-family:'Zen Maru Gothic',sans-serif; font-weight:800; font-size:0.92rem; }
 .ow-next:disabled { opacity:0.4; cursor:not-allowed; }
 
+/* グッズ カート（複数商品・数量） */
+#cart-modal { display:none; position:fixed; inset:0; z-index:4000; background:rgba(26,10,46,0.9); align-items:center; justify-content:center; padding:1.25rem; }
+#cart-modal.show { display:flex; }
+.cart-foot { border-top:1px solid #F0E5F7; padding:0.85rem 1rem calc(0.85rem + env(safe-area-inset-bottom,0px)); }
+.cart-foot .ow-next { width:100%; margin-top:0.5rem; }
+.cart-row { display:flex; align-items:center; gap:0.6rem; padding:0.6rem 0; border-bottom:1px solid #F4ECFA; }
+.cart-thumb { width:54px; height:54px; border-radius:10px; object-fit:cover; background:#FBF7FF; flex:0 0 auto; }
+.cart-info { flex:1; min-width:0; }
+.cart-name { font-weight:800; font-size:0.85rem; color:var(--text); }
+.cart-attrs { font-size:0.7rem; color:#8B6BA0; margin:0.1rem 0 0.35rem; word-break:break-word; }
+.cart-qty { display:flex; align-items:center; gap:0.4rem; }
+.cart-qty button { width:24px; height:24px; border-radius:50%; border:1px solid #D8B4FE; background:#fff; color:var(--purple-dark); font-weight:800; cursor:pointer; line-height:1; }
+.cart-qty > span { font-weight:800; font-size:0.85rem; min-width:1.2rem; text-align:center; }
+.cart-sub { margin-left:auto; font-weight:800; color:var(--pink); font-size:0.85rem; }
+.cart-del { flex:0 0 auto; align-self:flex-start; background:none; border:none; color:#B0A8C0; font-size:1.3rem; cursor:pointer; padding:0 0.2rem; line-height:1; }
+.cart-totals { margin:0.7rem 0 0.2rem; }
+.cart-trow { display:flex; justify-content:space-between; font-size:0.85rem; color:#555; padding:0.15rem 0; }
+.cart-trow.total { font-size:1rem; font-weight:900; color:var(--purple-dark); border-top:1px dashed #E0D0EC; margin-top:0.3rem; padding-top:0.4rem; }
+.ow-qty { display:flex; align-items:center; justify-content:center; gap:0.7rem; margin:0.9rem 0 0.2rem; }
+.ow-qty-label { font-weight:800; font-size:0.9rem; color:var(--text); }
+.ow-qty button { width:32px; height:32px; border-radius:50%; border:1px solid #D8B4FE; background:#fff; color:var(--purple-dark); font-weight:800; font-size:1rem; cursor:pointer; }
+.ow-qty > span { font-weight:900; font-size:1.15rem; min-width:1.8rem; text-align:center; }
+
 /* ② 固定メニューバー */
 #bottom-nav {
   position:fixed; bottom:0; left:0; right:0; z-index:950;
@@ -1544,6 +1567,18 @@ footer a:hover { color: var(--pink-light); }
     <div class="ow-thumb" id="ow-thumb" style="display:none;"></div>
     <div class="ow-body" id="ow-body"></div>
     <div class="ow-actions" id="ow-actions"></div>
+  </div>
+</div>
+
+<!-- グッズ カート（複数商品・数量） -->
+<div id="cart-modal">
+  <div class="ow-card">
+    <div class="ow-header">
+      <span class="ow-title">🛒 カート</span>
+      <button class="ow-close" onclick="closeCart()" aria-label="閉じる">×</button>
+    </div>
+    <div class="ow-body" id="cart-body"></div>
+    <div class="cart-foot" id="cart-foot"></div>
   </div>
 </div>
 
@@ -3064,8 +3099,12 @@ const orderState = {
   printSide: null,
   withText: null,       // true/false（未選択はnull）
   textContent: '',
+  quantity: 1,          // 数量（カート追加時のコピー数）1〜10
   step: 'product'
 };
+
+// グッズ カート（複数商品・数量）。1注文＝カート全体でまとめて1回決済・1件配送。
+let cart = [];
 
 const ORDER_STEPS = ['illustration', 'product', 'color', 'size', 'print', 'text', 'confirm'];
 
@@ -3129,6 +3168,7 @@ function resetOrder() {
   orderState.printSide = null;
   orderState.withText = null;
   orderState.textContent = '';
+  orderState.quantity = 1;
   orderState.step = 'product';
 }
 
@@ -3213,7 +3253,7 @@ function renderWizard() {
   const backBtn = idx > 0 ? '<button class="ow-back" onclick="wizardBack()">戻る</button>' : '<span></span>';
   let nextBtn;
   if (orderState.step === 'confirm') {
-    nextBtn = '<button class="ow-next" onclick="submitOrder()">注文する</button>';
+    nextBtn = '<button class="ow-next" onclick="addToCart()">🛒 カートに追加</button>';
   } else {
     nextBtn = `<button class="ow-next" onclick="wizardNext()" ${stepReady() ? '' : 'disabled'}>次へ</button>`;
   }
@@ -3283,7 +3323,9 @@ function renderStepBody() {
 
     case 'confirm': {
       const textFee = orderState.withText ? 400 : 0;
-      const total = p.price + textFee;
+      const unit = p.price + textFee;
+      const qty = Math.min(10, Math.max(1, orderState.quantity || 1));
+      const lineTotal = unit * qty;
       const rows = [
         ['商品', p.name],
         orderState.color ? ['カラー', orderState.color] : null,
@@ -3292,7 +3334,7 @@ function renderStepBody() {
         ['文字入れ', orderState.withText ? ('あり：「' + orderState.textContent + '」') : 'なし'],
         orderState.withText ? ['文字入れオプション', '¥400'] : null
       ].filter(Boolean);
-      return '<p class="ow-q">ご注文内容の確認</p>'
+      return '<p class="ow-q">この内容でカートに追加</p>'
         + (orderState.illustration ? `<img class="ow-confirm-img" src="${orderState.illustration.display}" alt="イラスト">` : '')
         // ⑥ シールは確認画面でも用紙サイズ画像を表示
         + (p && p.key === 'sticker'
@@ -3301,8 +3343,13 @@ function renderStepBody() {
         + '<div class="ow-summary">'
         + rows.map(r => `<div class="ow-srow"><span>${r[0]}</span><b>${r[1]}</b></div>`).join('')
         + '</div>'
-        + '<p class="ow-note">※ 送料¥600が別途かかります（次の画面で合算）<br>※ 完成イメージはご注文後にLINEでお送りします</p>'
-        + `<div class="ow-price">商品計：¥${total.toLocaleString()}</div>`;
+        // 数量ステッパー（1〜10）
+        + '<div class="ow-qty"><span class="ow-qty-label">数量</span>'
+        + `<button type="button" onclick="changeOrderQty(-1)">−</button>`
+        + `<span id="ow-qty-val">${qty}</span>`
+        + `<button type="button" onclick="changeOrderQty(1)">＋</button></div>`
+        + '<p class="ow-note">※ 送料¥600は1回のみ（カート全体で1回）<br>※ 完成イメージはご注文後にLINEでお送りします</p>'
+        + `<div class="ow-price">小計：¥${unit.toLocaleString()} × ${qty} = ¥${lineTotal.toLocaleString()}</div>`;
     }
   }
   return '';
@@ -3372,6 +3419,137 @@ async function submitOrder() {
   } catch (e) {
     console.error('order checkout error:', e);
     if (btn) { btn.disabled = false; btn.textContent = '注文する'; }
+    petchaAlert('注文画面の起動に失敗しました。時間をおいて再度お試しください。');
+  }
+}
+
+// ===================================================================
+// カート方式：商品設定 → カートに追加 → 続けて追加可 → まとめて1回決済
+// ===================================================================
+// 確認画面の数量ステッパー（1〜10）。再描画で小計表示も更新。
+function changeOrderQty(d) {
+  orderState.quantity = Math.min(10, Math.max(1, (orderState.quantity || 1) + d));
+  renderWizard();
+}
+
+// orderState から永続用カート行を作る（イラストはStorage URLのみ保存。dataURLはthumbにのみ使う）
+function buildCartItemFromOrder() {
+  const p = orderState.product;
+  const ref = orderState.illustration?.ref || '';
+  const display = orderState.illustration?.display || ref;
+  return {
+    sku: p.key,
+    name: p.name,
+    color: orderState.color || '',
+    size: orderState.size || '',
+    print_pos: orderState.printSide || '',
+    text: orderState.withText ? (orderState.textContent || '') : null,
+    illustration_urls: ref ? [ref] : [],
+    thumb: display,                                   // UI表示用（APIには送らない）
+    unit_price: p.price + (orderState.withText ? 400 : 0),
+    quantity: Math.min(10, Math.max(1, orderState.quantity || 1))
+  };
+}
+
+function addToCart() {
+  const p = orderState.product;
+  if (!p) return;
+  cart.push(buildCartItemFromOrder());
+  closeWizard();
+  openCart();
+}
+
+function openCart() { document.getElementById('cart-modal').classList.add('show'); renderCart(); }
+function closeCart() { document.getElementById('cart-modal').classList.remove('show'); }
+
+function cartGoodsSubtotal() { return cart.reduce((s, it) => s + it.unit_price * it.quantity, 0); }
+
+function cartRowHtml(it, i) {
+  const attrs = [
+    it.color, it.size,
+    it.print_pos ? (it.print_pos === 'front' ? '前面' : (it.print_pos === 'back' ? '背面' : it.print_pos)) : '',
+    (it.text != null && it.text !== '') ? ('文字：「' + it.text + '」') : ''
+  ].filter(Boolean).join(' / ');
+  const sub = it.unit_price * it.quantity;
+  return '<div class="cart-row">'
+    + (it.thumb ? `<img class="cart-thumb" src="${it.thumb}" alt="" onerror="this.style.visibility='hidden'">` : '<div class="cart-thumb"></div>')
+    + '<div class="cart-info">'
+    +   `<div class="cart-name">${escapeHtml(it.name)}</div>`
+    +   `<div class="cart-attrs">${escapeHtml(attrs || '-')}</div>`
+    +   '<div class="cart-qty">'
+    +     `<button type="button" onclick="changeQty(${i},-1)">−</button>`
+    +     `<span>${it.quantity}</span>`
+    +     `<button type="button" onclick="changeQty(${i},1)">＋</button>`
+    +     `<span class="cart-sub">¥${sub.toLocaleString()}</span>`
+    +   '</div>'
+    + '</div>'
+    + `<button class="cart-del" type="button" onclick="removeCartItem(${i})" aria-label="削除">×</button>`
+    + '</div>';
+}
+
+function renderCart() {
+  const body = document.getElementById('cart-body');
+  if (!cart.length) {
+    body.innerHTML = '<p class="ow-q" style="margin-top:1.5rem;">カートは空です🛒</p>';
+  } else {
+    body.innerHTML = cart.map((it, i) => cartRowHtml(it, i)).join('');
+  }
+  const sub = cartGoodsSubtotal();
+  const ship = cart.length ? 600 : 0;
+  const total = sub + ship;
+  document.getElementById('cart-foot').innerHTML =
+      '<button class="ow-link" type="button" onclick="addMoreToCart()">＋ 商品を追加する</button>'
+    + '<div class="cart-totals">'
+    +   `<div class="cart-trow"><span>小計</span><b>¥${sub.toLocaleString()}</b></div>`
+    +   (cart.length ? `<div class="cart-trow"><span>送料</span><b>¥${ship.toLocaleString()}</b></div>` : '')
+    +   `<div class="cart-trow total"><span>合計</span><b>¥${total.toLocaleString()}</b></div>`
+    + '</div>'
+    + `<button class="ow-next" id="cart-checkout" type="button" onclick="checkoutCart()" ${cart.length ? '' : 'disabled'}>この内容で注文する（配送先入力へ）</button>`;
+}
+
+function changeQty(i, d) {
+  const it = cart[i];
+  if (!it) return;
+  it.quantity = Math.min(10, Math.max(1, it.quantity + d));
+  renderCart();
+}
+function removeCartItem(i) { cart.splice(i, 1); renderCart(); }
+
+// 「商品を追加する」→ カートを閉じてイラスト選択から別商品を設定
+function addMoreToCart() { closeCart(); openWizardBrowse(); }
+
+// カート内容でまとめて1回決済（送料¥600は1回）。合計はStripeに計算させる。
+async function checkoutCart() {
+  if (!cart.length) return;
+  const stripeReady = !STRIPE_PUBLISHABLE_KEY.startsWith('YOUR_');
+  if (PREVIEW_MODE || !stripeReady) {
+    petchaAlert('【プレビュー】Stripe未接続のため決済はスキップします。\n本番ではカート内容（送料¥600込み・配送先入力）のCheckoutに進みます🐾');
+    return;
+  }
+  const btn = document.getElementById('cart-checkout');
+  if (btn) { btn.disabled = true; btn.textContent = '進んでいます…'; }
+  try {
+    const items = cart.map(it => ({
+      sku: it.sku, name: it.name, color: it.color, size: it.size,
+      print_pos: it.print_pos, text: it.text,
+      illustration_urls: it.illustration_urls, quantity: it.quantity
+    }));
+    const res = await fetch(CHECKOUT_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        kind: 'goods_cart',
+        items,
+        lineUserId: state.user?.userId || null,
+        memberNo: (state.status && state.status.memberNo != null) ? String(state.status.memberNo) : ''
+      })
+    });
+    const { url } = await res.json();
+    if (url) window.location.href = url;
+    else throw new Error('no checkout url');
+  } catch (e) {
+    console.error('cart checkout error:', e);
+    if (btn) { btn.disabled = false; btn.textContent = 'この内容で注文する（配送先入力へ）'; }
     petchaAlert('注文画面の起動に失敗しました。時間をおいて再度お試しください。');
   }
 }

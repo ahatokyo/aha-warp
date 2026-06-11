@@ -7,10 +7,16 @@
 // ============================================================
 
 import Stripe from 'stripe';
+import { createClient } from '@supabase/supabase-js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
   apiVersion: '2024-06-20'
 });
+
+// カート注文の pending 行作成用（service roleキー。RLSバイパス）
+const supabase = (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY)
+  ? createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
+  : null;
 
 // プラン/グッズ → Stripe price ID（すべて Vercel の環境変数で設定）
 const PRICE_BY_PLAN = {
@@ -53,8 +59,60 @@ export default async function handler(req, res) {
 
   try {
     const { kind, plan, goods, color, size, printSide, textContent, withText, illustrationUrl,
-            tickets, token, tokens, isTrial, lineUserId } = req.body || {};
+            tickets, token, tokens, isTrial, lineUserId, items, memberNo } = req.body || {};
     const origin = req.headers.origin || `https://${req.headers.host}`;
+
+    // ===== カート注文（複数商品＋数量）=====
+    // line_items: 各商品 price × quantity ＋ 文字入れ行（textありの行のみ×quantity）。送料は shipping_options で1回。
+    // ★イラストURL等はmetadataに載せず、pecha_orders(status='pending')へ items(jsonb)で保存。
+    //   生成した order_id を client_reference_id と metadata.order_id に入れ、webhookで paid 更新する。
+    if (kind === 'goods_cart' && Array.isArray(items) && items.length) {
+      const lineItems = [];
+      for (const it of items) {
+        const pid = PRICE_BY_GOODS[it.sku];
+        if (!pid) { res.status(503).json({ error: `price id not set for ${it.sku}` }); return; }
+        const qty = Math.min(10, Math.max(1, parseInt(it.quantity, 10) || 1));
+        lineItems.push({ price: pid, quantity: qty });
+        // 文字入れ +¥400 は「その商品×数量」分（textありの行のみ）
+        if (it.text != null && String(it.text) !== '' && TEXT_OPTION_PRICE) {
+          lineItems.push({ price: TEXT_OPTION_PRICE, quantity: qty });
+        }
+      }
+
+      // pending注文をSupabaseに作成（記録を先に確保）。失敗してもStripeへは進む（order_id無しで続行）。
+      let orderId = null;
+      if (supabase) {
+        const { data, error } = await supabase.from('pecha_orders').insert({
+          line_user_id: lineUserId || null,
+          member_no: memberNo || null,
+          items: items,
+          status: 'pending'
+        }).select('id').single();
+        if (error) console.error('pending order insert error:', error);
+        else if (data) orderId = data.id;
+      }
+
+      const session = await stripe.checkout.sessions.create({
+        mode: 'payment',
+        line_items: lineItems,
+        success_url: `${origin}/petcha.html?goods_ordered=1&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url:  `${origin}/petcha.html?canceled=1`,
+        metadata: { kind: 'goods_cart', order_id: orderId ? String(orderId) : '', lineUserId: String(lineUserId || '') },
+        client_reference_id: orderId ? String(orderId) : (lineUserId ? String(lineUserId) : undefined),
+        // 物販：配送先住所＋電話を収集、送料¥600固定（カート全体に1回）
+        shipping_address_collection: { allowed_countries: ['JP'] },
+        phone_number_collection: { enabled: true },
+        shipping_options: [{
+          shipping_rate_data: {
+            type: 'fixed_amount',
+            fixed_amount: { amount: GOODS_SHIPPING_JPY, currency: 'jpy' },
+            display_name: '送料'
+          }
+        }]
+      });
+      res.status(200).json({ url: session.url });
+      return;
+    }
 
     let priceId, metadata, successParams;
 
