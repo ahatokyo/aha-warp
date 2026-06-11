@@ -707,6 +707,23 @@ body {
 #order-wizard, #reward-wizard { display:none; position:fixed; inset:0; z-index:4000; background:rgba(26,10,46,0.9); align-items:center; justify-content:center; padding:1.25rem; }
 #order-wizard.show, #reward-wizard.show { display:flex; }
 .rw-count { font-size:0.78rem; color:#8B6BA0; text-align:center; font-weight:700; margin-bottom:0.6rem; }
+.rw-sub { font-size:0.82rem; color:#8B6BA0; text-align:center; font-weight:700; margin:-0.2rem 0 0.4rem; }
+.rw-sample-link-row { text-align:center; margin-bottom:0.6rem; }
+.reward-sample-link { display:inline-block; background:none; border:none; cursor:pointer; color:var(--purple-dark); font-family:'Zen Maru Gothic',sans-serif; font-weight:700; font-size:0.78rem; text-decoration:underline; padding:0.2rem 0.4rem; }
+/* 見本ポップアップ（特典の完成イメージ／シールはカルーセル） */
+#sample-modal { display:none; position:fixed; inset:0; z-index:4100; background:rgba(26,10,46,0.88); align-items:center; justify-content:center; padding:1.5rem; }
+#sample-modal.show { display:flex; }
+.sample-modal-card { background:#fff; border-radius:24px; max-width:360px; width:100%; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,0.4); animation:pmPop 0.25s ease; }
+.sample-modal-header { background:linear-gradient(135deg,var(--pink),var(--purple)); color:#fff; display:flex; align-items:center; justify-content:space-between; padding:0.8rem 1rem; font-family:'Zen Maru Gothic',sans-serif; font-weight:900; letter-spacing:0.06em; font-size:1rem; }
+.sample-modal-body { padding:1rem 1.1rem 0.4rem; }
+.sample-viewport { width:100%; background:#FBF7FF; border-radius:14px; overflow:hidden; touch-action:pan-y; }
+.sample-viewport img { width:100%; max-height:300px; object-fit:contain; display:block; margin:0 auto; }
+.sample-caption { text-align:center; font-weight:800; font-size:0.9rem; color:var(--text); margin:0.7rem 0 0.2rem; }
+.sample-dots { display:flex; gap:0.45rem; justify-content:center; margin:0.5rem 0 0.2rem; }
+.sample-dot { width:9px; height:9px; border-radius:50%; background:#E0D0EC; cursor:pointer; transition:all 0.2s; }
+.sample-dot.on { background:var(--pink); transform:scale(1.25); }
+.sample-note { font-size:0.74rem; color:#8B6BA0; text-align:center; line-height:1.5; margin:0.5rem 0 0.2rem; }
+.sample-modal-close { display:block; width:calc(100% - 2rem); margin:0.6rem 1rem 1.1rem; padding:0.8rem; border:none; border-radius:100px; cursor:pointer; background:#F0E5F7; color:var(--purple-dark); font-family:'Zen Maru Gothic',sans-serif; font-weight:800; font-size:0.95rem; }
 .ow-card { background:#fff; border-radius:24px; max-width:380px; width:100%; max-height:88vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,0.4); animation:pmPop 0.25s ease; }
 .ow-header { background:linear-gradient(135deg,var(--pink),var(--purple)); color:#fff; display:flex; align-items:center; justify-content:space-between; padding:0.8rem 1rem; }
 .ow-title { font-family:'Zen Maru Gothic',sans-serif; font-weight:900; letter-spacing:0.06em; font-size:1rem; }
@@ -925,10 +942,11 @@ body { padding-bottom:64px; }   /* 固定メニューバー分の余白 */
 .points-progress-bar { height:100%; background:linear-gradient(90deg,var(--pink),var(--purple)); border-radius:100px; width:0%; transition:width 0.6s ease; }
 .points-next { font-size:0.78rem; color:#8B6BA0; text-align:center; font-weight:600; }
 .points-reward-cta {
-  display:block; width:100%; margin-top:0.85rem; padding:0.8rem;
+  display:block; width:100%; margin-top:0.85rem; padding:0.72rem 0.5rem;
   border:none; border-radius:100px; cursor:pointer;
   background:linear-gradient(135deg,var(--gold),#F97316); color:white;
-  font-family:'Zen Maru Gothic',sans-serif; font-weight:800; font-size:0.85rem;
+  font-family:'Zen Maru Gothic',sans-serif; font-weight:800; font-size:0.8rem;
+  letter-spacing:-0.02em; white-space:nowrap; line-height:1.2;
   box-shadow:0 6px 20px rgba(245,158,11,0.3);
 }
 
@@ -1528,6 +1546,25 @@ footer a:hover { color: var(--pink-light); }
     </div>
     <div class="ow-body" id="rw-body"></div>
     <div class="ow-actions" id="rw-actions"></div>
+  </div>
+</div>
+
+<!-- 特典の見本ポップアップ（トート/T/スウェットは1枚画像、シールは完成イメージのカルーセル） -->
+<div id="sample-modal">
+  <div class="sample-modal-card">
+    <div class="sample-modal-header">
+      <span id="sample-modal-title">見本</span>
+      <button class="ow-close" onclick="closeSampleModal()" aria-label="閉じる">×</button>
+    </div>
+    <div class="sample-modal-body">
+      <div class="sample-viewport" id="sample-viewport">
+        <img id="sample-img" src="" alt="見本">
+      </div>
+      <p class="sample-caption" id="sample-caption"></p>
+      <div class="sample-dots" id="sample-dots"></div>
+      <p class="sample-note" id="sample-note" style="display:none;">サイズ・配置などのデザインはお任せとなります。</p>
+    </div>
+    <button class="sample-modal-close" onclick="closeSampleModal()">閉じる</button>
   </div>
 </div>
 
@@ -3451,6 +3488,7 @@ function renderPoints(s) {
   MILESTONES.forEach(m => {
     if (total >= m.n && !(s.redeemed && s.redeemed[m.key])) {
       addRewardCta(rewards, `${m.emoji} ${m.label}の特典をゲットする（${m.n}回達成）`, m.key, m.label);
+      addRewardSampleLink(rewards, m.key, m.label);   // ④ 見本はこちら
     }
   });
 
@@ -3465,6 +3503,16 @@ function addRewardCta(container, label, key, name) {
   b.textContent = label;
   b.onclick = () => redeemReward(key, name);
   container.appendChild(b);
+}
+
+// ④ 各特典ボタン下の「{商品名}の見本はこちら」リンク
+function addRewardSampleLink(container, key, name) {
+  const a = document.createElement('button');
+  a.type = 'button';
+  a.className = 'reward-sample-link';
+  a.textContent = `${name}の見本はこちら`;
+  a.onclick = () => openRewardSample(key);
+  container.appendChild(a);
 }
 
 // ===================================================================
@@ -3529,10 +3577,13 @@ function renderRewardWizard() {
 function renderRewardIllustStep() {
   const max = rewardState.max;
   const body = document.getElementById('rw-body');
-  const q = (max > 1)
-    ? `特典に使うイラストを選んでください（最大${max}枚）`
-    : '特典に使うイラストを選んでください';
-  body.innerHTML = '<p class="ow-q">' + q + '</p>'
+  const isSticker = rewardState.key === 'sticker';
+  // ① タイトルは特典名で動的に
+  body.innerHTML = `<p class="ow-q">${rewardState.label}にしたいイラストを選んでください</p>`
+    // ② 枚数の目安は「（1〜3枚）」を一段下げて。シールのときのみ表示
+    + (isSticker ? '<p class="rw-sub">（1〜3枚）</p>' : '')
+    // ⑤ シールはイラスト選択画面から完成イメージ（カルーセル）を開けるリンク
+    + (isSticker ? '<p class="rw-sample-link-row"><button type="button" class="reward-sample-link" onclick="openRewardSample(\'sticker\')">完成イメージを見る</button></p>' : '')
     + (max > 1 ? `<p class="rw-count">選択中：${rewardState.selected.length} / ${max} 枚</p>` : '')
     + '<div class="ow-illust-grid">'
     + rewardState.list.map(it => {
@@ -3597,6 +3648,87 @@ function renderRewardOptionStep() {
 
 function pickRewardColor(c) { rewardState.color = c; renderRewardOptionStep(); }
 function pickRewardSize(s)  { rewardState.size = s;  renderRewardOptionStep(); }
+
+// ===== ④⑤ 特典の見本ポップアップ =====
+// トート/T/スウェットは1枚画像、シールは完成イメージ3枚のカルーセル。
+const REWARD_SAMPLE = {
+  totebag: { src: 'products/Petcha_totebag_M_sample.png',   title: 'トートバッグの見本' },
+  tshirt:  { src: 'products/Petcha_T-shirt_sample_front.png', title: 'Tシャツの見本' },
+  sweat:   { src: 'products/Petcha_sweat_sample_front.png',   title: 'スウェットの見本' }
+  // sticker は STICKER_SAMPLES のカルーセル
+};
+const STICKER_SAMPLES = [
+  { src: 'products/Petcha_sticker_1.png', caption: '1枚選択の場合' },
+  { src: 'products/Petcha_sticker_2.png', caption: '2枚選択の場合' },
+  { src: 'products/Petcha_sticker_3.png', caption: '3枚選択の場合' }
+];
+let sampleSlides = [];
+let sampleIndex = 0;
+let sampleShowNote = false;
+
+function openRewardSample(key) {
+  if (key === 'sticker') {
+    sampleSlides = STICKER_SAMPLES.slice();   // 3枚カルーセル
+    sampleShowNote = true;                    // 「サイズ・配置などのデザインはお任せ」
+    document.getElementById('sample-modal-title').textContent = 'シールの完成イメージ';
+  } else {
+    const info = REWARD_SAMPLE[key];
+    if (!info) return;
+    sampleSlides = [{ src: info.src, caption: '' }];
+    sampleShowNote = false;
+    document.getElementById('sample-modal-title').textContent = info.title;
+  }
+  sampleIndex = 0;
+  renderSample();
+  document.getElementById('sample-modal').classList.add('show');
+}
+
+function closeSampleModal() {
+  document.getElementById('sample-modal').classList.remove('show');
+}
+
+function renderSample() {
+  const s = sampleSlides[sampleIndex];
+  if (!s) return;
+  const img = document.getElementById('sample-img');
+  img.src = s.src;
+  img.alt = s.caption || '見本';
+  document.getElementById('sample-caption').textContent = s.caption || '';
+  // ドットインジケーター（2枚以上のときのみ）
+  const dots = document.getElementById('sample-dots');
+  if (sampleSlides.length > 1) {
+    dots.style.display = 'flex';
+    dots.innerHTML = sampleSlides.map((_, i) =>
+      `<span class="sample-dot ${i === sampleIndex ? 'on' : ''}" onclick="gotoSample(${i})"></span>`).join('');
+  } else {
+    dots.style.display = 'none';
+    dots.innerHTML = '';
+  }
+  document.getElementById('sample-note').style.display = sampleShowNote ? 'block' : 'none';
+}
+
+function gotoSample(i) {
+  if (i < 0 || i >= sampleSlides.length) return;
+  sampleIndex = i;
+  renderSample();
+}
+function nextSample() { if (sampleSlides.length > 1) gotoSample((sampleIndex + 1) % sampleSlides.length); }
+function prevSample() { if (sampleSlides.length > 1) gotoSample((sampleIndex - 1 + sampleSlides.length) % sampleSlides.length); }
+
+// 横スワイプでカルーセル切替（初期化時に1度だけバインド）
+function initSampleSwipe() {
+  const vp = document.getElementById('sample-viewport');
+  if (!vp) return;
+  let x0 = null;
+  vp.addEventListener('touchstart', e => { x0 = e.touches[0].clientX; }, { passive: true });
+  vp.addEventListener('touchend', e => {
+    if (x0 == null) return;
+    const dx = e.changedTouches[0].clientX - x0;
+    x0 = null;
+    if (Math.abs(dx) < 40) return;
+    if (dx < 0) nextSample(); else prevSample();
+  }, { passive: true });
+}
 function rewardBackToIllust() { rewardState.step = 'illust'; renderRewardWizard(); }
 
 // 第3段：選択結果を事前入力したGoogleフォームを新規タブで開く
@@ -4021,6 +4153,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadGallery();           // ⑤ みんなのギャラリー
   initScrollAnimation();
   initDevPanel();
+  initSampleSwipe();       // ④⑤ 見本カルーセルのスワイプ
 });
 </script>
 </body>
