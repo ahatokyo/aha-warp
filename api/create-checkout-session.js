@@ -35,7 +35,13 @@ const PRICE_BY_GOODS = {
   sticker:   process.env.STRIPE_PRICE_GOODS_STICKER
 };
 const GOODS_SHIPPING_JPY = 600;                                   // 送料（固定）
-const TEXT_OPTION_PRICE = process.env.STRIPE_PRICE_GOODS_TEXT;    // 文字入れオプション ¥400
+const FREE_SHIP_THRESHOLD_JPY = 7000;                             // 商品小計がこの額以上で送料無料
+const TEXT_OPTION_FEE_JPY = 400;                                  // 文字入れ加算（小計再計算用の金額）
+const TEXT_OPTION_PRICE = process.env.STRIPE_PRICE_GOODS_TEXT;    // 文字入れオプション ¥400（Stripe price ID）
+// 送料判定の「商品小計」をサーバ側で再計算するための本体価格（円）。petcha.html の PRODUCTS と一致させること。
+const GOODS_PRICE_JPY = {
+  tshirt: 4400, tshirt_ls: 4800, tote_s: 3500, tote_m: 3800, sacoche: 3800, sweat: 5800, sticker: 1200
+};
 
 // プラン → 付与クレジット数（① クレジット制）
 const CREDITS_BY_PLAN = { trial: 1, p1: 1, p2: 2, p3: 3 };
@@ -68,16 +74,23 @@ export default async function handler(req, res) {
     //   生成した order_id を client_reference_id と metadata.order_id に入れ、webhookで paid 更新する。
     if (kind === 'goods_cart' && Array.isArray(items) && items.length) {
       const lineItems = [];
+      let subtotal = 0;   // ★商品小計をサーバ側で再計算（フロント値は信用しない＝改ざん防止）
       for (const it of items) {
         const pid = PRICE_BY_GOODS[it.sku];
         if (!pid) { res.status(503).json({ error: `price id not set for ${it.sku}` }); return; }
         const qty = Math.min(10, Math.max(1, parseInt(it.quantity, 10) || 1));
+        const hasText = (it.text != null && String(it.text) !== '');
         lineItems.push({ price: pid, quantity: qty });
         // 文字入れ +¥400 は「その商品×数量」分（textありの行のみ）
-        if (it.text != null && String(it.text) !== '' && TEXT_OPTION_PRICE) {
+        if (hasText && TEXT_OPTION_PRICE) {
           lineItems.push({ price: TEXT_OPTION_PRICE, quantity: qty });
         }
+        subtotal += ((GOODS_PRICE_JPY[it.sku] || 0) + (hasText ? TEXT_OPTION_FEE_JPY : 0)) * qty;
       }
+
+      // 送料無料ライン判定（サーバ側の再計算値で判定）
+      const freeShip = subtotal >= FREE_SHIP_THRESHOLD_JPY;
+      const shippingFee = freeShip ? 0 : GOODS_SHIPPING_JPY;
 
       // pending注文をSupabaseに作成（記録を先に確保）。失敗してもStripeへは進む（order_id無しで続行）。
       let orderId = null;
@@ -86,30 +99,37 @@ export default async function handler(req, res) {
           line_user_id: lineUserId || null,
           member_no: memberNo || null,
           items: items,
+          subtotal: subtotal,
+          shipping_fee: shippingFee,
           status: 'pending'
         }).select('id').single();
         if (error) console.error('pending order insert error:', error);
         else if (data) orderId = data.id;
       }
 
-      const session = await stripe.checkout.sessions.create({
+      const sessionConfig = {
         mode: 'payment',
         line_items: lineItems,
         success_url: `${origin}/petcha.html?goods_ordered=1&session_id={CHECKOUT_SESSION_ID}`,
         cancel_url:  `${origin}/petcha.html?canceled=1`,
         metadata: { kind: 'goods_cart', order_id: orderId ? String(orderId) : '', lineUserId: String(lineUserId || '') },
         client_reference_id: orderId ? String(orderId) : (lineUserId ? String(lineUserId) : undefined),
-        // 物販：配送先住所＋電話を収集、送料¥600固定（カート全体に1回）
+        // 物販：配送先住所＋電話を収集
         shipping_address_collection: { allowed_countries: ['JP'] },
-        phone_number_collection: { enabled: true },
-        shipping_options: [{
+        phone_number_collection: { enabled: true }
+      };
+      // 商品小計が無料ライン未満のときのみ送料¥600を1回付ける（以上なら送料なしで作成）
+      if (!freeShip) {
+        sessionConfig.shipping_options = [{
           shipping_rate_data: {
             type: 'fixed_amount',
             fixed_amount: { amount: GOODS_SHIPPING_JPY, currency: 'jpy' },
             display_name: '送料'
           }
-        }]
-      });
+        }];
+      }
+
+      const session = await stripe.checkout.sessions.create(sessionConfig);
       res.status(200).json({ url: session.url });
       return;
     }

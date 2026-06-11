@@ -168,9 +168,21 @@ function cartItemRowsHtml(it) {
 async function sendCartOrderEmails({ row, session }) {
   const items = Array.isArray(row && row.items) ? row.items : [];
   const amount = session.amount_total;
+  const subtotal = (row && row.subtotal != null) ? row.subtotal : null;
+  const shippingFee = (row && row.shipping_fee != null) ? row.shipping_fee : null;
   const itemsHtml = items.map((it, i) =>
     `<div style="border-top:1px solid #eee;padding-top:6px;"><b style="font-size:13px;color:#999;">商品 ${i + 1}</b>${cartItemRowsHtml(it)}</div>`).join('');
-  const amountHtml = (amount != null) ? `<p style="font-weight:bold;">お支払い金額（送料込み）：¥${Number(amount).toLocaleString()}</p>` : '';
+  // 商品小計／送料（0なら「送料無料」）／合計
+  const moneyRows = [];
+  if (subtotal != null)    moneyRows.push(['商品小計', '¥' + Number(subtotal).toLocaleString()]);
+  if (shippingFee != null) moneyRows.push(['送料', shippingFee === 0 ? '送料無料' : ('¥' + Number(shippingFee).toLocaleString())]);
+  if (amount != null)      moneyRows.push(['合計', '¥' + Number(amount).toLocaleString()]);
+  const amountHtml = moneyRows.length
+    ? '<table style="border-collapse:collapse;font-size:14px;margin-top:8px;">'
+      + moneyRows.map((r, i) => `<tr><td style="padding:3px 14px 3px 0;color:#666;">${escapeHtml(r[0])}</td>`
+          + `<td style="padding:3px 0;font-weight:bold;${i === moneyRows.length - 1 ? 'font-size:15px;' : ''}">${escapeHtml(r[1])}</td></tr>`).join('')
+      + '</table>'
+    : '';
 
   // --- 購入者への注文確認メール ---
   const buyerEmail = row && row.buyer_email;

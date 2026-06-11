@@ -795,6 +795,8 @@ body {
 #cart-modal { display:none; position:fixed; inset:0; z-index:4000; background:rgba(26,10,46,0.9); align-items:center; justify-content:center; padding:1.25rem; }
 #cart-modal.show { display:flex; }
 .cart-foot { border-top:1px solid #F0E5F7; padding:0.85rem 1rem calc(0.85rem + env(safe-area-inset-bottom,0px)); }
+.cart-freeship { text-align:center; font-weight:800; font-size:0.82rem; color:var(--purple-dark); background:#F5F0FF; border:1px dashed #D8B4FE; border-radius:12px; padding:0.55rem 0.7rem; margin:0.2rem 0 0.6rem; }
+.cart-freeship.on { color:#fff; background:linear-gradient(135deg,var(--pink),var(--purple)); border-style:solid; border-color:transparent; }
 .cart-foot .ow-next { width:100%; margin-top:0.5rem; }
 .cart-row { display:flex; align-items:center; gap:0.6rem; padding:0.6rem 0; border-bottom:1px solid #F4ECFA; }
 .cart-thumb { width:54px; height:54px; border-radius:10px; object-fit:cover; background:#FBF7FF; flex:0 0 auto; }
@@ -3105,6 +3107,8 @@ const orderState = {
 
 // グッズ カート（複数商品・数量）。1注文＝カート全体でまとめて1回決済・1件配送。
 let cart = [];
+const FREE_SHIP_THRESHOLD = 7000;   // 商品小計がこの額以上で送料無料（最終判定はサーバ側）
+const GOODS_SHIPPING_FEE = 600;
 
 const ORDER_STEPS = ['illustration', 'product', 'color', 'size', 'print', 'text', 'confirm'];
 
@@ -3489,19 +3493,26 @@ function cartRowHtml(it, i) {
 
 function renderCart() {
   const body = document.getElementById('cart-body');
+  const sub = cartGoodsSubtotal();
+  const freeShip = sub >= FREE_SHIP_THRESHOLD;
+  const ship = cart.length ? (freeShip ? 0 : GOODS_SHIPPING_FEE) : 0;
+  const total = sub + ship;
+
   if (!cart.length) {
     body.innerHTML = '<p class="ow-q" style="margin-top:1.5rem;">カートは空です🛒</p>';
   } else {
-    body.innerHTML = cart.map((it, i) => cartRowHtml(it, i)).join('');
+    // 送料無料の進捗（カート上部に常時表示）。表示用で、免除の最終判定はサーバ側。
+    const banner = freeShip
+      ? '<div class="cart-freeship on">送料無料適用中 🎉</div>'
+      : `<div class="cart-freeship">あと¥${(FREE_SHIP_THRESHOLD - sub).toLocaleString()}で送料無料！</div>`;
+    body.innerHTML = banner + cart.map((it, i) => cartRowHtml(it, i)).join('');
   }
-  const sub = cartGoodsSubtotal();
-  const ship = cart.length ? 600 : 0;
-  const total = sub + ship;
+
   document.getElementById('cart-foot').innerHTML =
       '<button class="ow-link" type="button" onclick="addMoreToCart()">＋ 商品を追加する</button>'
     + '<div class="cart-totals">'
-    +   `<div class="cart-trow"><span>小計</span><b>¥${sub.toLocaleString()}</b></div>`
-    +   (cart.length ? `<div class="cart-trow"><span>送料</span><b>¥${ship.toLocaleString()}</b></div>` : '')
+    +   `<div class="cart-trow"><span>商品小計</span><b>¥${sub.toLocaleString()}</b></div>`
+    +   (cart.length ? `<div class="cart-trow"><span>送料</span><b>${ship === 0 ? '無料' : ('¥' + ship.toLocaleString())}</b></div>` : '')
     +   `<div class="cart-trow total"><span>合計</span><b>¥${total.toLocaleString()}</b></div>`
     + '</div>'
     + `<button class="ow-next" id="cart-checkout" type="button" onclick="checkoutCart()" ${cart.length ? '' : 'disabled'}>この内容で注文する（配送先入力へ）</button>`;
