@@ -753,6 +753,14 @@ body {
 /* カラー */
 .ow-prod-img { margin:0 auto 0.9rem; text-align:center; }
 .ow-prod-img img { max-width:100%; max-height:200px; border-radius:14px; background:#FBF7FF; display:block; margin:0 auto; }
+/* ③ サイズ選択画面では商品画像を小さめ＋余白を詰め、「サイズ表を見る」をスクロールなしで見せる */
+.ow-prod-img.compact { margin-bottom:0.5rem; }
+.ow-prod-img.compact img { max-height:120px; }
+/* ① 商品画像＋完成イメージを横並び（トート/サコッシュ） */
+.ow-prod-gallery { display:flex; flex-wrap:wrap; gap:0.5rem; justify-content:center; align-items:flex-start; margin:0 auto 0.9rem; }
+.ow-prod-cell { flex:1 1 45%; max-width:48%; min-width:118px; margin:0; text-align:center; }
+.ow-prod-cell img { width:100%; max-height:170px; object-fit:contain; border-radius:14px; background:#FBF7FF; display:block; }
+.ow-prod-cell figcaption { font-size:0.68rem; color:#8B6BA0; margin-top:0.25rem; font-weight:700; }
 .ow-swatches { display:flex; flex-wrap:wrap; gap:0.6rem; justify-content:center; }
 .ow-swatch { display:flex; align-items:center; gap:0.4rem; background:#fff; border:2px solid #E8D5F0; border-radius:100px; padding:0.45rem 0.9rem; cursor:pointer; font-weight:700; font-size:0.82rem; color:var(--text); }
 .ow-swatch.sel { border-color:var(--pink); background:var(--pink-pale); }
@@ -2271,6 +2279,18 @@ function sizeChartUrl(product) {
 // シールの用紙サイズが分かる画像（商品説明・確認の文脈で表示）
 const STICKER_INFO_IMG = PRODUCT_IMAGE_BASE + 'Petcha_sticker.png';
 
+// ① 完成イメージ（sample）。トート/サコッシュは本体画像と並べて表示（カラー非依存の固定1枚）。
+const PRODUCT_SAMPLE_IMG = {
+  tote_s:  'Petcha_totebag_S_sample',
+  tote_m:  'Petcha_totebag_M_sample',
+  sacoche: 'Petcha_Sacoche_sample'
+};
+function productSampleUrl(product) {
+  if (!product) return null;
+  const f = PRODUCT_SAMPLE_IMG[product.key];
+  return f ? (PRODUCT_IMAGE_BASE + f + '.png') : null;
+}
+
 // ===== プレビュー判定 / Stripe・特典フォームのプレースホルダ（要設定） =====
 // file:// で開いたとき or ?preview を付けたときは「状態プレビュー」モード（Stripe/生成を実呼び出ししない）
 const PREVIEW_MODE = (location.protocol === 'file:') ||
@@ -3057,7 +3077,7 @@ function stepApplicable(s) {
     case 'color':        return !!(p && p.colors && p.colors.length > 1);
     case 'size':         return !!(p && p.sizes && p.sizes.length > 0);
     case 'print':        return !!(p && p.print);
-    case 'text':         return !!p;
+    case 'text':         return !!p && p.key !== 'sticker';   // ② シールは文字入れ(名前)を出さない＝+400円もなし
     case 'confirm':      return !!p;
   }
   return false;
@@ -3164,14 +3184,24 @@ function renderWizard() {
   const body = document.getElementById('ow-body');
   body.innerHTML = renderStepBody();
 
-  // 商品画像プレビュー（第一弾：カラー選択時の画像表示）。
+  // 商品画像プレビュー（カラー選択時の画像表示）。
   // colorステップで選択カラーに応じて切替。単色商品（長袖T/トート）はcolor stepが無いため
-  // size/textステップでも商品画像を表示。画像のない商品（サコッシュ/シール）や未定義カラーは何も出さない。
+  // size/textステップでも商品画像を表示。画像のない商品（シール）や未定義カラーは何も出さない。
   if (['color', 'size', 'text'].includes(orderState.step)) {
     const imgUrl = productImageUrl(orderState.product, orderState.color);
-    if (imgUrl) {
+    const sampleUrl = productSampleUrl(orderState.product);   // ① トート/サコッシュは完成イメージを併記
+    if (imgUrl && sampleUrl) {
+      // ① 本体画像＋完成イメージを横並び表示（完成イメージはカラー非依存の固定1枚）
       const wrap = document.createElement('div');
-      wrap.className = 'ow-prod-img';
+      wrap.className = 'ow-prod-gallery';
+      wrap.innerHTML =
+          `<figure class="ow-prod-cell"><img src="${imgUrl}" alt="商品画像" onerror="this.closest('.ow-prod-cell').style.display='none'"><figcaption>商品画像</figcaption></figure>`
+        + `<figure class="ow-prod-cell"><img src="${sampleUrl}" alt="完成イメージ" onerror="this.closest('.ow-prod-cell').style.display='none'"><figcaption>完成イメージ</figcaption></figure>`;
+      body.insertBefore(wrap, body.firstChild);
+    } else if (imgUrl) {
+      const wrap = document.createElement('div');
+      // ③ サイズ選択画面では小さめ表示（compact）にして「サイズ表を見る」を画面内に収める
+      wrap.className = 'ow-prod-img' + (orderState.step === 'size' ? ' compact' : '');
       wrap.innerHTML = `<img src="${imgUrl}" alt="${(orderState.product && orderState.product.name) || '商品'}画像" `
         + `onerror="this.closest('.ow-prod-img').style.display='none'">`;
       body.insertBefore(wrap, body.firstChild);
