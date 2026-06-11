@@ -199,15 +199,6 @@ export default async function handler(req, res) {
         const ci = s.collected_information || {};
         const ship = ci.shipping_details || s.shipping_details || s.shipping || {};
         const addr = ship.address || cust.address || {};
-        // ▼▼▼ 一時デバッグ（住所フィールド特定用・Vercelログで確認後に除去）▼▼▼
-        console.log('[goods addr debug]', JSON.stringify({
-          customer_details: s.customer_details || null,
-          shipping_details: s.shipping_details || null,
-          shipping: s.shipping || null,
-          collected_information: s.collected_information || null,
-          resolved_addr: addr
-        }));
-        // ▲▲▲ 一時デバッグ ▲▲▲
         const orderRow = {
           line_user_id: lineUserId || null,
           illustration_id: md.illustrationUrl || null,
