@@ -92,9 +92,16 @@ export default async function handler(req, res) {
       const freeShip = subtotal >= FREE_SHIP_THRESHOLD_JPY;
       const shippingFee = freeShip ? 0 : GOODS_SHIPPING_JPY;
 
-      // pending注文をSupabaseに作成（記録を先に確保）。失敗してもStripeへは進む（order_id無しで続行）。
+      // pending注文をSupabaseに作成（記録を先に確保）。
+      // ★記録できないなら決済させない：supabase未設定 or INSERT失敗 or 行IDが取れない場合は
+      //   5xxで中断し、order_idが空のまま決済が成立する経路を完全に塞ぐ。
+      if (!supabase) {
+        console.error('cart checkout aborted: supabase未設定（SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY）');
+        res.status(503).json({ error: '注文の準備に失敗しました。時間をおいて再度お試しください。' });
+        return;
+      }
       let orderId = null;
-      if (supabase) {
+      {
         const { data, error } = await supabase.from('pecha_orders').insert({
           line_user_id: lineUserId || null,
           member_no: memberNo || null,
@@ -103,8 +110,12 @@ export default async function handler(req, res) {
           shipping_fee: shippingFee,
           status: 'pending'
         }).select('id').single();
-        if (error) console.error('pending order insert error:', error);
-        else if (data) orderId = data.id;
+        if (error || !data || data.id == null) {
+          console.error('pending order insert failed → checkout中断:', error);
+          res.status(500).json({ error: '注文の準備に失敗しました。時間をおいて再度お試しください。' });
+          return;
+        }
+        orderId = data.id;
       }
 
       const sessionConfig = {

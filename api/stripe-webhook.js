@@ -230,6 +230,32 @@ async function sendCartOrderEmails({ row, session }) {
   catch (e) { console.error('admin email failed (ignored):', e); }
 }
 
+// 保険：決済は成立したが注文行に紐づかなかった場合の運営向けアラート（購入者には送らない）。
+// 注文内容は不明なため、Stripe側で追跡できる最小情報のみ記載する。
+async function sendUnlinkedOrderAlert({ session }) {
+  const to = process.env.ORDER_NOTIFY_TO || 'info@aha-tokyo.com';
+  const cust = session.customer_details || {};
+  const rows = [
+    ['金額（合計）', session.amount_total != null ? ('¥' + Number(session.amount_total).toLocaleString()) : '-'],
+    ['購入者名', cust.name || '-'],
+    ['購入者メール', cust.email || '-'],
+    ['電話', cust.phone || '-'],
+    ['Stripe決済ID', session.payment_intent || '-'],
+    ['Stripe Session ID', session.id || '-'],
+    ['metadata.order_id', (session.metadata && session.metadata.order_id) || '(空)']
+  ];
+  const html = `<div style="font-family:sans-serif;color:#333;line-height:1.7;max-width:560px;">
+    <p style="font-weight:bold;font-size:15px;color:#b00;">⚠️ 記録に紐づかない決済が発生しました（要手動対応）</p>
+    <p>決済は成立しましたが、pecha_orders の注文行に紐づけられませんでした。Stripeダッシュボードで内容を確認し、手動で対応してください。</p>
+    <table style="border-collapse:collapse;font-size:14px;">`
+    + rows.map(r => `<tr><td style="padding:4px 14px 4px 0;color:#666;white-space:nowrap;vertical-align:top;">${escapeHtml(r[0])}</td>`
+        + `<td style="padding:4px 0;font-weight:bold;word-break:break-all;">${escapeHtml(r[1])}</td></tr>`).join('')
+    + `</table>
+  </div>`;
+  try { await sendResendEmail({ to, subject: '【PETCHA】⚠️記録に紐づかない決済', html }); }
+  catch (e) { console.error('unlinked-order alert email failed (ignored):', e); }
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).end();
@@ -297,7 +323,16 @@ export default async function handler(req, res) {
         }
         // 通知メール（Resend）。失敗してもwebhookは200で返す（記録は上で完了済み）。
         try {
-          if (row) await sendCartOrderEmails({ row, session: s });
+          if (row) {
+            // 正常系：行が紐づいたときのみ購入者＋運営の正式メールを送る（現状維持）
+            await sendCartOrderEmails({ row, session: s });
+          } else {
+            // 保険：order_id空 or 該当行なし＝決済はあるが記録に紐づかない。
+            // 大きく警告ログを出し、運営にだけ最小情報のアラートを送る（購入者には送らない）。
+            console.error('CART ORDER UNLINKED: 決済成立だが注文行に紐づかず（要手動対応）',
+              { order_id: md.order_id || '(empty)', session_id: s.id, payment_intent: s.payment_intent || null, amount_total: s.amount_total });
+            await sendUnlinkedOrderAlert({ session: s });
+          }
         } catch (mailErr) {
           console.error('cart order email error (ignored):', mailErr);
         }
