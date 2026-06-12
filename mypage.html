@@ -93,6 +93,11 @@
   .asset-input::placeholder { color:rgba(160,80,110,.35); }
   .save-asset-btn { padding:0 18px; border:none; border-radius:12px; background:linear-gradient(135deg,var(--pink-btn),var(--purple-deep)); color:white; font-family:'Zen Kaku Gothic New',sans-serif; font-size:12px; font-weight:700; letter-spacing:.1em; cursor:none; white-space:nowrap; transition:all .2s; box-shadow:0 4px 16px rgba(200,79,114,.2); }
   .save-asset-btn:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(200,79,114,.3); }
+  .save-asset-btn:disabled { opacity:.4; cursor:not-allowed; transform:none; box-shadow:none; }
+  .save-asset-btn:disabled:hover { transform:none; box-shadow:none; }
+  .consent-row { display:flex; align-items:flex-start; gap:8px; margin:12px 0; font-size:12px; color:var(--text-light); line-height:1.6; }
+  .consent-row input[type="checkbox"] { margin-top:3px; flex-shrink:0; accent-color:var(--pink-btn); }
+  .consent-row a { color:var(--pink-deep); }
   .onboarding-banner { background:linear-gradient(135deg,rgba(200,79,114,.08),rgba(124,95,224,.08)); border:1px solid rgba(200,79,114,.25); border-radius:24px; padding:28px 32px; margin-bottom:20px; display:none; position:relative; overflow:hidden; opacity:0; animation:fadeUp .8s ease .1s forwards; }
   .onboarding-banner.active { display:block; }
   .onboarding-banner::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(255,220,235,.2) 0%,rgba(220,200,255,.1) 100%); pointer-events:none; }
@@ -249,9 +254,18 @@
           <span>FACE ASSET ID</span>
           <span class="saved-badge" id="faceSavedBadge" style="display:none;">✓ 保存済み</span>
         </div>
+        <label class="consent-row">
+          <input type="checkbox" id="faceConsentCheck" onchange="onFaceConsentToggle()">
+          <span>
+            登録する顔写真は本人、または本人から明確な同意を得たものであり、
+            第三者の肖像を無断で使用していません。生成した動画を
+            なりすまし・誹謗中傷・違法な目的に使用しないことに同意します。
+            （<a href="terms.html#face" target="_blank" rel="noopener">利用規約 第4条</a>）
+          </span>
+        </label>
         <div class="asset-input-row">
           <input type="text" class="asset-input" id="faceAssetInput" placeholder="asset://asset-XXXXXXXXX">
-          <button class="save-asset-btn" onclick="saveAsset('face')">保存</button>
+          <button class="save-asset-btn" id="faceSaveBtn" onclick="saveAsset('face')" disabled>保存</button>
         </div>
       </div>
     </div>
@@ -436,6 +450,14 @@
     }).join('');
   }
 
+  // 顔同意チェックの状態で保存ボタンの有効/無効を切替（保存のたびに同意必須）
+  function onFaceConsentToggle() {
+    const checked = document.getElementById('faceConsentCheck').checked;
+    document.getElementById('faceSaveBtn').disabled = !checked;
+  }
+
+  // 注: type === 'body' の分岐は対応UIが無い現状ではデッドコード。
+  // 将来 BODY ASSET ID の入力欄を足す場合は、顔と同様に同意チェック＋consent列を組むこと。
   async function saveAsset(type) {
     const inputId = type === 'face' ? 'faceAssetInput' : 'bodyAssetInput';
     const badgeId = type === 'face' ? 'faceSavedBadge' : 'bodySavedBadge';
@@ -445,11 +467,20 @@
     const val = document.getElementById(inputId).value.trim();
     if (!val) return;
 
-    const { error } = await sb.from('profiles').update({ [field]: val }).eq('id', userId);
+    // 同意フロー外の列は含めない（RLSで更新可なのは face_asset_id / body_asset_id / face_consent_at / instagram のみ）
+    const payload = { [field]: val };
+    if (type === 'face') payload.face_consent_at = new Date().toISOString();
+
+    const { error } = await sb.from('profiles').update(payload).eq('id', userId);
     if (!error) {
       document.getElementById(badgeId).style.display = 'inline';
       localStorage.setItem(localKey, val);
       showToast();
+      // 保存のたびに同意を取り直す：チェックを外し保存ボタンを再無効化
+      if (type === 'face') {
+        document.getElementById('faceConsentCheck').checked = false;
+        document.getElementById('faceSaveBtn').disabled = true;
+      }
     }
   }
 
