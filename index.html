@@ -24,24 +24,31 @@
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@300;400;700;900&family=Syne:wght@400;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
-<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@300;400;700;900&family=Syne:wght@400;700;800&display=swap"></noscript>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- ロゴ(AHA WARP)用 Syne latinサブセットを最優先で読み込み、FOUTを抑制 -->
+<link rel="preload" as="font" type="font/woff2" href="https://fonts.gstatic.com/s/syne/v24/8vIH7w4qzmVxm2BL9A.woff2" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@300;400;700&family=Syne:wght@700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@300;400;700&family=Syne:wght@700;800&display=swap"></noscript>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
 <script>
-  (async () => {
-    const { createClient } = supabase;
-    const sb = createClient(
-      'https://majunwobgxvdckyyunxu.supabase.co',
-      'sb_publishable_p93V6Tk3LAn8HjwmPuNbKg_00cs6Z6L'
-    );
-    const { data: { session } } = await sb.auth.getSession();
-    if (!session) {
-      window.location.href = 'login.html';
-    } else {
-      window.__supabase = sb;
-      window.__user = session.user;
-    }
-  })();
+  // SDKはdefer読み込み（描画をブロックしない）。deferスクリプトはDOMContentLoadedより前に
+  // 実行されるため、このハンドラ内では window.supabase が必ず利用可能。
+  // 認証・リダイレクト・window.__user生成のロジックは従来どおり。
+  window.addEventListener('DOMContentLoaded', () => {
+    (async () => {
+      const { createClient } = supabase;
+      const sb = createClient(
+        'https://majunwobgxvdckyyunxu.supabase.co',
+        'sb_publishable_p93V6Tk3LAn8HjwmPuNbKg_00cs6Z6L'
+      );
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) {
+        window.location.href = 'login.html';
+      } else {
+        window.__supabase = sb;
+        window.__user = session.user;
+      }
+    })();
+  });
 </script>
 <style>
   :root {
@@ -728,7 +735,7 @@
 
 <section class="hero">
   <div class="hero-video-wrap">
-    <video autoplay muted loop playsinline preload="none" poster="poster.jpg">
+    <video id="heroVideo" muted loop playsinline preload="none" poster="poster.jpg">
       <source src="hero.mp4" type="video/mp4">
     </video>
   </div>
@@ -1396,6 +1403,25 @@
 
   // ページ読み込み時にレビューを取得
   loadReviews();
+</script>
+<script>
+  // HERO動画: autoplayを外し初期DL(3.3MB)を回避。画面表示(load)後に裏で読み込み再生する。
+  // posterの静止画が即表示され、準備でき次第なめらかに動画へ切り替わる。
+  window.addEventListener('load', () => {
+    const v = document.getElementById('heroVideo');
+    if (!v) return;
+    v.preload = 'auto';
+    v.load();
+    const tryPlay = () => v.play().catch(() => {
+      // iOS Safari等でJSからの自動再生が拒否された場合の保険：
+      // posterのまま固めず、最初のタップ/クリックで再生する。
+      const resume = () => { v.play().catch(()=>{}); };
+      document.addEventListener('touchstart', resume, { once: true });
+      document.addEventListener('click', resume, { once: true });
+    });
+    if (v.readyState >= 2) tryPlay();
+    else v.addEventListener('canplay', tryPlay, { once: true });
+  });
 </script>
 </body>
 </html>
