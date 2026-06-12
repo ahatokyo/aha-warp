@@ -735,7 +735,7 @@
 
 <section class="hero">
   <div class="hero-video-wrap">
-    <video id="heroVideo" muted loop playsinline preload="none" poster="poster.jpg">
+    <video id="heroVideo" autoplay muted loop playsinline preload="auto" poster="poster.jpg">
       <source src="hero.mp4" type="video/mp4">
     </video>
   </div>
@@ -1405,22 +1405,19 @@
   loadReviews();
 </script>
 <script>
-  // HERO動画: autoplayを外し初期DL(3.3MB)を回避。画面表示(load)後に裏で読み込み再生する。
-  // posterの静止画が即表示され、準備でき次第なめらかに動画へ切り替わる。
-  window.addEventListener('load', () => {
+  // HERO動画は <video autoplay preload="auto"> でブラウザがパース時に即DL/再生する（PETCHA方式）。
+  // JSはあくまで保険：DOMContentLoad直後に play() を試行（window 'load' 待ちはしない＝開始を遅らせない）。
+  // ※ v.load() は呼ばない（autoplayで進行中の読み込みをリセット/再スタートさせないため）。
+  document.addEventListener('DOMContentLoaded', () => {
     const v = document.getElementById('heroVideo');
     if (!v) return;
-    v.preload = 'auto';
-    v.load();
-    const tryPlay = () => v.play().catch(() => {
+    v.play().catch(() => {
       // iOS Safari等でJSからの自動再生が拒否された場合の保険：
       // posterのまま固めず、最初のタップ/クリックで再生する。
       const resume = () => { v.play().catch(()=>{}); };
       document.addEventListener('touchstart', resume, { once: true });
       document.addEventListener('click', resume, { once: true });
     });
-    if (v.readyState >= 2) tryPlay();
-    else v.addEventListener('canplay', tryPlay, { once: true });
   });
 </script>
 </body>
