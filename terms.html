@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AHA WARP — 利用規約</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@300;400;700;900&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pink-deep:   #d4607e;
+    --pink-btn:    #c84f72;
+    --purple-deep: #7c5fe0;
+    --text:        #3d1428;
+    --text-light:  #7a3050;
+    --muted:       rgba(160,60,100,0.6);
+    --border:      rgba(255,180,210,0.18);
+    --card-bg:     rgba(255,255,255,0.55);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body { background: linear-gradient(160deg, #fce8f0 0%, #f8dde9 40%, #f5d5e5 100%); color: var(--text); font-family: 'Zen Kaku Gothic New', sans-serif; min-height: 100vh; cursor: none; }
+  .cursor { position:fixed; width:10px; height:10px; background:var(--pink-deep); border-radius:50%; pointer-events:none; z-index:9999; transform:translate(-50%,-50%); transition:width .2s,height .2s; mix-blend-mode:multiply; }
+  .cursor-ring { position:fixed; width:32px; height:32px; border:1px solid rgba(200,80,120,.3); border-radius:50%; pointer-events:none; z-index:9998; transform:translate(-50%,-50%); transition:width .3s,height .3s; }
+  .bg-orbs { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
+  .orb { position:absolute; border-radius:50%; filter:blur(120px); opacity:.15; animation:drift 26s ease-in-out infinite; }
+  .orb-1 { width:700px;height:700px; background:#f9a8c9; top:-250px;left:-150px; }
+  .orb-2 { width:500px;height:500px; background:#ddd6fe; bottom:-150px;right:-100px; animation-delay:-10s; }
+  @keyframes drift { 0%,100%{transform:translate(0,0) scale(1);} 33%{transform:translate(40px,-28px) scale(1.06);} 66%{transform:translate(-28px,44px) scale(.95);} }
+  .grid-overlay { position:fixed; inset:0; pointer-events:none; z-index:0; background-image: linear-gradient(rgba(200,100,140,.04) 1px, transparent 1px), linear-gradient(90deg,rgba(200,100,140,.04) 1px, transparent 1px); background-size:56px 56px; }
+  nav { position:fixed; top:0;left:0;right:0; z-index:100; padding:22px 48px; display:flex; justify-content:space-between; align-items:center; backdrop-filter:blur(28px); border-bottom:1px solid rgba(220,150,180,.2); background:rgba(252,232,240,.7); }
+  .logo { font-family:'Syne',sans-serif; font-size:21px; font-weight:800; letter-spacing:.12em; background:linear-gradient(135deg,#c84f72 0%,#9d6fcc 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; text-decoration:none; }
+  .nav-link { font-size:12px; color:var(--muted); text-decoration:none; letter-spacing:.1em; border:1px solid var(--border); padding:6px 14px; border-radius:100px; background:rgba(255,255,255,.4); }
+
+  main { position:relative; z-index:1; max-width:760px; margin:0 auto; padding:120px 24px 80px; }
+
+  .page-eyebrow { font-size:11px; letter-spacing:.42em; color:var(--pink-deep); margin-bottom:16px; opacity:0; animation:fadeUp .8s ease .1s forwards; }
+  .page-title { font-family:'Syne',sans-serif; font-size:clamp(28px,4vw,42px); font-weight:800; margin-bottom:8px; background:linear-gradient(135deg,#3d1428 0%,#8b3060 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; opacity:0; animation:fadeUp .8s ease .2s forwards; }
+  .page-date { font-size:12px; color:var(--muted); margin-bottom:48px; opacity:0; animation:fadeUp .8s ease .3s forwards; }
+
+  @keyframes fadeUp { from{opacity:0;transform:translateY(20px);} to{opacity:1;transform:translateY(0);} }
+
+  .doc-card { background:var(--card-bg); border:1px solid rgba(220,150,180,.25); border-radius:24px; padding:40px; backdrop-filter:blur(40px); box-shadow:0 12px 48px rgba(200,80,120,.08); opacity:0; animation:fadeUp .8s ease .4s forwards; }
+  .doc-card::before { content:''; position:absolute; inset:0; border-radius:24px; background:linear-gradient(145deg,rgba(255,220,235,.2) 0%,rgba(220,200,255,.1) 100%); pointer-events:none; }
+
+  .section { margin-bottom:36px; }
+  .section:last-child { margin-bottom:0; }
+  .section-title { font-family:'Syne',sans-serif; font-size:16px; font-weight:800; color:var(--text); margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid rgba(220,150,180,.2); display:flex; align-items:center; gap:10px; }
+  .section-title::before { content:''; width:18px; height:2px; background:linear-gradient(90deg,var(--pink-deep),var(--purple-deep)); border-radius:2px; flex-shrink:0; }
+  .section-body { font-size:14px; color:var(--text-light); line-height:2; }
+  .section-body p { margin-bottom:12px; }
+  .section-body p:last-child { margin-bottom:0; }
+  .section-body ul { padding-left:20px; margin-bottom:12px; }
+  .section-body ul li { margin-bottom:8px; }
+  .section-body strong { color:var(--text); font-weight:700; }
+
+  .contact-box { background:rgba(200,79,114,.06); border:1px solid rgba(200,79,114,.2); border-radius:14px; padding:20px 24px; margin-top:16px; font-size:13px; color:var(--text-light); line-height:2; }
+
+  footer { position:relative; z-index:1; padding:28px 48px; border-top:1px solid rgba(220,150,180,.2); display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,.2); margin-top:60px; }
+  .footer-logo { font-family:'Syne',sans-serif; font-weight:800; font-size:14px; background:linear-gradient(135deg,var(--pink-deep),var(--purple-deep)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+  .footer-text { font-size:11px; color:var(--muted); letter-spacing:.1em; }
+  .footer-links { display:flex; gap:16px; }
+  .footer-links a { font-size:11px; color:var(--muted); text-decoration:none; letter-spacing:.05em; }
+  .footer-links a:hover { color:var(--pink-deep); }
+
+  @media(max-width:600px){ nav{padding:18px 20px;} .doc-card{padding:28px 20px;} footer{flex-direction:column;gap:12px;text-align:center;} }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+<div class="bg-orbs">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+</div>
+<div class="grid-overlay"></div>
+
+<nav>
+  <a href="index.html" class="logo">AHA WARP</a>
+  <div style="display:flex;gap:12px;">
+    <a href="privacy.html" class="nav-link">プライバシーポリシー</a>
+    <a href="index.html" class="nav-link">トップへ戻る</a>
+  </div>
+</nav>
+
+<main>
+  <div class="page-eyebrow">TERMS OF SERVICE</div>
+  <h1 class="page-title">利用規約</h1>
+  <div class="page-date">制定日：2025年1月1日　最終更新日：2026年5月28日</div>
+
+  <div class="doc-card" style="position:relative;">
+
+    <div class="section">
+      <div class="section-title">第1条（適用）</div>
+      <div class="section-body">
+        <p>本利用規約（以下「本規約」）は、合同会社AHA TOKYO（以下「当社」）が提供するAIビデオ生成サービス「AHA WARP」（以下「本サービス」）の利用条件を定めるものです。ユーザーは本規約に同意した上で本サービスをご利用ください。</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">第2条（サービスの内容）</div>
+      <div class="section-body">
+        <p>本サービスは、AI技術を使用して、登録された顔データをもとに動画を自動生成するサービスです。</p>
+        <p>当社は生成動画の品質・内容・完成度を保証するものではありません。AIの特性上、意図した通りの結果が得られない場合があります。</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">第3条（利用登録）</div>
+      <div class="section-body">
+        <p>本サービスの利用にあたっては、当社の定める方法によりユーザー登録を行っていただく必要があります。</p>
+        <p>以下に該当する方は利用登録をお断りする場合があります。</p>
+        <ul>
+          <li>登録申請時に虚偽の事項を届け出た場合</li>
+          <li>本規約に違反したことがある者からの申請である場合</li>
+          <li>その他、当社が利用登録を適当でないと判断した場合</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title" id="face">第4条（肖像権・著作権）</div>
+      <div class="section-body">
+        <p>ユーザーは以下の事項を遵守してください。</p>
+        <ul>
+          <li>登録する顔画像・動画は、ご自身が権利を有するものに限ります</li>
+          <li>第三者の顔・肖像を無断で使用することを禁止します</li>
+          <li>生成された動画の著作権はユーザーに帰属しますが、第三者の権利を侵害する使用は禁止します</li>
+          <li>生成動画を商業目的で使用する場合は、関連する法律・規制を遵守してください</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">第5条（禁止事項）</div>
+      <div class="section-body">
+        <p>ユーザーは、本サービスの利用にあたり、以下の行為をしてはなりません。</p>
+        <ul>
+          <li>他人を騙す目的でのディープフェイク的利用</li>
+          <li>誹謗中傷・名誉毀損・プライバシー侵害を目的とした使用</li>
+          <li>性的コンテンツ・暴力的コンテンツの生成</li>
+          <li>詐欺・犯罪行為への利用</li>
+          <li>本サービスの運営を妨害する行為</li>
+          <li>その他、法令または公序良俗に違反する行為</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">第6条（料金・支払い）</div>
+      <div class="section-body">
+        <p>本サービスの有料プランの料金は、当社が別途定める料金表に従います。</p>
+        <p>支払いはStripeを通じて行われます。サブスクリプションは契約日から30日ごとに自動更新されます。</p>
+        <p>初月は20%OFFのキャンペーン価格が適用される場合があります（キャンペーン期間中のみ）。</p>
+        <p>解約後は契約日から30日間、引き続き本サービスをご利用いただけます。</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">第7条（免責事項）</div>
+      <div class="section-body">
+        <p>当社は、本サービスに関して、以下の事項について一切の責任を負いません。</p>
+        <ul>
+          <li>生成動画の使用によって生じたいかなる損害</li>
+          <li>本サービスの停止・中断・終了によって生じた損害</li>
+          <li>第三者による不正アクセス等によって生じた損害</li>
+          <li>生成結果が期待と異なることによる損害</li>
+        </ul>
+        <p>当社は、事前通知なくサービスの内容を変更・停止・終了する権利を有します。</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">第8条（サービスの変更・停止）</div>
+      <div class="section-body">
+        <p>当社は、ユーザーへの事前通知なしに、本サービスの内容を変更したり、本サービスの提供を停止・終了することができます。当社は、これによってユーザーに生じた損害について責任を負いません。</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">第9条（規約の変更）</div>
+      <div class="section-body">
+        <p>当社は必要と判断した場合には、ユーザーへの通知なしに本規約を変更することがあります。変更後の規約は、本サービス上に掲載した時点から効力を生じるものとします。</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">第10条（準拠法・管轄裁判所）</div>
+      <div class="section-body">
+        <p>本規約の解釈にあたっては、日本法を準拠法とします。本サービスに関して紛争が生じた場合には、東京地方裁判所を第一審の専属的合意管轄裁判所とします。</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">お問い合わせ</div>
+      <div class="section-body">
+        <div class="contact-box">
+          合同会社AHA TOKYO<br>
+          メール：info@aha-tokyo.com<br>
+          サービスURL：https://aha-warp.vercel.app
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  <div class="footer-logo">AHA WARP</div>
+  <div class="footer-links">
+    <a href="terms.html">利用規約</a>
+    <a href="privacy.html">プライバシーポリシー</a>
+  </div>
+  <div class="footer-text">© 2025 合同会社AHA TOKYO</div>
+</footer>
+
+<script>
+  const cursor = document.getElementById('cursor');
+  const cursorRing = document.getElementById('cursorRing');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;});
+  (function loop(){ cursor.style.left=mx+'px'; cursor.style.top=my+'px'; rx+=(mx-rx)*.12; ry+=(my-ry)*.12; cursorRing.style.left=rx+'px'; cursorRing.style.top=ry+'px'; requestAnimationFrame(loop); })();
+  document.querySelectorAll('button,a').forEach(el=>{
+    el.addEventListener('mouseenter',()=>{cursor.style.width='18px';cursor.style.height='18px';cursorRing.style.width='50px';cursorRing.style.height='50px';});
+    el.addEventListener('mouseleave',()=>{cursor.style.width='10px';cursor.style.height='10px';cursorRing.style.width='32px';cursorRing.style.height='32px';});
+  });
+</script>
+</body>
+</html>

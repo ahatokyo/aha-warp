@@ -151,6 +151,9 @@
 
   footer { position:relative; z-index:1; padding:28px 48px; border-top:1px solid rgba(220,150,180,.2); display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,.2); }
   .footer-logo { font-family:'Syne',sans-serif; font-weight:800; font-size:14px; background:linear-gradient(135deg,var(--pink-deep),var(--purple-deep)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+  .footer-links { display:flex; gap:16px; }
+  .footer-links a { font-size:11px; color:var(--muted); text-decoration:none; letter-spacing:.1em; }
+  .footer-links a:hover { color:var(--pink-deep); }
   .footer-text { font-size:11px; color:var(--muted); letter-spacing:.1em; }
 
   @media(max-width:600px){ nav{padding:18px 20px;} .auth-card{padding:36px 24px;} footer{flex-direction:column;gap:12px;text-align:center;} }
@@ -205,6 +208,7 @@
 
 <footer>
   <div class="footer-logo">AHA WARP</div>
+  <div class="footer-links"><a href="terms.html">利用規約</a><a href="privacy.html">プライバシーポリシー</a></div>
   <div class="footer-text">© 2025 AHA WARP — Powered by AI</div>
 </footer>
 
