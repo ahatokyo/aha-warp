@@ -161,19 +161,19 @@
   .hero-video-wrap video.loaded { opacity:.85; }  /* 再生可能になったらフェードインで表示 */
   .hero-video-wrap::after {
     content:''; position:absolute; inset:0;
-    /* テキスト可読性のための薄いオーバーレイ（動画が透けて見える濃さを優先） */
+    /* テキスト可読性を優先したオーバーレイ（動画は透けつつ、文字が負けない濃さ） */
     background:linear-gradient(
       180deg,
-      rgba(255,250,252,.30) 0%,
-      rgba(252,240,246,.22) 45%,
-      rgba(250,235,242,.48) 100%
+      rgba(255,250,252,.50) 0%,
+      rgba(252,240,246,.44) 50%,
+      rgba(250,235,242,.66) 100%
     );
   }
   .hero > *:not(.hero-video-wrap) { position:relative; z-index:1; }
   .hero-eyebrow {
-    font-size:11px; letter-spacing:.42em; color:var(--pink-deep);
+    font-size:11px; letter-spacing:.42em; color:#8b3060;
     margin-bottom:28px; opacity:0; animation:fadeUp .8s ease-out 1s forwards;
-    text-shadow:0 1px 8px rgba(0,0,0,.12);
+    text-shadow:0 1px 2px rgba(255,255,255,.55);
   }
   .hero-title {
     font-family:'Syne',sans-serif;
@@ -192,10 +192,10 @@
     -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
   }
   .hero-sub {
-    font-size:clamp(15px,1.8vw,19px); color:var(--text-light); max-width:520px;
-    line-height:2; margin-bottom:56px; font-weight:300;
+    font-size:clamp(15px,1.8vw,19px); color:var(--text); max-width:520px;
+    line-height:2; margin-bottom:56px; font-weight:400;
     opacity:0; animation:fadeUp .8s ease-out 1.3s forwards;
-    text-shadow:0 1px 8px rgba(0,0,0,.12);
+    text-shadow:0 1px 3px rgba(255,255,255,.6), 0 1px 8px rgba(0,0,0,.12);
   }
 
   @keyframes fadeUp {
