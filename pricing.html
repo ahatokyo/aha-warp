@@ -60,10 +60,10 @@
   .cursor-ring { position:fixed; width:32px; height:32px; border:1px solid rgba(200,80,120,.3); border-radius:50%; pointer-events:none; z-index:9998; transform:translate(-50%,-50%); transition:width .3s,height .3s; }
 
   .bg-orbs { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
-  .orb { position:absolute; border-radius:50%; filter:blur(120px); opacity:.18; animation:drift 26s ease-in-out infinite; }
-  .orb-1 { width:800px;height:800px; background:#f9a8c9; top:-300px;left:-200px; }
-  .orb-2 { width:600px;height:600px; background:#ddd6fe; bottom:-200px;right:-150px; animation-delay:-10s; }
-  .orb-3 { width:450px;height:450px; background:#fbc8d8; top:40%;left:38%; animation-delay:-18s; }
+  .orb { position:absolute; border-radius:50%; opacity:.18; animation:drift 26s ease-in-out infinite; }
+  .orb-1 { width:800px;height:800px; background:radial-gradient(circle, #f9a8c9 0%, rgba(249,168,201,0) 70%); top:-300px;left:-200px; }
+  .orb-2 { width:600px;height:600px; background:radial-gradient(circle, #ddd6fe 0%, rgba(221,214,254,0) 70%); bottom:-200px;right:-150px; animation-delay:-10s; }
+  .orb-3 { width:450px;height:450px; background:radial-gradient(circle, #fbc8d8 0%, rgba(251,200,216,0) 70%); top:40%;left:38%; animation-delay:-18s; }
   @keyframes drift { 0%,100%{transform:translate(0,0) scale(1);} 33%{transform:translate(40px,-28px) scale(1.06);} 66%{transform:translate(-28px,44px) scale(.95);} }
 
   .grid-overlay { position:fixed; inset:0; pointer-events:none; z-index:0; background-image: linear-gradient(rgba(200,100,140,.04) 1px, transparent 1px), linear-gradient(90deg,rgba(200,100,140,.04) 1px, transparent 1px); background-size:56px 56px; }
