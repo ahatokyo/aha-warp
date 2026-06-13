@@ -28,48 +28,27 @@
 <link rel="preload" as="font" type="font/woff2" href="https://fonts.gstatic.com/s/syne/v24/8vIH7w4qzmVxm2BL9A.woff2" crossorigin>
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@300;400;700&family=Syne:wght@700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@300;400;700&family=Syne:wght@700;800&display=swap"></noscript>
-<!-- Supabase SDK は初期ロードから外し、HERO動画の再生開始後（または保険のタイムアウト後）に
-     動的読み込みする。これで初期の帯域を hero.mp4 に優先させ、動画との競合を解消する。
-     SDKロード完了(onload)を待ってから認証(getSession→リダイレクト/__user生成)を実行＝順序を保証。 -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
 <script>
-  (function () {
-    var started = false;
-    function loadSupabaseAndAuth() {
-      if (started) return;            // 複数トリガーが発火しても読み込みは1回だけ
-      started = true;
-      var s = document.createElement('script');
-      s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
-      s.onload = function () {
-        // ▼ 認証ロジックは従来どおり。SDKロード完了後にだけ実行（順序保証）。
-        (async function () {
-          var createClient = supabase.createClient;
-          var sb = createClient(
-            'https://majunwobgxvdckyyunxu.supabase.co',
-            'sb_publishable_p93V6Tk3LAn8HjwmPuNbKg_00cs6Z6L'
-          );
-          var res = await sb.auth.getSession();
-          var session = res.data.session;
-          if (!session) {
-            window.location.href = 'login.html';   // 未ログイン → login.html へ
-          } else {
-            window.__supabase = sb;                 // ログイン済み → クライアント/ユーザー確定
-            window.__user = session.user;           // loadCredits がこれをポーリングして表示
-          }
-        })();
-      };
-      document.head.appendChild(s);
-    }
-    // トリガー1: HERO動画が再生開始/データ取得できた後（＝初期の帯域競合が終わったタイミング）にSDKを読む
-    document.addEventListener('DOMContentLoaded', function () {
-      var v = document.getElementById('heroVideo');
-      if (!v) { loadSupabaseAndAuth(); return; }
-      if (v.readyState >= 2) { loadSupabaseAndAuth(); return; }
-      v.addEventListener('playing',    loadSupabaseAndAuth, { once: true });
-      v.addEventListener('loadeddata', loadSupabaseAndAuth, { once: true });
-    });
-    // トリガー2（保険）: 動画が再生されない環境でも最大2.5秒後には必ず認証を走らせる
-    setTimeout(loadSupabaseAndAuth, 2500);
-  })();
+  // SDKはdefer読み込み（描画をブロックしない）。deferスクリプトはDOMContentLoadedより前に
+  // 実行されるため、このハンドラ内では window.supabase が必ず利用可能。
+  // 認証・リダイレクト・window.__user生成のロジックは従来どおり。
+  window.addEventListener('DOMContentLoaded', () => {
+    (async () => {
+      const { createClient } = supabase;
+      const sb = createClient(
+        'https://majunwobgxvdckyyunxu.supabase.co',
+        'sb_publishable_p93V6Tk3LAn8HjwmPuNbKg_00cs6Z6L'
+      );
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) {
+        window.location.href = 'login.html';
+      } else {
+        window.__supabase = sb;
+        window.__user = session.user;
+      }
+    })();
+  });
 </script>
 <style>
   :root {
