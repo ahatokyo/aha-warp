@@ -738,6 +738,21 @@
     <video id="heroVideo" autoplay muted loop playsinline preload="auto" poster="poster.jpg" fetchpriority="high">
       <source src="hero.mp4" type="video/mp4" fetchpriority="high">
     </video>
+    <script>
+      // hero動画の play() を DOMContentLoaded 待ちにせず即時実行する。
+      // <video>はこの直後スクリプト実行時点で既にDOM上に存在するため、HTMLパースが
+      // ここに到達した瞬間に再生(=iOSでの動画DL開始)が走る。SDK/認証には非依存。
+      (function () {
+        var v = document.getElementById('heroVideo');
+        if (!v) return;
+        v.play().catch(function () {
+          // iOS Safari等で自動再生が拒否された場合の保険：最初のタップ/クリックで再生。
+          var resume = function () { v.play().catch(function () {}); };
+          document.addEventListener('touchstart', resume, { once: true });
+          document.addEventListener('click', resume, { once: true });
+        });
+      })();
+    </script>
   </div>
   <div class="hero-eyebrow">"あなた"が、世界へ</div>
   <h1 class="hero-title">
@@ -1403,22 +1418,6 @@
 
   // ページ読み込み時にレビューを取得
   loadReviews();
-</script>
-<script>
-  // HERO動画は <video autoplay preload="auto"> でブラウザがパース時に即DL/再生する（PETCHA方式）。
-  // JSはあくまで保険：DOMContentLoad直後に play() を試行（window 'load' 待ちはしない＝開始を遅らせない）。
-  // ※ v.load() は呼ばない（autoplayで進行中の読み込みをリセット/再スタートさせないため）。
-  document.addEventListener('DOMContentLoaded', () => {
-    const v = document.getElementById('heroVideo');
-    if (!v) return;
-    v.play().catch(() => {
-      // iOS Safari等でJSからの自動再生が拒否された場合の保険：
-      // posterのまま固めず、最初のタップ/クリックで再生する。
-      const resume = () => { v.play().catch(()=>{}); };
-      document.addEventListener('touchstart', resume, { once: true });
-      document.addEventListener('click', resume, { once: true });
-    });
-  });
 </script>
 </body>
 </html>
