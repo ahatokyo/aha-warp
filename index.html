@@ -153,9 +153,11 @@
   .hero-video-wrap video {
     width:100%; height:100%;
     object-fit:cover;
-    opacity:.85;
+    opacity:0;                    /* 初期は非表示＝最初の描画を動画の準備から切り離す（iOSの真っ白対策・PETCHA方式） */
+    transition:opacity .5s ease;
     filter:saturate(1.1) brightness(1.05);
   }
+  .hero-video-wrap video.loaded { opacity:.85; }  /* 再生可能になったらフェードインで表示 */
   .hero-video-wrap::after {
     content:''; position:absolute; inset:0;
     /* テキスト可読性のための薄いオーバーレイ（動画が透けて見える濃さを優先） */
@@ -735,8 +737,8 @@
 
 <section class="hero">
   <div class="hero-video-wrap">
-    <video id="heroVideo" autoplay muted loop playsinline preload="auto" poster="poster.jpg" fetchpriority="high">
-      <source src="hero.mp4" type="video/mp4" fetchpriority="high">
+    <video id="heroVideo" autoplay muted loop playsinline preload="auto" poster="poster.jpg">
+      <source src="hero.mp4" type="video/mp4">
     </video>
     <script>
       // hero動画の play() を DOMContentLoaded 待ちにせず即時実行する。
@@ -745,6 +747,14 @@
       (function () {
         var v = document.getElementById('heroVideo');
         if (!v) return;
+        // 動画が再生可能になったら（最初のフレーム取得 or 再生開始）フェードインで表示。
+        // これで「最初の描画」を動画の準備から切り離す（iOSの真っ白対策・PETCHA方式）。
+        var reveal = function () { v.classList.add('loaded'); };
+        if (v.readyState >= 2) reveal();
+        else {
+          v.addEventListener('loadeddata', reveal, { once: true });
+          v.addEventListener('playing',    reveal, { once: true });
+        }
         v.play().catch(function () {
           // iOS Safari等で自動再生が拒否された場合の保険：最初のタップ/クリックで再生。
           var resume = function () { v.play().catch(function () {}); };
