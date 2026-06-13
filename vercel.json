@@ -1,0 +1,14 @@
+{
+  "redirects": [
+    { "source": "/",             "has": [{ "type": "host", "value": "petcha.aha-tokyo.com" }], "destination": "/petcha.html", "permanent": false },
+    { "source": "/index.html",   "has": [{ "type": "host", "value": "petcha.aha-tokyo.com" }], "destination": "/petcha.html", "permanent": false },
+    { "source": "/login.html",   "has": [{ "type": "host", "value": "petcha.aha-tokyo.com" }], "destination": "/petcha.html", "permanent": false },
+    { "source": "/mypage.html",  "has": [{ "type": "host", "value": "petcha.aha-tokyo.com" }], "destination": "/petcha.html", "permanent": false },
+    { "source": "/pricing.html", "has": [{ "type": "host", "value": "petcha.aha-tokyo.com" }], "destination": "/petcha.html", "permanent": false },
+    { "source": "/lp.html",      "has": [{ "type": "host", "value": "petcha.aha-tokyo.com" }], "destination": "/petcha.html", "permanent": false },
+    { "source": "/terms.html",   "has": [{ "type": "host", "value": "petcha.aha-tokyo.com" }], "destination": "/petcha.html", "permanent": false },
+    { "source": "/privacy.html", "has": [{ "type": "host", "value": "petcha.aha-tokyo.com" }], "destination": "/petcha.html", "permanent": false },
+    { "source": "/petcha.html",  "has": [{ "type": "host", "value": "aha-warp.vercel.app" }], "destination": "/", "permanent": false },
+    { "source": "/pecha.html",   "has": [{ "type": "host", "value": "aha-warp.vercel.app" }], "destination": "/", "permanent": false }
+  ]
+}
