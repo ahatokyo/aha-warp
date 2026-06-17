@@ -2159,9 +2159,12 @@ const supabase = {
 
   // 自分が贈ったガチャ券一覧（マイページ管理用）
   getMyGifts(lineUserId) {
-    // 並び順は購入順（created_at昇順）で固定。shared_at等で並び替えない
+    // 並び順は購入順（created_at昇順）で完全固定。
+    // 同一購入の券はcreated_atが同値（単一バッチINSERT＝now()定数）になるため、
+    // 不変・一意なtokenを第2キーにしてタイを確定させる。これがないと
+    // mark_gift_sharedのUPDATEで行がheap末尾に移り、コピー済が下に沈む。
     return this.query('pecha_gifts', 'GET', null,
-      `?sender_line_user_id=eq.${encodeURIComponent(lineUserId)}&order=created_at.asc`
+      `?sender_line_user_id=eq.${encodeURIComponent(lineUserId)}&order=created_at.asc,token.asc`
       + `&select=token,credits,shared_at,redeemed_at,created_at`);
   },
 
