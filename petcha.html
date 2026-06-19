@@ -2286,7 +2286,7 @@ const GOAL = 40; // スタンプカードの最終ゴール
 // sizes:  null=サイズなし / 配列=選択   print: true=前面/背面を選ぶ
 const PRODUCTS = [
   { key:'tshirt',    emoji:'👕', name:'プレミアムTシャツ (6.2oz)',     price:4400, colors:['白','グレー','アイボリー'], sizes:['XS','S','M','L','XL','XXL'], print:true  },
-  { key:'tshirt_ls', emoji:'👕', name:'プレミアム長袖Tシャツ (6.2oz)', price:4800, colors:['白'],                     sizes:['XS','S','M','L','XL','XXL'], print:true  },
+  { key:'tshirt_ls', emoji:'👕', name:'プレミアム長袖Tシャツ (6.2oz)', price:4900, colors:['白'],                     sizes:['XS','S','M','L','XL','XXL'], print:true  },
   { key:'tote_s',    emoji:'👜', name:'トートバッグ S',                price:3500, colors:['ナチュラル'],            sizes:null,                          print:false },
   { key:'tote_m',    emoji:'👜', name:'トートバッグ M',                price:3800, colors:['ナチュラル'],            sizes:null,                          print:false },
   { key:'sacoche',   emoji:'👝', name:'サコッシュ',                    price:3800, colors:['ナチュラル','グレー'],   sizes:null,                          print:false },
@@ -2360,8 +2360,11 @@ const PREVIEW_MODE = (location.protocol === 'file:') ||
   new URLSearchParams(location.search).has('preview');
 
 // Stripe は「都度課金（payment mode）」。サブスクは使わない（§5-4）
-// ※テストキー(pk_test)。本番公開時は pk_live に差し替え。価格IDも本番モードのものに。
-const STRIPE_PUBLISHABLE_KEY = 'pk_test_51TbzwUCmTy1H3CXQlIStd8LaBnnE7jAby61cAS3EcfthXav7hkOQ92ngpxeD4Zzb7XwXMwit1pNvV82cj0tkvHXX00xbHZjgE8';
+// ★本番(live)公開用。静的HTML（ビルド工程なし）のため環境変数注入ができず直書き。
+//   下のプレースホルダを、実際の本番 publishable key (pk_live_...) に差し替えてからデプロイすること。
+//   ※ pk_live_REPLACE_ME のままデプロイすると stripeReady=true になり、決済起動時にStripe側で失敗する
+//     （プレビューには落ちない）。必ず実キーへ置換してから公開すること。
+const STRIPE_PUBLISHABLE_KEY = 'pk_live_REPLACE_ME';
 const STRIPE_PRICE_IDS = {                          // Stripeで作成した価格ID（都度課金・テストモード）
   trial: 'price_1TeAlKCmTy1H3CXQfNDPZ5OU',  // お試し500円・買い切り
   p1:    'price_1TeAleCmTy1H3CXQ8cIXWzeu',  // 1回1,000円
