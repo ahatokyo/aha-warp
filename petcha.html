@@ -1433,29 +1433,33 @@ body { padding-bottom:64px; }   /* 固定メニューバー分の余白 */
 }
 
 /* ===== FOOTER ===== */
+/* 背景は明るいクリーム(--dark=#FFF9F0)。文字は必ず濃色で十分なコントラストを確保する。 */
 footer {
   background: var(--dark);
-  color: rgba(255,255,255,0.5);
+  color: var(--text);            /* #3A2A1F ダークブラウン */
   text-align: center;
   padding: 3rem 1.5rem;
   font-size: 0.8rem;
+  border-top: 1px solid rgba(251,178,58,0.4);
 }
 
 footer .footer-logo {
   font-family: 'Zen Maru Gothic', sans-serif;
   font-weight: 900;
   font-size: 1.2rem;
-  color: var(--pink-light);
+  color: var(--purple-dark);     /* #B45309 読める濃いオレンジ茶 */
   margin-bottom: 1rem;
 }
 
 footer a {
-  color: rgba(255,255,255,0.4);
-  text-decoration: none;
+  color: var(--pink);            /* #E07B00 オレンジ */
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  font-weight: 700;
   margin: 0 0.5rem;
 }
 
-footer a:hover { color: var(--pink-light); }
+footer a:hover { color: var(--purple-dark); text-decoration: underline; }
 
 /* ===== USER INFO BAR ===== */
 .user-bar {
@@ -1994,7 +1998,7 @@ footer a:hover { color: var(--pink-light); }
 
 <!-- ===== FOOTER ===== -->
 <footer>
-  <p style="margin-bottom:0.5rem;font-size:0.85rem;color:rgba(255,255,255,0.5);letter-spacing:0.05em;">ペットイラストガチャ</p>
+  <p style="margin-bottom:0.5rem;font-size:0.85rem;color:#8C7355;letter-spacing:0.05em;">ペットイラストガチャ</p>
   <div class="footer-logo">PETCHA (ペッチャ) by AHA TOKYO</div>
   <div>
     <a href="/petcha-terms.html">利用規約</a>
