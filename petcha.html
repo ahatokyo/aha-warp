@@ -1461,6 +1461,21 @@ footer a {
 
 footer a:hover { color: var(--purple-dark); text-decoration: underline; }
 
+/* 法務リンクは小さめの文字で横一列に収める（折り返さない） */
+footer .footer-links {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+footer .footer-links a {
+  margin: 0;
+  font-size: 0.62rem;
+  font-weight: 600;
+}
+
 /* ===== USER INFO BAR ===== */
 .user-bar {
   display: none;
@@ -2000,7 +2015,7 @@ footer a:hover { color: var(--purple-dark); text-decoration: underline; }
 <footer>
   <p style="margin-bottom:0.5rem;font-size:0.85rem;color:#8C7355;letter-spacing:0.05em;">ペットイラストガチャ</p>
   <div class="footer-logo">PETCHA (ペッチャ) by AHA TOKYO</div>
-  <div>
+  <div class="footer-links">
     <a href="/petcha-terms.html">利用規約</a>
     <a href="/petcha-privacy.html">プライバシーポリシー</a>
     <a href="/petcha-tokushoho.html">特定商取引法に基づく表記</a>
