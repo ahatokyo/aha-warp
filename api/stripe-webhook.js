@@ -230,6 +230,55 @@ async function sendCartOrderEmails({ row, session }) {
   catch (e) { console.error('admin email failed (ignored):', e); }
 }
 
+// 注文管理スプレッドシート連携（Make webhook）。
+//   - goods_cart の paid 確定＋正式メール送信が終わった「後」に追加で呼ぶだけ。
+//     既存のDB記録・メール送信には一切手を入れない。
+//   - row.items を 1商品=1POST でループ送信（商品数だけスプシに行が増える）。
+//   - 投げっぱなし方針：各POSTは個別try/catchで握り、失敗してもthrowしない
+//     （webhookは200を維持。メール連携と同じ堅牢性）。
+//   - ORDER_SHEET_WEBHOOK_URL 未設定なら何もせずスキップ（エラーにしない）。
+async function postCartOrderToSheet({ row, session }) {
+  const url = process.env.ORDER_SHEET_WEBHOOK_URL;
+  if (!url || !row) return;
+  const items = Array.isArray(row.items) ? row.items : [];
+  const orderTotal = (row.amount != null)
+    ? row.amount
+    : (session && session.amount_total != null ? session.amount_total : null);
+  for (let i = 0; i < items.length; i++) {
+    const it = items[i] || {};
+    const body = {
+      ordered_at: row.created_at ?? null,
+      order_id: row.id ?? null,
+      line_no: i + 1,
+      member_no: row.member_no ?? null,
+      product_name: it.name ?? null,
+      color: it.color ?? null,
+      size: it.size ?? null,
+      print_pos: it.print_pos ?? null,
+      text: it.text ?? 'なし',
+      quantity: it.quantity ?? null,
+      illustration_url: (Array.isArray(it.illustration_urls) && it.illustration_urls.length)
+        ? it.illustration_urls[0] : null,
+      recipient_name: row.recipient_name ?? null,
+      postal_code: row.postal_code ?? null,
+      address: row.address ?? null,
+      phone: row.phone ?? null,
+      buyer_email: row.buyer_email ?? null,
+      order_total: orderTotal
+    };
+    try {
+      await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+    } catch (e) {
+      console.error('order-sheet webhook failed (ignored):',
+        { order_id: row.id, line_no: i + 1, err: e && e.message });
+    }
+  }
+}
+
 // 保険：決済は成立したが注文行に紐づかなかった場合の運営向けアラート（購入者には送らない）。
 // 注文内容は不明なため、Stripe側で追跡できる最小情報のみ記載する。
 async function sendUnlinkedOrderAlert({ session }) {
@@ -335,6 +384,13 @@ export default async function handler(req, res) {
           }
         } catch (mailErr) {
           console.error('cart order email error (ignored):', mailErr);
+        }
+        // 正式メール送信の後：注文管理スプシ連携（Make webhook）へ商品ごとに投げっぱなし。
+        // 行が紐づいたときのみ。失敗してもthrowせずwebhookは200を維持する。
+        try {
+          if (row) await postCartOrderToSheet({ row, session: s });
+        } catch (sheetErr) {
+          console.error('order-sheet webhook error (ignored):', sheetErr);
         }
       } else if (md.kind === 'goods') {
         // グッズ注文（単品・後方互換）→ pecha_orders に保存（配送先も保存）。記録優先、メールは別try/catch。
