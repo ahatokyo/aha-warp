@@ -1071,6 +1071,13 @@ body { padding-bottom:64px; }   /* 固定メニューバー分の余白 */
   cursor: not-allowed;
 }
 
+/* クレジット購入ボタンは文言が長いので1行に収める（このボタンのみ調整） */
+#btn-purchase {
+  white-space: nowrap;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+}
+
 /* ===== GACHA MODAL ===== */
 #gacha-modal {
   display: none;
@@ -2724,7 +2731,7 @@ function selectPlan(plan, el) {
   const btn = document.getElementById('btn-purchase');
   btn.disabled = false;
   const p = PLANS[plan];
-  btn.textContent = `¥${p.price.toLocaleString()}でクレジット${p.count}回分を購入`;
+  btn.textContent = `¥${p.price.toLocaleString()}でガチャ${p.count}回分を購入`;
 }
 
 // 購入ボタン → Stripe Checkout（または プレビューで擬似付与）
