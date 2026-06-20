@@ -3520,7 +3520,10 @@ function closeCart() { document.getElementById('cart-modal').classList.remove('s
 function cartGoodsSubtotal() { return cart.reduce((s, it) => s + it.unit_price * it.quantity, 0); }
 
 function cartRowHtml(it, i) {
+  // シールは選択イラスト枚数を表示（他商品は空文字＝従来どおり）
+  const illustCount = Array.isArray(it.illustration_urls) ? it.illustration_urls.length : 0;
   const attrs = [
+    (it.sku === 'sticker' && illustCount) ? ('イラスト' + illustCount + '枚') : '',
     it.color, it.size,
     it.print_pos ? (it.print_pos === 'front' ? '前面' : (it.print_pos === 'back' ? '背面' : it.print_pos)) : '',
     (it.text != null && it.text !== '') ? ('文字：「' + it.text + '」') : ''
