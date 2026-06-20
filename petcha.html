@@ -2841,7 +2841,7 @@ function checkPaymentReturn() {
   if (params.get('goods_ordered') === '1') {
     history.replaceState({}, '', location.pathname);
     waitForUserThen(() => {
-      petchaModal('ご注文ありがとうございます🎁\n完成イメージを2営業日以内にモバティbyAHA TOKYO公式LINEよりお送りします！',
+      petchaModal('ご注文ありがとうございます🎁\n完成イメージを3日以内（土日・祝日を除く）にモバティbyAHA TOKYO公式LINEよりお送りします！',
         false,
         'ご不明な点等ございましたら、同LINEのチャットにてお気軽にご連絡ください。');
       navGo('mypage');

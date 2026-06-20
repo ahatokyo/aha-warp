@@ -106,7 +106,7 @@ async function sendOrderEmails({ md, session, orderRow, orderId }) {
       <p>この度はPETCHA（ペッチャ）のグッズをご注文いただき、ありがとうございます🐾</p>
       <p>以下の内容でご注文を承りました。</p>
       ${detail}
-      <p style="margin-top:18px;">完成イメージを<b>2営業日以内</b>に、モバティ by AHA TOKYO 公式LINEよりお送りします。</p>
+      <p style="margin-top:18px;">完成イメージを<b>3日以内（土日・祝日を除く）</b>に、モバティ by AHA TOKYO 公式LINEよりお送りします。</p>
       <p style="font-size:13px;color:#666;">ご不明な点等ございましたら、同LINEのチャットにてお気軽にご連絡ください。</p>
       <p style="font-size:12px;color:#999;margin-top:20px;">PETCHA by AHA TOKYO</p>
     </div>`;
@@ -192,7 +192,7 @@ async function sendCartOrderEmails({ row, session }) {
       <p>以下の内容でご注文を承りました。</p>
       ${itemsHtml}
       ${amountHtml}
-      <p style="margin-top:18px;">完成イメージを<b>2営業日以内</b>に、モバティ by AHA TOKYO 公式LINEよりお送りします。</p>
+      <p style="margin-top:18px;">完成イメージを<b>3日以内（土日・祝日を除く）</b>に、モバティ by AHA TOKYO 公式LINEよりお送りします。</p>
       <p style="font-size:13px;color:#666;">ご不明な点等ございましたら、同LINEのチャットにてお気軽にご連絡ください。</p>
       <p style="font-size:12px;color:#999;margin-top:20px;">PETCHA by AHA TOKYO</p>
     </div>`;
