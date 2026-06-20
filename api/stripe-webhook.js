@@ -257,8 +257,10 @@ async function postCartOrderToSheet({ row, session }) {
       print_pos: it.print_pos ?? null,
       text: it.text ?? 'なし',
       quantity: it.quantity ?? null,
+      // シール等で複数選択された場合は全URLをカンマ区切りで送る（製造時に全部見えるように）。
+      // 1件のみの商品は区切りなしで従来どおり単一URLになる（表示は壊れない）。
       illustration_url: (Array.isArray(it.illustration_urls) && it.illustration_urls.length)
-        ? it.illustration_urls[0] : null,
+        ? it.illustration_urls.join(', ') : null,
       recipient_name: row.recipient_name ?? null,
       postal_code: row.postal_code ?? null,
       address: row.address ?? null,

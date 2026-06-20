@@ -708,8 +708,8 @@ body {
 .btn-make-goods { width:100%; margin-top:1.25rem; padding:0.95rem; border:none; border-radius:100px; cursor:pointer; background:linear-gradient(135deg,var(--purple),var(--purple-dark)); color:#2A1A0F; font-family:'Zen Maru Gothic',sans-serif; font-weight:800; font-size:0.95rem; box-shadow:0 8px 22px rgba(245,147,36,0.3); }
 
 /* ===== グッズ注文ウィザード ===== */
-#order-wizard, #reward-wizard { display:none; position:fixed; inset:0; z-index:4000; background:rgba(58,42,31,0.9); align-items:center; justify-content:center; padding:1.25rem; }
-#order-wizard.show, #reward-wizard.show { display:flex; }
+#order-wizard, #reward-wizard, #sticker-wizard { display:none; position:fixed; inset:0; z-index:4000; background:rgba(58,42,31,0.9); align-items:center; justify-content:center; padding:1.25rem; }
+#order-wizard.show, #reward-wizard.show, #sticker-wizard.show { display:flex; }
 .rw-count { font-size:0.78rem; color:#8C7355; text-align:center; font-weight:700; margin-bottom:0.6rem; }
 .rw-sub { font-size:0.82rem; color:#8C7355; text-align:center; font-weight:700; margin:-0.2rem 0 0.4rem; }
 .rw-sample-link-row { text-align:center; margin-bottom:0.6rem; }
@@ -1622,6 +1622,19 @@ footer .footer-links a {
     </div>
     <div class="ow-body" id="rw-body"></div>
     <div class="ow-actions" id="rw-actions"></div>
+  </div>
+</div>
+
+<!-- シール専用 購入ウィザード（有料・イラスト最大3枚 → 確認 → カート）。
+     reward-wizard の複数選択UIを下敷きにするが、保存先は有料側(items→pecha_orders)。 -->
+<div id="sticker-wizard">
+  <div class="ow-card">
+    <div class="ow-header">
+      <span class="ow-title">🏷️ シールをつくる</span>
+      <button class="ow-close" onclick="closeStickerWizard()" aria-label="閉じる">×</button>
+    </div>
+    <div class="ow-body" id="sw-body"></div>
+    <div class="ow-actions" id="sw-actions"></div>
   </div>
 </div>
 
@@ -3312,14 +3325,16 @@ function renderStepBody() {
         + '</div>';
 
     case 'product':
+      // ★シールは通常フローの選択肢から除外（専用導線 openStickerWizard に分離）。
       return '<p class="ow-q">商品を選ぶ</p>'
         + '<div class="ow-prod-list">'
-        + PRODUCTS.map(pr =>
+        + PRODUCTS.filter(pr => pr.key !== 'sticker').map(pr =>
             `<button class="ow-prod ${p && p.key === pr.key ? 'sel' : ''}" onclick="pickProduct('${pr.key}')">`
             + `<span class="ow-prod-emoji">${pr.emoji}</span>`
             + `<span class="ow-prod-name">${pr.name}</span>`
             + `<span class="ow-prod-price">¥${pr.price.toLocaleString()}</span></button>`).join('')
-        + '</div>';
+        + '</div>'
+        + '<button class="ow-link" type="button" onclick="openStickerWizard()">🏷️ シールを作る方はこちら（複数イラストOK）</button>';
 
     case 'color':
       return '<p class="ow-q">カラーを選ぶ</p><div class="ow-swatches">'
@@ -3599,6 +3614,153 @@ async function checkoutCart() {
     if (btn) { btn.disabled = false; btn.textContent = 'この内容で注文する（配送先入力へ）'; }
     petchaAlert('注文画面の起動に失敗しました。時間をおいて再度お試しください。');
   }
+}
+
+// ===================================================================
+// シール専用 購入フロー（有料・イラスト最大3枚）
+//   通常グッズ(#order-wizard)から sticker を除外し、こちらに分離。
+//   reward-wizard の複数選択UI操作（selected[]/順序保持/件数表示/上限打ち止め）を
+//   流用するが、★保存先は特典のGoogleフォームではなく有料側
+//   （items.illustration_urls 配列 → checkoutCart → pecha_orders）。
+//   価格は枚数によらず ¥1,200固定。送料/送料無料/price IDは既存ロジックのまま。
+// ===================================================================
+const STICKER_MAX_ILLUST = 3;
+const stickerState = {
+  list: [],         // 生成済みイラスト一覧
+  selected: [],     // 選択した image_url（順序保持・最大3）
+  step: 'illust',   // illust → confirm
+  quantity: 1
+};
+
+function stickerProduct() { return PRODUCTS.find(p => p.key === 'sticker'); }
+
+// 入口：通常ウィザードの商品選択にある「シールを作る方はこちら」CTA
+async function openStickerWizard() {
+  closeWizard();                       // 通常ウィザードが開いていれば閉じる
+  stickerState.selected = [];
+  stickerState.list = [];
+  stickerState.step = 'illust';
+  stickerState.quantity = 1;
+  let list = [];
+  try { if (state.user?.userId) list = await supabase.getIllustrations(state.user.userId); } catch (e) {}
+  list = list || [];
+  if (list.length === 0) {
+    await petchaAlert('まずガチャを回してイラストを作りましょう！🐾\n作ったイラストでシールを作れます。');
+    return;
+  }
+  stickerState.list = list;
+  document.getElementById('sticker-wizard').classList.add('show');
+  renderStickerWizard();
+}
+
+function closeStickerWizard() {
+  document.getElementById('sticker-wizard').classList.remove('show');
+}
+
+function renderStickerWizard() {
+  if (stickerState.step === 'confirm') { renderStickerConfirm(); return; }
+  renderStickerIllustStep();
+}
+
+// イラスト選択（最大3枚・選択順保持）。reward-wizardの複数選択UIを踏襲。
+function renderStickerIllustStep() {
+  const body = document.getElementById('sw-body');
+  body.innerHTML = '<p class="ow-q">シールにするイラストを選んでください</p>'
+    + '<p class="rw-sub">（1〜3枚）</p>'
+    + '<p class="rw-sample-link-row"><button type="button" class="reward-sample-link" onclick="openRewardSample(\'sticker\')">完成イメージを見る</button></p>'
+    + `<p class="rw-count">選択中：${stickerState.selected.length} / ${STICKER_MAX_ILLUST} 枚</p>`
+    + '<div class="ow-illust-grid">'
+    + stickerState.list.map(it => {
+        const sel = stickerState.selected.includes(it.image_url);
+        const order = sel ? (stickerState.selected.indexOf(it.image_url) + 1) : '';
+        return `<div class="ow-illust ${sel ? 'sel' : ''}" onclick="toggleStickerIllust('${it.image_url.replace(/'/g, "\\'")}')">`
+          + `<img src="${it.image_url}" alt="イラスト">`
+          + (sel ? `<span style="position:absolute;top:2px;right:4px;background:var(--pink);color:#fff;border-radius:100px;font-size:0.7rem;font-weight:800;width:18px;height:18px;display:flex;align-items:center;justify-content:center;">${order}</span>` : '')
+          + '</div>';
+      }).join('')
+    + '</div>';
+  body.querySelectorAll('.ow-illust').forEach(el => { el.style.position = 'relative'; });
+
+  const canGo = stickerState.selected.length >= 1;
+  document.getElementById('sw-actions').innerHTML =
+      '<button class="ow-back" onclick="closeStickerWizard()">キャンセル</button>'
+    + `<button class="ow-next" onclick="stickerGoConfirm()" ${canGo ? '' : 'disabled'}>確認へ進む</button>`;
+}
+
+function toggleStickerIllust(url) {
+  const i = stickerState.selected.indexOf(url);
+  if (i >= 0) {
+    stickerState.selected.splice(i, 1);                          // 選択解除
+  } else if (stickerState.selected.length < STICKER_MAX_ILLUST) {
+    stickerState.selected.push(url);                             // 上限まで追加
+  }
+  // 上限到達後に別の未選択を押しても何もしない（打ち止め）
+  renderStickerIllustStep();
+}
+
+function stickerGoConfirm() {
+  if (!stickerState.selected.length) return;
+  stickerState.step = 'confirm';
+  renderStickerWizard();
+}
+
+function changeStickerQty(d) {
+  stickerState.quantity = Math.min(10, Math.max(1, (stickerState.quantity || 1) + d));
+  renderStickerConfirm();
+}
+
+function renderStickerConfirm() {
+  const p = stickerProduct();
+  const unit = p ? p.price : 1200;                               // ¥1,200固定（枚数によらない）
+  const qty = Math.min(10, Math.max(1, stickerState.quantity || 1));
+  const lineTotal = unit * qty;
+  const thumbs = stickerState.selected.map((u, i) =>
+    `<div class="ow-illust sel" style="position:relative;"><img src="${u}" alt="イラスト${i + 1}">`
+    + `<span style="position:absolute;top:2px;right:4px;background:var(--pink);color:#fff;border-radius:100px;font-size:0.7rem;font-weight:800;width:18px;height:18px;display:flex;align-items:center;justify-content:center;">${i + 1}</span></div>`).join('');
+  const body = document.getElementById('sw-body');
+  body.innerHTML = '<p class="ow-q">この内容でカートに追加</p>'
+    + `<div class="ow-illust-grid">${thumbs}</div>`
+    + `<div class="ow-prod-img"><img src="${STICKER_INFO_IMG}" alt="シール 用紙サイズ" onerror="this.closest('.ow-prod-img').style.display='none'"></div>`
+    + '<div class="ow-summary">'
+    +   `<div class="ow-srow"><span>商品</span><b>${escapeHtml(p ? p.name : 'シール (10×17cm)')}</b></div>`
+    +   `<div class="ow-srow"><span>イラスト枚数</span><b>${stickerState.selected.length}枚</b></div>`
+    + '</div>'
+    + '<div class="ow-qty"><span class="ow-qty-label">数量</span>'
+    +   `<button type="button" onclick="changeStickerQty(-1)">−</button>`
+    +   `<span id="sw-qty-val">${qty}</span>`
+    +   `<button type="button" onclick="changeStickerQty(1)">＋</button></div>`
+    + '<p class="ow-note">※ シールは1枚¥1,200（イラスト1〜3枚まで同価格）<br>※ 送料：全国一律¥600（¥7,000以上のご購入で無料）<br>※ 完成イメージはご注文後にLINEでお送りします</p>'
+    + `<div class="ow-price">小計：¥${unit.toLocaleString()} × ${qty} = ¥${lineTotal.toLocaleString()}</div>`;
+
+  document.getElementById('sw-actions').innerHTML =
+      '<button class="ow-back" onclick="stickerBackToIllust()">戻る</button>'
+    + '<button class="ow-next" onclick="addStickerToCart()">🛒 カートに追加</button>';
+}
+
+function stickerBackToIllust() {
+  stickerState.step = 'illust';
+  renderStickerWizard();
+}
+
+// 有料側カート行を作成（★保存先＝items.illustration_urls 配列 → checkoutCart → pecha_orders）
+function addStickerToCart() {
+  if (!stickerState.selected.length) return;
+  const p = stickerProduct();
+  const urls = stickerState.selected.slice(0, STICKER_MAX_ILLUST);
+  cart.push({
+    sku: 'sticker',
+    name: p ? p.name : 'シール (10×17cm)',
+    color: '',
+    size: '',
+    print_pos: '',
+    text: null,                          // シールは文字入れなし（従来仕様）
+    illustration_urls: urls,             // ★選択した全イラスト（1〜3件）を配列でそのまま
+    thumb: urls[0] || '',                // カート行サムネ（先頭1枚）
+    unit_price: p ? p.price : 1200,      // ¥1,200固定
+    quantity: Math.min(10, Math.max(1, stickerState.quantity || 1))
+  });
+  closeStickerWizard();
+  openCart();                            // 以降は既存カート→checkoutCart()の経路に合流
 }
 
 // ② 固定メニューバー：対象セクションへスムーズスクロール
