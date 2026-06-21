@@ -22,6 +22,24 @@
   gtag('js', new Date());
   gtag('config', 'G-8965M1N2NH');
 </script>
+
+<!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '1360169482242586');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=1360169482242586&ev=PageView&noscript=1"/></noscript>
+<!-- End Meta Pixel Code -->
+
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700;900&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -2398,6 +2416,52 @@ const GOODS_PRICE_IDS = {                                       // ← グッズ
   sweat:   'YOUR_PRICE_ID_GOODS_SWEAT'
 };
 const CHECKOUT_ENDPOINT = '/api/create-checkout-session';      // ← Vercel側に作成予定（§5-4）
+
+// ===================================================================
+// アナリティクス（GA4 gtag + Meta Pixel fbq）。計測のみ・決済ロジックには非干渉。
+//   - 購入完了は success_url 戻りで1回だけ発火（リダイレクト前にsessionStorageへ
+//     退避した金額を使用）。発火後はキー削除で再読込の二重計測を防ぐ。
+//   - gtag/fbq 未読込でも try/catch で安全に no-op。
+// ===================================================================
+const PENDING_PURCHASE_KEY = 'petcha_pending_purchase';
+function gaEvent(name, params) { try { if (typeof gtag === 'function') gtag('event', name, params || {}); } catch (e) {} }
+function fbTrack(name, params, opts) { try { if (typeof fbq === 'function') { opts ? fbq('track', name, params || {}, opts) : fbq('track', name, params || {}); } } catch (e) {} }
+function savePendingPurchase(obj) { try { sessionStorage.setItem(PENDING_PURCHASE_KEY, JSON.stringify(obj)); } catch (e) {} }
+function readPendingPurchase() { try { const s = sessionStorage.getItem(PENDING_PURCHASE_KEY); return s ? JSON.parse(s) : null; } catch (e) { return null; } }
+function clearPendingPurchase() { try { sessionStorage.removeItem(PENDING_PURCHASE_KEY); } catch (e) {} }
+
+// 閲覧（プラン/商品）
+function trackViewItem(id, name, price) {
+  gaEvent('view_item', { currency: 'JPY', value: price, items: [{ item_id: id, item_name: name, price: price, quantity: 1 }] });
+  fbTrack('ViewContent', { currency: 'JPY', value: price, content_ids: [id], content_type: 'product', content_name: name });
+}
+// カート追加（グッズ）
+function trackAddToCart(id, name, price, qty) {
+  const value = price * (qty || 1);
+  gaEvent('add_to_cart', { currency: 'JPY', value: value, items: [{ item_id: id, item_name: name, price: price, quantity: qty || 1 }] });
+  fbTrack('AddToCart', { currency: 'JPY', value: value, content_ids: [id], content_type: 'product', content_name: name });
+}
+// Checkout遷移（リダイレクト直前）
+function trackBeginCheckout(value, items, contentIds) {
+  gaEvent('begin_checkout', { currency: 'JPY', value: value, items: items || [] });
+  fbTrack('InitiateCheckout', { currency: 'JPY', value: value, content_ids: contentIds || [], content_type: 'product', num_items: items ? items.reduce((n, it) => n + (it.quantity || 1), 0) : undefined });
+}
+// 購入完了（success_url戻りで1回）。退避値があれば金額付き、無ければ件数のみ。
+function firePurchase(kindFallback, sessionId) {
+  const pend = readPendingPurchase();
+  const kind = (pend && pend.kind) || kindFallback || '';
+  const value = (pend && typeof pend.value === 'number') ? pend.value : null;
+  const ga = { currency: 'JPY', kind: kind };
+  if (sessionId) ga.transaction_id = sessionId;              // GA4側の重複排除キー
+  if (value != null) ga.value = value;
+  if (pend && Array.isArray(pend.items)) ga.items = pend.items;
+  gaEvent('purchase', ga);
+  const fb = { currency: 'JPY' };
+  if (value != null) fb.value = value;
+  if (pend && Array.isArray(pend.contentIds)) { fb.content_ids = pend.contentIds; fb.content_type = 'product'; }
+  fbTrack('Purchase', fb, sessionId ? { eventID: sessionId } : undefined);
+  clearPendingPurchase();                                    // 二重計測防止（再読込で再発火しない）
+}
 // 特典受け取り（住所収集）Googleフォーム：イラスト選択 → 事前入力URLを生成して新規タブで開く
 const REWARD_FORM_BASE  = 'https://docs.google.com/forms/d/e/1FAIpQLSccncubIpuhU94cd6Jmi8nGWcjtsX7NoMbwhV6sGmkjWm6Skg/viewform';
 const REWARD_FORM_ENTRY = {
@@ -2745,6 +2809,7 @@ function selectPlan(plan, el) {
   btn.disabled = false;
   const p = PLANS[plan];
   btn.textContent = `¥${p.price.toLocaleString()}でガチャ${p.count}回分を購入`;
+  trackViewItem(plan, 'ガチャ' + p.label, p.price);   // GA4 view_item / fbq ViewContent
 }
 
 // 購入ボタン → Stripe Checkout（または プレビューで擬似付与）
@@ -2786,6 +2851,12 @@ function startGacha() {
 
 // Stripe Checkout（クレジット購入・都度課金）を起動
 async function startCheckout(plan) {
+  // 計測：Checkout遷移（リダイレクト直前）＋ 購入完了用に金額を退避
+  const _gp = PLANS[plan] || {};
+  const _gval = _gp.price || 0;
+  const _gitems = [{ item_id: plan, item_name: 'ガチャ' + (_gp.label || ''), price: _gval, quantity: 1 }];
+  trackBeginCheckout(_gval, _gitems, [plan]);
+  savePendingPurchase({ kind: 'gacha', value: _gval, currency: 'JPY', items: _gitems, contentIds: [plan] });
   try {
     const res = await fetch(CHECKOUT_ENDPOINT, {
       method: 'POST',
@@ -2831,6 +2902,7 @@ function shrinkForStorage(base64, mime) {
 // 決済から復帰したとき：クレジット反映 / ギフト購入リンク表示（① 連続生成は廃止）
 function checkPaymentReturn() {
   const params = new URLSearchParams(location.search);
+  const sessionId = params.get('session_id') || '';   // 計測の重複排除キー（GA transaction_id / fbq eventID）
 
   if (params.get('canceled') === '1') {
     history.replaceState({}, '', location.pathname);
@@ -2840,6 +2912,7 @@ function checkPaymentReturn() {
   // グッズ注文の決済から復帰
   if (params.get('goods_ordered') === '1') {
     history.replaceState({}, '', location.pathname);
+    firePurchase('goods', sessionId);   // GA4 purchase / fbq Purchase（退避金額で1回だけ）
     waitForUserThen(() => {
       petchaModal('ご注文ありがとうございます🎁\n完成イメージを3日以内（土日・祝日を除く）にモバティbyAHA TOKYO公式LINEよりお送りします！',
         false,
@@ -2852,6 +2925,7 @@ function checkPaymentReturn() {
   // ② ガチャ券購入から復帰 → 発行された各リンクを一覧表示
   if (params.get('gift_bought') === '1') {
     history.replaceState({}, '', location.pathname);
+    firePurchase('gift', sessionId);   // GA4 purchase / fbq Purchase（退避金額で1回だけ）
     let tokens = [];
     try { tokens = JSON.parse(sessionStorage.getItem('pecha_gift_tokens') || '[]'); } catch (e) {}
     sessionStorage.removeItem('pecha_gift_tokens');
@@ -2868,6 +2942,7 @@ function checkPaymentReturn() {
   // ① クレジット購入から復帰 → Webhookでの加算をポーリングで反映
   if (params.get('paid') === '1') {
     history.replaceState({}, '', location.pathname);
+    firePurchase('gacha', sessionId);   // GA4 purchase / fbq Purchase（退避金額で1回だけ）
     waitForUserThen(() => {
       document.getElementById('order').scrollIntoView({ behavior: 'smooth' });
       pollCreditsUpdate();
@@ -3037,6 +3112,8 @@ async function runGeneration() {
     await new Promise(r => setTimeout(r, 500));     // 100%を見せてから遷移
     hideGachaModal();
     showResults(results);                          // 結果画面へ
+    // 計測（任意）：ガチャ体験完了（購入とは別指標）。GA4カスタムイベント。
+    gaEvent('gacha_completed', { kind: 'gacha', style: (results[0] && results[0].style) || '', quantity: results.length });
 
     // ① クレジット1消費（生成成功後）＋ 残数・累計を更新
     if (state.status) {
@@ -3425,6 +3502,7 @@ function pickProduct(key) {
   // 単一カラーは自動選択（ステップはスキップされる）
   orderState.color = (orderState.product.colors && orderState.product.colors.length === 1) ? orderState.product.colors[0] : null;
   orderState.size = null; orderState.printSide = null; orderState.withText = null; orderState.textContent = '';
+  if (orderState.product) trackViewItem(orderState.product.key, orderState.product.name, orderState.product.price);  // GA4 view_item / fbq ViewContent
   renderWizard();
 }
 function pickColor(c) { orderState.color = c; renderWizard(); }
@@ -3510,6 +3588,8 @@ function addToCart() {
   const p = orderState.product;
   if (!p) return;
   cart.push(buildCartItemFromOrder());
+  const _it = cart[cart.length - 1];
+  if (_it) trackAddToCart(_it.sku, _it.name, _it.unit_price, _it.quantity);   // GA4 add_to_cart / fbq AddToCart
   closeWizard();
   openCart();
 }
@@ -3593,6 +3673,14 @@ async function checkoutCart() {
   }
   const btn = document.getElementById('cart-checkout');
   if (btn) { btn.disabled = true; btn.textContent = '進んでいます…'; }
+  // 計測：Checkout遷移（リダイレクト直前）＋ 購入完了用に金額（小計＋送料）を退避
+  const _csub = cartGoodsSubtotal();
+  const _cship = _csub >= FREE_SHIP_THRESHOLD ? 0 : GOODS_SHIPPING_FEE;
+  const _ctotal = _csub + _cship;
+  const _citems = cart.map(it => ({ item_id: it.sku, item_name: it.name, price: it.unit_price, quantity: it.quantity }));
+  const _ccids = cart.map(it => it.sku);
+  trackBeginCheckout(_ctotal, _citems, _ccids);
+  savePendingPurchase({ kind: 'goods', value: _ctotal, currency: 'JPY', items: _citems, contentIds: _ccids });
   try {
     const items = cart.map(it => ({
       sku: it.sku, name: it.name, color: it.color, size: it.size,
@@ -3652,6 +3740,8 @@ async function openStickerWizard() {
     return;
   }
   stickerState.list = list;
+  const _sp = stickerProduct();
+  if (_sp) trackViewItem(_sp.key, _sp.name, _sp.price);   // GA4 view_item / fbq ViewContent（シール商品閲覧）
   document.getElementById('sticker-wizard').classList.add('show');
   renderStickerWizard();
 }
@@ -3762,6 +3852,8 @@ function addStickerToCart() {
     unit_price: p ? p.price : 1200,      // ¥1,200固定
     quantity: Math.min(10, Math.max(1, stickerState.quantity || 1))
   });
+  const _it = cart[cart.length - 1];
+  if (_it) trackAddToCart(_it.sku, _it.name, _it.unit_price, _it.quantity);   // GA4 add_to_cart / fbq AddToCart
   closeStickerWizard();
   openCart();                            // 以降は既存カート→checkoutCart()の経路に合流
 }
@@ -4291,6 +4383,12 @@ async function confirmGift() {
     showGiftLinks(tokens);
     return;
   }
+
+  // 計測：Checkout遷移（リダイレクト直前）＋ 購入完了用に金額を退避
+  const _gfprice = PLANS[n === 1 ? 'p1' : n === 2 ? 'p2' : 'p3'].price;
+  const _gfitems = [{ item_id: 'gift_' + n, item_name: 'ガチャ券' + n + '枚', price: _gfprice, quantity: 1 }];
+  trackBeginCheckout(_gfprice, _gfitems, ['gift_' + n]);
+  savePendingPurchase({ kind: 'gift', value: _gfprice, currency: 'JPY', items: _gfitems, contentIds: ['gift_' + n] });
 
   sessionStorage.setItem('pecha_gift_tokens', JSON.stringify(tokens));  // 復帰後にリンク表示
   try {
