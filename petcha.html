@@ -2545,7 +2545,13 @@ function loginWithLINE() {
     + `&client_id=${LINE_CLIENT_ID}`
     + `&redirect_uri=${REDIRECT_URI}`
     + `&state=${state_param}`
-    + `&scope=profile%20openid`;
+    + `&scope=profile%20openid`
+    // bot_prompt=normal: 認可画面に「友だち追加」チェックボックス（任意）を表示し、
+    // 公式アカウント（モバティ）の友だち追加導線を出す。ログイン自体（scope/redirect_uri/state）は変更しない。
+    // ※前提: これが機能するには LINE Developers コンソールで、このLINEログインチャネルに
+    //   公式アカウント（モバティ）が「リンクされたLINE公式アカウント」として紐付けられている必要がある。
+    //   コード側はパラメータ追加のみ。コンソール設定は別途実施する前提。
+    + `&bot_prompt=normal`;
   window.location.href = url;
 }
 
