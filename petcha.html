@@ -4666,11 +4666,15 @@ function isMobileUA() { return /iPhone|iPad|iPod|Android/i.test(navigator.userAg
 function isLineBrowser() { return /Line/i.test(navigator.userAgent); }
 
 function initLineBanner() {
-  if (!isMobileUA() || isLineBrowser()) return;
-  if (sessionStorage.getItem('pecha_line_banner_closed')) return;
-  document.getElementById('line-banner').classList.add('show');
+  // 「LINEで開く」バナーは無効化。理由: openInLine が生成する line.me/R/nv/web 形式が
+  // 現行LINEで非対応で「接続できません」エラーになるため。外部ブラウザのままでも
+  // 正規の「LINEでログイン」(OAuth)でログイン〜決済〜ガチャまで通ることを実機確認済み。
+  // 根本対応（LINE内でスムーズに開く導線）はLIFF移行（別タスク）で行う。
+  return;   // バナーは常に非表示
 }
 
+// ※未使用（バナー無効化により呼び出し元なし）。line.me/R/nv/web 形式が非対応のため使わない。
+//   根本対応はLIFF移行（別タスク）。
 function openInLine() {
   // LINEアプリ内ブラウザで現在のURLを開く（best-effort）
   const url = location.href;
