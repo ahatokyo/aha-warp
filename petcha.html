@@ -249,6 +249,28 @@ body {
 
 .btn-line-login svg { width: 22px; height: 22px; }
 
+/* HERO: GALLERY(6作風)へ誘導する中立CTA（ログインと誤認させないオレンジ/黄テーマ。緑は使わない） */
+.btn-hero-gallery {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, var(--gold), var(--purple));
+  color: #2A1A0F;
+  font-family: 'Zen Maru Gothic', sans-serif;
+  font-weight: 800;
+  font-size: 1rem;
+  padding: 0.9rem 2rem;
+  border-radius: 100px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 8px 30px rgba(245,147,36,0.4);
+}
+.btn-hero-gallery:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(245,147,36,0.5);
+}
+
 .scroll-hint {
   position: absolute;
   bottom: 2rem;
@@ -1703,9 +1725,11 @@ footer .footer-links a {
     <p class="hero-sub">写真を選んでガチャを回すだけ<br>約1分<sup style="font-size:0.6em;">*</sup>でイラストが完成！</p>
     <p class="hero-disclaimer">*機種や通信環境により生成時間は変動する場合がございます。</p>
     <p class="hero-brand">PETCHA (ペッチャ) by AHA TOKYO</p>
-    <button class="btn-line-login" id="hero-login-btn" data-line-login onclick="loginWithLINE()">
-      <svg viewBox="0 0 24 24" fill="white"><path d="M12 2C6.48 2 2 6.02 2 11c0 3.19 1.75 5.99 4.4 7.74L5.5 22l3.6-1.9C10 20.35 11 20.5 12 20.5c5.52 0 10-4.02 10-9.5S17.52 2 12 2z"/></svg>
-      LINEでログイン
+    <!-- ファーストビューはログイン要求せず、6作風GALLERY(#samples)へスクロール誘導。
+         id="hero-login-btn" は維持（ログイン後に setUser() が「ガチャを回す」へ差し替える既存挙動を壊さないため）。
+         ログイン経路は ORDERセクション と ボトムナビ「ガチャ」に維持。 -->
+    <button class="btn-hero-gallery" id="hero-login-btn" onclick="document.getElementById('samples').scrollIntoView({ behavior: 'smooth' })">
+      イラストを見る ↓
     </button>
   </div>
 
