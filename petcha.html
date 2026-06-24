@@ -1787,6 +1787,9 @@ footer .footer-links a {
   <div class="voices-track" id="voices-track"><!-- JSで生成 --></div>
 </section>
 
+<!-- 計測/転送量対策: ギャラリーは表示直前まで読み込まない（Lazy）。#gallery は display:none で
+     Observe不可のため、可視のセンチネルを直前に置き IntersectionObserver のトリガーにする。 -->
+<div id="gallery-sentinel" aria-hidden="true" style="height:1px;"></div>
 <!-- ===== ⑤ みんなのギャラリー ===== -->
 <section id="gallery" style="display:none;">
   <div class="vo-head fade-up">
@@ -2270,7 +2273,7 @@ const supabase = {
   // ⑤ ギャラリー：公開許可のあるイラスト
   getPublicIllustrations() {
     return this.query('pecha_illustrations', 'GET', null,
-      '?public_display=eq.true&order=created_at.desc&limit=30&select=image_url');
+      '?public_display=eq.true&order=created_at.desc&limit=12&select=image_url');
   },
 
   // 結果画面のトグルから公開ON/OFF更新（security definer RPC）
@@ -4670,7 +4673,20 @@ function escapeHtml(s) {
 }
 
 // ===== ⑤ みんなのギャラリー（公開許可のあるイラストを自動横スクロール） =====
+// 転送量対策: 全訪問者に即読み込みせず、ギャラリーが画面に近づいた時だけ取得する（Lazy）。
+let _galleryObserver = null;
+function initGalleryLazy() {
+  const sentinel = document.getElementById('gallery-sentinel');
+  if (!sentinel || !('IntersectionObserver' in window)) { loadGallery(); return; } // 非対応環境はフォールバック
+  _galleryObserver = new IntersectionObserver((entries) => {
+    if (entries.some(e => e.isIntersecting)) loadGallery();  // loadGallery側でobserverをdisconnect
+  }, { rootMargin: '300px 0px' });  // 到達少し手前で先読み（画像取得を前倒し・スクロールジャンプ回避）
+  _galleryObserver.observe(sentinel);
+}
+
 async function loadGallery() {
+  // 手動呼び出し（ガチャ後/掲載トグル）で先に読み込まれたら、Lazyの二重発火を止める
+  if (_galleryObserver) { _galleryObserver.disconnect(); _galleryObserver = null; }
   let imgs = [];
   try { imgs = await supabase.getPublicIllustrations(); } catch (e) {}
   const section = document.getElementById('gallery');
@@ -4806,7 +4822,7 @@ document.addEventListener('DOMContentLoaded', () => {
   checkGiftRedeem();       // ② ?gift=TOKEN の受け取り
   resumePendingGift();     // ② ログイン経由の受け取り再開
   loadVoices();            // ⑧ お客様の声
-  loadGallery();           // ⑤ みんなのギャラリー
+  initGalleryLazy();       // ⑤ みんなのギャラリー（画面に近づいた時だけ読み込む＝転送量削減）
   initScrollAnimation();
   initDevPanel();
   initSampleSwipe();       // ④⑤ 見本カルーセルのスワイプ
