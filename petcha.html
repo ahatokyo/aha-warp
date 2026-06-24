@@ -4755,6 +4755,46 @@ function petchaModal(message, isConfirm, subText) {
 function petchaAlert(message)   { return petchaModal(message, false); }
 function petchaConfirm(message) { return petchaModal(message, true); }
 
+// ===== 計測（イベント送信のみ。既存挙動には影響させない） =====
+// ① HERO CTA「イラストを見る↓」クリック計測。
+//    スクロール挙動(inline onclick)やsetUser()のボタン差し替えは触らず、click_see_gallery を足すだけ。
+//    ログイン後は同ボタンが「ガチャを回す」へ差し替わるため、未ログイン時(=GALLERY誘導CTA)のクリックのみ送信。
+function bindHeroCtaTracking() {
+  const btn = document.getElementById('hero-login-btn');
+  if (!btn) return;
+  btn.addEventListener('click', () => {
+    if (!state.user) gaEvent('click_see_gallery');
+  });
+}
+
+// ② スクロール深度 25/50/75/90%。各閾値はセッション内で1回だけ送信（重複なし）。
+//    GA4標準の拡張計測scroll(90%のみ)とは別の独自イベント名(scroll_depth)で二重カウントを回避。
+//    passive:true ＋ requestAnimationFrameスロットルで負荷を抑制。手動/自動スクロールは区別しない。
+function initScrollDepth() {
+  const thresholds = [25, 50, 75, 90];
+  const fired = {};
+  thresholds.forEach(t => { try { if (sessionStorage.getItem('petcha_sd_' + t)) fired[t] = true; } catch (e) {} });
+  let ticking = false;
+  function check() {
+    ticking = false;
+    const doc = document.documentElement;
+    const scrollable = doc.scrollHeight - window.innerHeight;
+    if (scrollable <= 0) return;
+    const pct = (window.scrollY || doc.scrollTop || 0) / scrollable * 100;
+    for (const t of thresholds) {
+      if (!fired[t] && pct >= t) {
+        fired[t] = true;
+        try { sessionStorage.setItem('petcha_sd_' + t, '1'); } catch (e) {}
+        gaEvent('scroll_depth', { percent: t });
+      }
+    }
+    if (thresholds.every(t => fired[t])) window.removeEventListener('scroll', onScroll);
+  }
+  function onScroll() { if (!ticking) { ticking = true; requestAnimationFrame(check); } }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  check();  // 初期表示時点で既に閾値を超えている場合（短いページ/復元スクロール）に対応
+}
+
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
   createBubbles();
@@ -4770,6 +4810,8 @@ document.addEventListener('DOMContentLoaded', () => {
   initScrollAnimation();
   initDevPanel();
   initSampleSwipe();       // ④⑤ 見本カルーセルのスワイプ
+  bindHeroCtaTracking();   // 計測①: HERO CTAクリック click_see_gallery
+  initScrollDepth();       // 計測②: スクロール深度 25/50/75/90%
 });
 </script>
 
