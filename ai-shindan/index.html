@@ -479,7 +479,7 @@ function renderQuestion(i){
 
 /* 3) 診断中の「間」（1.3秒） */
 function renderLoading(){
-  setProgress(QUESTIONS.length);
+  showTop(false);   // 結果算出中：進捗UI（Q番号・N/5・バー）は出さない
   const s=document.createElement('div');
   s.className='screen loading enter';
   s.innerHTML=`<div class="spin"></div><p>あなたの回答を診断しています…</p>`;
@@ -520,9 +520,7 @@ function commentFor(comp, use){
 function renderResult(){
   const {comp,use,type}=compute();
   track('shindan_result', {compatibility:comp, usage:use, type:type});
-  showTop(true);
-  back.disabled=true;
-  pBar.style.width="100%";
+  showTop(false);   // 結果画面は質問ではないので進捗UIを非表示
   const s=document.createElement('div');
   s.className='screen result enter';
   s.innerHTML=`
@@ -582,7 +580,7 @@ function renderResult(){
           </div>
           <button class="material-submit" id="materialSubmit">資料を受け取る</button>
           <div class="material-err" id="materialErr">送信に失敗しました。通信環境をご確認のうえ、もう一度お試しください。</div>
-          <div class="material-note">いただいた情報は本診断・資料のご案内のみに使用します。</div>
+          <div class="material-note">いただいた情報は、診断結果・資料のご案内、および当社のセミナーやAI活用に関するご案内に使用します。</div>
         </div>
       </div>
 
