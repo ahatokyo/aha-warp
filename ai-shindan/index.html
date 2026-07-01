@@ -328,7 +328,7 @@ const QUESTIONS = [
 ];
 
 const stage  = document.getElementById('stage');
-const top    = document.getElementById('top');
+const topbar = document.getElementById('top');
 const back   = document.getElementById('back');
 const pBar   = document.getElementById('pBar');
 const pLabel = document.getElementById('pLabel');
@@ -405,7 +405,7 @@ function insertLead(extra, opts){
 /* =========================================================================
    画面遷移ユーティリティ
    ========================================================================= */
-function showTop(visible){ top.classList.toggle('hidden', !visible); }
+function showTop(visible){ topbar.classList.toggle('hidden', !visible); }
 
 function setProgress(i){
   const pct = (i/QUESTIONS.length)*100;
