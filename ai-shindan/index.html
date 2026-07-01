@@ -40,7 +40,16 @@
     display:flex;flex-direction:column;
   }
 
+  /* 背景動画レイヤー（画面ごとに src 切替） */
+  .bgwrap{
+    position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none;
+    opacity:0;transition:opacity .45s ease;
+  }
+  .bgwrap.show{opacity:1}
+  .bgwrap video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+
   .top{
+    position:relative;z-index:2;
     padding:18px 22px 14px;
     border-bottom:1px solid var(--line);
     display:flex;align-items:center;gap:14px;
@@ -67,13 +76,17 @@
     transition:width .45s cubic-bezier(.4,0,.1,1);width:0%;
   }
 
-  .stage{flex:1;position:relative;overflow:hidden}
+  .stage{flex:1;position:relative;overflow:hidden;z-index:1}
   .screen{
     position:absolute;inset:0;
     padding:30px 22px 26px;
     display:flex;flex-direction:column;
     overflow-y:auto;
   }
+  /* 動画上に重ねる画面は自前の半透明バックドロップを持つ（読みやすさを各画面で最適化） */
+  .screen.lp{background:linear-gradient(180deg,rgba(8,20,15,.30),rgba(8,20,15,.58))}
+  .screen.loading{background:rgba(9,20,15,.46)}
+  .screen.result{background:rgba(255,248,236,.82)}   /* クリームを少し透過＝動画がうっすら見える */
   .screen.enter{animation:slideIn .34s cubic-bezier(.32,.72,0,1) both}
   .screen.leave{animation:slideOut .28s cubic-bezier(.4,0,1,1) both}
   @keyframes slideIn{from{opacity:0;transform:translateX(26px)}to{opacity:1;transform:translateX(0)}}
@@ -81,13 +94,15 @@
 
   /* ---------- LP（ファーストビュー） ---------- */
   .lp{justify-content:center;text-align:center;padding:38px 26px}
-  .lp-kicker{font-size:12px;font-weight:700;color:var(--green);letter-spacing:.12em;margin-bottom:18px}
-  .lp-h1{font-size:25px;font-weight:800;line-height:1.5;letter-spacing:.01em;margin-bottom:8px}
+  /* LPは hero動画の上：白文字＋シャドウ */
+  .lp-kicker{font-size:12px;font-weight:700;color:var(--gold-soft);letter-spacing:.12em;margin-bottom:18px;text-shadow:0 1px 6px rgba(0,0,0,.5)}
+  .lp-h1{font-size:25px;font-weight:800;line-height:1.5;letter-spacing:.01em;margin-bottom:8px;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.55)}
   .lp-h1 .pct{color:var(--gold);font-size:30px}
-  .lp-sub{font-size:13.5px;color:var(--sub);line-height:1.8;margin-bottom:30px}
+  .lp-sub{font-size:13.5px;color:#F1E9D4;line-height:1.8;margin-bottom:30px;text-shadow:0 1px 8px rgba(0,0,0,.5)}
   .lp-meta{
-    display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--green);
-    background:var(--green-soft);padding:7px 14px;border-radius:20px;margin-bottom:30px;font-weight:700;
+    display:inline-flex;align-items:center;gap:8px;font-size:12px;color:#fff;
+    background:rgba(11,77,60,.62);padding:7px 14px;border-radius:20px;margin-bottom:30px;font-weight:700;
+    backdrop-filter:blur(2px);
   }
   .lp-start{
     display:flex;align-items:center;justify-content:center;gap:8px;
@@ -97,7 +112,7 @@
   }
   .lp-start:hover{background:#093D30}
   .lp-start .arw{color:var(--gold);font-weight:800}
-  .lp-note{font-size:11px;color:#9AA59C;margin-top:16px;line-height:1.6}
+  .lp-note{font-size:11px;color:rgba(255,255,255,.8);margin-top:16px;line-height:1.6;text-shadow:0 1px 5px rgba(0,0,0,.5)}
 
   .eyebrow{font-size:12px;font-weight:700;color:var(--green);letter-spacing:.1em;margin-bottom:12px}
   .q{font-size:19px;font-weight:700;line-height:1.55;letter-spacing:.01em;margin-bottom:22px;color:var(--ink)}
@@ -119,11 +134,11 @@
 
   .loading{align-items:center;justify-content:center;text-align:center}
   .spin{
-    width:34px;height:34px;border:3px solid var(--line);border-top-color:var(--green);
+    width:34px;height:34px;border:3px solid rgba(255,255,255,.35);border-top-color:var(--gold);
     border-radius:50%;animation:spin .8s linear infinite;margin-bottom:18px;
   }
   @keyframes spin{to{transform:rotate(360deg)}}
-  .loading p{font-size:14px;color:var(--sub);letter-spacing:.04em}
+  .loading p{font-size:14px;color:#fff;letter-spacing:.04em;text-shadow:0 1px 8px rgba(0,0,0,.5)}
 
   .result{padding-top:26px}
   .r-label{font-size:13px;color:var(--ink);text-align:center}
@@ -146,7 +161,7 @@
   .gap-num{font-size:12px;font-weight:700;width:34px;text-align:right;font-variant-numeric:tabular-nums}
 
   .comment{
-    background:#F3F6F1;border:1px solid var(--line);border-radius:12px;
+    background:rgba(243,246,241,.78);border:1px solid var(--line);border-radius:12px;
     padding:14px 16px;font-size:13.5px;line-height:1.7;color:var(--ink);margin-bottom:16px;
   }
   .type-tag{
@@ -261,6 +276,9 @@
 </head>
 <body>
 <div class="frame">
+  <div class="bgwrap" id="bgwrap" aria-hidden="true">
+    <video id="bgVideo" muted loop playsinline preload="auto"></video>
+  </div>
   <div class="top" id="top">
     <button class="back" id="back" aria-label="前へ戻る">‹</button>
     <div class="progress-wrap">
@@ -435,6 +453,23 @@ function insertLead(extra, opts){
    ========================================================================= */
 function showTop(visible){ topbar.classList.toggle('hidden', !visible); }
 
+/* 背景動画の切替：'hero'（LP）／'body'（診断中・結果）／null（質問＝動画なし） */
+const BG_SRC = { hero:"assets/AI_katsuyo_shindan_hero.mp4", body:"assets/AI_katsuyo_shindan_body.mp4" };
+let curBg = null;
+function setBg(mode){
+  const wrap = document.getElementById('bgwrap');
+  const v = document.getElementById('bgVideo');
+  if(!mode){ wrap.classList.remove('show'); return; }
+  if(curBg !== mode){
+    curBg = mode;
+    v.muted = true;
+    v.src = BG_SRC[mode];
+    v.load();
+    const p = v.play(); if(p && p.catch) p.catch(()=>{});
+  }
+  wrap.classList.add('show');
+}
+
 function setProgress(i){
   const pct = (i/QUESTIONS.length)*100;
   pBar.style.width = pct + "%";
@@ -458,6 +493,7 @@ function swap(next){
    ========================================================================= */
 function renderLP(){
   showTop(false);
+  setBg('hero');
   const s = document.createElement('div');
   s.className = 'screen lp enter';
   s.innerHTML = `
@@ -479,6 +515,7 @@ function renderLP(){
    ========================================================================= */
 function renderQuestion(i){
   showTop(true);
+  setBg(null);   // 質問画面は動画なし（従来のクリーム背景）
   setProgress(i);
   const Q = QUESTIONS[i];
   const screen = document.createElement('div');
@@ -508,6 +545,7 @@ function renderQuestion(i){
 /* 3) 診断中の「間」（1.3秒） */
 function renderLoading(){
   showTop(false);   // 結果算出中：進捗UI（Q番号・N/5・バー）は出さない
+  setBg('body');
   const s=document.createElement('div');
   s.className='screen loading enter';
   s.innerHTML=`<div class="spin"></div><p>あなたの回答を診断しています…</p>`;
@@ -549,6 +587,7 @@ function renderResult(){
   const {comp,use,type}=compute();
   track('shindan_result', {compatibility:comp, usage:use, type:type});
   showTop(false);   // 結果画面は質問ではないので進捗UIを非表示
+  setBg('body');    // 診断中と同じbody動画（src据え置きで再読込なし）
   const s=document.createElement('div');
   s.className='screen result enter';
   s.innerHTML=`
