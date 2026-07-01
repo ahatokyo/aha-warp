@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI相性診断｜TAMAI</title>
+<style>
+  :root{
+    --paper:#F8F1E1;
+    --card:#FFF8EC;
+    --ink:#102942;
+    --sub:#63816C;
+    --green:#0B4D3C;
+    --green-2:#195846;
+    --green-soft:#E4EEE7;
+    --gold:#C6A047;
+    --gold-soft:#EBD6A9;
+    --sage:#63816C;
+    --line:#D8D8C4;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+    display:flex;justify-content:center;align-items:flex-start;
+    min-height:100%;
+    padding:24px 16px 48px;
+  }
+  .frame{
+    width:100%;max-width:440px;
+    background:var(--card);
+    border-radius:18px;
+    box-shadow:0 1px 2px rgba(16,41,66,.05),0 12px 40px rgba(11,77,60,.10);
+    overflow:hidden;
+    position:relative;
+    min-height:560px;
+    display:flex;flex-direction:column;
+  }
+
+  .top{
+    padding:18px 22px 14px;
+    border-bottom:1px solid var(--line);
+    display:flex;align-items:center;gap:14px;
+    min-height:60px;
+  }
+  .top.hidden{display:none}
+  .back{
+    width:30px;height:30px;border:none;background:transparent;cursor:pointer;
+    color:var(--sub);font-size:20px;line-height:1;border-radius:8px;
+    display:flex;align-items:center;justify-content:center;
+    flex:0 0 auto;transition:background .15s,color .15s,opacity .2s;
+  }
+  .back:hover{background:var(--green-soft);color:var(--green)}
+  .back:disabled{opacity:0;pointer-events:none}
+  .progress-wrap{flex:1}
+  .progress-meta{
+    display:flex;justify-content:space-between;align-items:baseline;
+    font-size:11px;color:var(--sub);letter-spacing:.04em;margin-bottom:7px;
+  }
+  .progress-meta .label{font-weight:700;color:var(--green)}
+  .bar{height:3px;background:#E2DEC6;border-radius:2px;overflow:hidden}
+  .bar>span{
+    display:block;height:100%;background:var(--green);border-radius:2px;
+    transition:width .45s cubic-bezier(.4,0,.1,1);width:0%;
+  }
+
+  .stage{flex:1;position:relative;overflow:hidden}
+  .screen{
+    position:absolute;inset:0;
+    padding:30px 22px 26px;
+    display:flex;flex-direction:column;
+    overflow-y:auto;
+  }
+  .screen.enter{animation:slideIn .34s cubic-bezier(.32,.72,0,1) both}
+  .screen.leave{animation:slideOut .28s cubic-bezier(.4,0,1,1) both}
+  @keyframes slideIn{from{opacity:0;transform:translateX(26px)}to{opacity:1;transform:translateX(0)}}
+  @keyframes slideOut{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(-22px)}}
+
+  /* ---------- LP（ファーストビュー） ---------- */
+  .lp{justify-content:center;text-align:center;padding:38px 26px}
+  .lp-kicker{font-size:12px;font-weight:700;color:var(--green);letter-spacing:.12em;margin-bottom:18px}
+  .lp-h1{font-size:25px;font-weight:800;line-height:1.5;letter-spacing:.01em;margin-bottom:8px}
+  .lp-h1 .pct{color:var(--gold);font-size:30px}
+  .lp-sub{font-size:13.5px;color:var(--sub);line-height:1.8;margin-bottom:30px}
+  .lp-meta{
+    display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--green);
+    background:var(--green-soft);padding:7px 14px;border-radius:20px;margin-bottom:30px;font-weight:700;
+  }
+  .lp-start{
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    width:100%;border:1.5px solid var(--gold-soft);cursor:pointer;
+    background:var(--green);color:#fff;font-family:inherit;font-weight:700;
+    font-size:16px;padding:16px;border-radius:12px;letter-spacing:.02em;transition:background .15s;
+  }
+  .lp-start:hover{background:#093D30}
+  .lp-start .arw{color:var(--gold);font-weight:800}
+  .lp-note{font-size:11px;color:#9AA59C;margin-top:16px;line-height:1.6}
+
+  .eyebrow{font-size:12px;font-weight:700;color:var(--green);letter-spacing:.1em;margin-bottom:12px}
+  .q{font-size:19px;font-weight:700;line-height:1.55;letter-spacing:.01em;margin-bottom:22px;color:var(--ink)}
+
+  .opt{
+    display:block;width:100%;text-align:left;cursor:pointer;
+    background:#FFFDF7;border:1.5px solid var(--line);border-radius:12px;
+    padding:15px 16px;margin-bottom:10px;
+    transition:border-color .15s,background .15s,transform .08s,color .15s;
+    font-family:inherit;color:var(--ink);
+  }
+  .opt:hover{border-color:var(--sage);background:var(--green-soft)}
+  .opt:active{transform:scale(.992)}
+  .opt .ttl{font-size:15px;font-weight:600;line-height:1.4}
+  .opt .desc{font-size:12px;color:var(--sub);margin-top:4px;line-height:1.5}
+  .opt.sel{border-color:var(--green);background:var(--green)}
+  .opt.sel .ttl{color:#fff}
+  .opt.sel .desc{color:#CDE0D6}
+
+  .loading{align-items:center;justify-content:center;text-align:center}
+  .spin{
+    width:34px;height:34px;border:3px solid var(--line);border-top-color:var(--green);
+    border-radius:50%;animation:spin .8s linear infinite;margin-bottom:18px;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .loading p{font-size:14px;color:var(--sub);letter-spacing:.04em}
+
+  .result{padding-top:26px}
+  .r-label{font-size:13px;color:var(--ink);text-align:center}
+  .r-score{
+    text-align:center;font-weight:800;line-height:1;
+    font-variant-numeric:tabular-nums;letter-spacing:-.02em;
+    margin:4px 0 2px;
+  }
+  .r-score.big{font-size:62px;color:var(--gold)}
+  .r-score.small{font-size:40px;color:var(--sage)}
+  .r-block{margin-bottom:14px}
+
+  .gap-viz{margin:20px 2px 18px}
+  .gap-row{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+  .gap-name{font-size:11px;color:var(--sub);width:64px;flex:0 0 auto}
+  .gap-track{flex:1;height:8px;background:#E7E3CE;border-radius:5px;overflow:hidden}
+  .gap-fill{height:100%;border-radius:5px;width:0;transition:width .8s cubic-bezier(.32,.72,0,1)}
+  .gap-fill.comp{background:var(--gold)}
+  .gap-fill.use{background:var(--sage)}
+  .gap-num{font-size:12px;font-weight:700;width:34px;text-align:right;font-variant-numeric:tabular-nums}
+
+  .comment{
+    background:#F3F6F1;border:1px solid var(--line);border-radius:12px;
+    padding:14px 16px;font-size:13.5px;line-height:1.7;color:var(--ink);margin-bottom:16px;
+  }
+  .type-tag{
+    display:inline-block;font-size:12px;font-weight:700;color:var(--green);
+    background:var(--green-soft);padding:5px 11px;border-radius:20px;margin-bottom:18px;
+  }
+  .disclaimer{font-size:10.5px;color:#9AA59C;line-height:1.6;margin-top:14px;text-align:center}
+
+  /* ---------- 出口（主：セミナー ／ 従：資料） ---------- */
+  .exit{border-top:1px solid var(--line);padding-top:20px;margin-top:4px}
+  .seminar-mini{font-size:12px;color:var(--sub);line-height:1.75;text-align:center;margin-bottom:13px}
+  .seminar-mini b{color:var(--ink);font-weight:700}
+
+  /* 主CTA：深緑ベタ・大・矢印にゴールドアクセント */
+  .cta{
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    width:100%;border:1.5px solid var(--gold-soft);cursor:pointer;
+    background:var(--green);color:#fff;font-family:inherit;font-weight:700;
+    font-size:16px;padding:16px;border-radius:12px;letter-spacing:.02em;
+    transition:background .15s;
+  }
+  .cta:hover{background:#093D30}
+  .cta:disabled{opacity:.55;cursor:default}
+  .cta .arw{color:var(--gold);font-weight:800}
+
+  /* 従CTA：枠線のみ・控えめ（主より視覚的に弱く） */
+  .exit-div{display:flex;align-items:center;gap:10px;color:#B9C1B0;font-size:10.5px;letter-spacing:.1em;margin:18px 0 12px}
+  .exit-div::before,.exit-div::after{content:"";flex:1;height:1px;background:var(--line)}
+  .sub-cta{
+    display:block;width:100%;text-align:center;cursor:pointer;
+    background:transparent;border:1.5px solid var(--line);border-radius:12px;
+    color:var(--sub);font-family:inherit;font-weight:700;font-size:13.5px;
+    padding:13px;transition:border-color .15s,color .15s;
+  }
+  .sub-cta:hover,.sub-cta.active{border-color:var(--sage);color:var(--green)}
+
+  /* 従CTA展開パネル */
+  .material-panel{max-height:0;overflow:hidden;transition:max-height .32s cubic-bezier(.32,.72,0,1)}
+  .material-panel.open{max-height:720px}
+  .material-inner{padding-top:15px}
+  .material-lead{font-size:12.5px;color:var(--sub);line-height:1.7;margin-bottom:14px}
+
+  .field{margin-bottom:13px}
+  .field label{display:block;font-size:12px;font-weight:700;color:var(--ink);margin-bottom:6px}
+  .field input{
+    width:100%;font-family:inherit;font-size:15px;color:var(--ink);
+    background:#FFFDF7;border:1.5px solid var(--line);border-radius:10px;padding:12px 14px;
+    transition:border-color .15s;
+  }
+  .field input:focus{outline:none;border-color:var(--green)}
+  .field .err{font-size:11.5px;color:#B4453A;margin-top:5px;display:none}
+  .field.invalid input{border-color:#B4453A}
+  .field.invalid .err{display:block}
+
+  /* 従の送信ボタン：緑ベタだが主より小さくゴールドなし */
+  .material-submit{
+    display:block;width:100%;cursor:pointer;border:none;margin-top:4px;
+    background:var(--green);color:#fff;font-family:inherit;font-weight:700;font-size:14px;
+    padding:13px;border-radius:12px;transition:background .15s;
+  }
+  .material-submit:hover{background:#093D30}
+  .material-submit:disabled{opacity:.55;cursor:default}
+  .material-err{font-size:12px;color:#B4453A;text-align:center;margin-top:10px;display:none}
+  .material-err.show{display:block}
+  .material-note{font-size:10.5px;color:#9AA59C;line-height:1.6;margin-top:8px;text-align:center}
+
+  /* 送信成功→資料リンク */
+  .material-done{text-align:center;padding:4px 0 2px}
+  .material-done-h{color:var(--green);font-weight:800;font-size:15px;margin-bottom:8px}
+  .material-done-p{font-size:12.5px;color:var(--sub);line-height:1.7;margin-bottom:14px}
+  .material-link{
+    display:block;text-align:center;text-decoration:none;
+    border:1.5px solid var(--green);border-radius:12px;color:var(--green);
+    background:transparent;font-weight:700;font-size:14px;padding:13px;transition:background .15s;
+  }
+  .material-link:hover{background:var(--green-soft)}
+
+  @media (prefers-reduced-motion:reduce){
+    .screen.enter,.screen.leave{animation:none}
+    .bar>span,.gap-fill,.material-panel{transition:none}
+    .spin{animation:spin 1.4s linear infinite}
+  }
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="top" id="top">
+    <button class="back" id="back" aria-label="前へ戻る">‹</button>
+    <div class="progress-wrap">
+      <div class="progress-meta">
+        <span class="label" id="pLabel">Q1</span>
+        <span id="pCount">1 / 5</span>
+      </div>
+      <div class="bar"><span id="pBar"></span></div>
+    </div>
+  </div>
+  <div class="stage" id="stage"></div>
+</div>
+
+<script>
+/* =========================================================================
+   設定（ここだけ自分の値に差し替える）
+   - SUPABASE_URL       : 共有プロジェクトのURL（majunwobgxvdckyyunxu）。
+   - SUPABASE_ANON_KEY  : anon（＝Publishable / sb_publishable_...）キー。
+                          ブラウザ公開OK。Secret key は絶対に置かない。
+       → フロントから ai_shindan_leads へ直接 INSERT する。
+         RLS で anon の INSERT を許可しておくこと（15_ai_shindan_schema.sql 参照）。
+   - SEMINAR_FORM_URL   : セミナー公式申込フォーム。
+   - MATERIAL_URL       : 「7つのAI活用レベル」資料（Canva）。
+   ※ 自動メール送信・Make.com連携は無し。保存は Supabase への INSERT のみ。
+   ========================================================================= */
+const SUPABASE_URL      = "https://majunwobgxvdckyyunxu.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_p93V6Tk3LAn8HjwmPuNbKg_00cs6Z6L";
+const SEMINAR_FORM_URL  = "https://forms.gle/EsWzPhHLcsCANe3n6";
+const MATERIAL_URL      = "https://canva.link/vqrlfcga21heg2x";
+
+/* ----- 計測タグの発火（GA4 / Meta Pixel は既存タグを流用） ----- */
+function track(event, params){
+  try{ if(window.gtag) gtag('event', event, params||{}); }catch(e){}
+  try{ if(window.fbq) fbq('trackCustom', event, params||{}); }catch(e){}
+}
+
+/* =========================================================================
+   診断ロジック（計算式はこの1箇所のみ）
+   ========================================================================= */
+const QUESTIONS = [
+  {
+    key:"q1", col:"q1_main_work", q:"あなたの仕事の中心に一番近いものは？",
+    options:[
+      {t:"発信・集客・販売促進", d:"SNS、チラシ、HP、広告、LINE配信など", base:76},
+      {t:"企画・教育・コンサル・士業系", d:"講座、研修、相談、分析、専門知識の提供", base:74},
+      {t:"営業・提案・顧客対応", d:"商談、見積もり、提案書、問い合わせ対応", base:70},
+      {t:"事務・管理業務", d:"メール、請求、予約、議事録、社内資料", base:68},
+      {t:"店舗・接客・サービス提供", d:"飲食、美容、整体、クリニック、教室", base:58},
+      {t:"現場作業・職人技術", d:"建設、製造、修理、配送、施術、調理", base:48},
+      {t:"その他", d:"", base:55},
+    ]
+  },
+  {
+    key:"q2", col:"q2_text_volume", q:"仕事の中で、文章や情報を整理する機会はどれくらいありますか？",
+    options:[
+      {t:"とても多い", add:14},
+      {t:"ある程度ある", add:10},
+      {t:"少しある", add:6},
+      {t:"ほとんどない", add:0},
+    ]
+  },
+  {
+    key:"q3", col:"q3_repeat_work", q:"毎回似たような対応・作業は発生しますか？",
+    options:[
+      {t:"よくある", add:10},
+      {t:"たまにある", add:7},
+      {t:"あまりない", add:2},
+      {t:"わからない", add:4},
+    ]
+  },
+  {
+    key:"q4", col:"q4_ai_usage", q:"現在、AIを仕事でどれくらい使っていますか？",
+    options:[
+      {t:"ほとんど使っていない", use:8},
+      {t:"たまに試す程度", use:18},
+      {t:"一部の業務で使っている", use:38},
+      {t:"日常的に使っている", use:62},
+      {t:"社内・事業で本格活用している", use:82},
+    ]
+  },
+  {
+    key:"q5", col:"q5_ai_need", q:"AIに一番手伝ってほしいことは何ですか？",
+    options:[
+      {t:"SNS・チラシ・HPなどの発信", type:"集客・発信ブーストタイプ"},
+      {t:"メール・資料・文章作成", type:"文章・資料作成サポートタイプ"},
+      {t:"問い合わせ対応・事務作業", type:"事務効率化タイプ"},
+      {t:"営業・提案・売上アップ", type:"営業・提案強化タイプ"},
+      {t:"アイデア出し・経営の壁打ち", type:"社長の右腕タイプ"},
+      {t:"何に使えるか知りたい", type:"AI活用発見タイプ"},
+      {t:"特にない", type:"目的整理タイプ"},
+    ]
+  },
+];
+
+const stage  = document.getElementById('stage');
+const top    = document.getElementById('top');
+const back   = document.getElementById('back');
+const pBar   = document.getElementById('pBar');
+const pLabel = document.getElementById('pLabel');
+const pCount = document.getElementById('pCount');
+
+let idx = 0;
+const answers = {};   // {q1:選択index, ...}
+
+/* =========================================================================
+   流入元（UTM / source）— LP着地直後にURLから取得し localStorage に退避。
+   診断中のリロードでURLパラメータが消えても保持する。
+   ========================================================================= */
+const ATTR_KEY = "ai_shindan_attr";
+function captureAttribution(){
+  let saved = {};
+  try{ saved = JSON.parse(localStorage.getItem(ATTR_KEY) || "{}"); }catch(e){}
+  const p = new URLSearchParams(location.search);
+  const utm_source   = p.get("utm_source")   || saved.utm_source   || "";
+  const utm_campaign = p.get("utm_campaign") || saved.utm_campaign || "";
+  const campaign     = p.get("campaign")     || saved.campaign     || utm_campaign || "";
+  // source: 明示パラメータ → utm_source → 参照元から推定 → organic
+  let source = p.get("source") || saved.source || "";
+  if(!source){
+    const us = (utm_source || "").toLowerCase();
+    const ref = (document.referrer || "").toLowerCase();
+    if(us.includes("insta") || ref.includes("instagram")) source = "instagram";
+    else if(us.includes("face") || us === "fb" || ref.includes("facebook")) source = "facebook";
+    else if(us) source = us;
+    else source = "organic";
+  }
+  const attr = {source, campaign, utm_source, utm_campaign};
+  try{ localStorage.setItem(ATTR_KEY, JSON.stringify(attr)); }catch(e){}
+  return attr;
+}
+const attribution = captureAttribution();
+
+/* =========================================================================
+   Supabase 直接 INSERT（anonキー・insert専用）
+   診断回答・スコア・タイプを毎回同じ行に含めて保存する。
+   ========================================================================= */
+function leadBase(){
+  const {comp,use,type}=compute();
+  return {
+    q1_main_work:   QUESTIONS[0].options[answers.q1].t,
+    q2_text_volume: QUESTIONS[1].options[answers.q2].t,
+    q3_repeat_work: QUESTIONS[2].options[answers.q3].t,
+    q4_ai_usage:    QUESTIONS[3].options[answers.q4].t,
+    q5_ai_need:     QUESTIONS[4].options[answers.q5].t,
+    compatibility_score: comp,
+    usage_score: use,
+    result_type: type,
+    source: attribution.source,
+    campaign: attribution.campaign,
+    utm_source: attribution.utm_source,
+    utm_campaign: attribution.utm_campaign,
+  };
+}
+function insertLead(extra, opts){
+  opts = opts || {};
+  const row = Object.assign({}, leadBase(), extra);
+  return fetch(SUPABASE_URL.replace(/\/+$/,'') + "/rest/v1/ai_shindan_leads", {
+    method:"POST",
+    headers:{
+      "apikey": SUPABASE_ANON_KEY,
+      "Authorization":"Bearer " + SUPABASE_ANON_KEY,
+      "Content-Type":"application/json",
+      "Prefer":"return=minimal",
+    },
+    body: JSON.stringify(row),
+    keepalive: !!opts.keepalive,
+  });
+}
+
+/* =========================================================================
+   画面遷移ユーティリティ
+   ========================================================================= */
+function showTop(visible){ top.classList.toggle('hidden', !visible); }
+
+function setProgress(i){
+  const pct = (i/QUESTIONS.length)*100;
+  pBar.style.width = pct + "%";
+  pLabel.textContent = "Q" + (i+1);
+  pCount.textContent = (i+1) + " / " + QUESTIONS.length;
+  back.disabled = (i===0);
+}
+
+function swap(next){
+  const cur = stage.querySelector('.screen');
+  if(cur){
+    cur.classList.remove('enter');
+    cur.classList.add('leave');
+    setTimeout(()=>cur.remove(),280);
+  }
+  stage.appendChild(next);
+}
+
+/* =========================================================================
+   1) LP（ファーストビュー）
+   ========================================================================= */
+function renderLP(){
+  showTop(false);
+  const s = document.createElement('div');
+  s.className = 'screen lp enter';
+  s.innerHTML = `
+    <div class="lp-kicker">多摩の事業者向け・無料</div>
+    <div class="lp-h1">あなたの会社とAIの<br>相性は <span class="pct">何％</span>？</div>
+    <div class="lp-sub">5つの質問に答えるだけ。<br>あなたの仕事に合ったAIの使い方が分かります。</div>
+    <div class="lp-meta">⏱ 5問・約60秒・無料</div>
+    <button class="lp-start" id="startBtn"><span>診断をはじめる</span><span class="arw">›</span></button>
+    <div class="lp-note">結果はその場で表示されます。</div>`;
+  swap(s);
+  s.querySelector('#startBtn').addEventListener('click', ()=>{
+    track('shindan_start', {source: attribution.source});
+    idx = 0; renderQuestion(0);
+  });
+}
+
+/* =========================================================================
+   2) 診断 5問（タップで自動的に次へ）
+   ========================================================================= */
+function renderQuestion(i){
+  showTop(true);
+  setProgress(i);
+  const Q = QUESTIONS[i];
+  const screen = document.createElement('div');
+  screen.className = 'screen enter';
+  let html = `<div class="eyebrow">Q${i+1} / ${QUESTIONS.length}</div><div class="q">${Q.q}</div>`;
+  Q.options.forEach((o,oi)=>{
+    const sel = answers[Q.key]===oi ? ' sel':'';
+    html += `<button class="opt${sel}" data-oi="${oi}">
+      <span class="ttl">${o.t}</span>${o.d?`<span class="desc">${o.d}</span>`:''}</button>`;
+  });
+  screen.innerHTML = html;
+  swap(screen);
+  screen.querySelectorAll('.opt').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const oi = +btn.dataset.oi;
+      answers[Q.key]=oi;
+      screen.querySelectorAll('.opt').forEach(b=>b.classList.remove('sel'));
+      btn.classList.add('sel');
+      setTimeout(()=>{
+        if(i < QUESTIONS.length-1){ idx=i+1; renderQuestion(idx); }
+        else { renderLoading(); }
+      },300);
+    });
+  });
+}
+
+/* 3) 診断中の「間」（1.3秒） */
+function renderLoading(){
+  setProgress(QUESTIONS.length);
+  const s=document.createElement('div');
+  s.className='screen loading enter';
+  s.innerHTML=`<div class="spin"></div><p>あなたの回答を診断しています…</p>`;
+  swap(s);
+  setTimeout(renderResult,1300);
+}
+
+/* スコア計算（フロントのこの1箇所のみ） */
+function compute(){
+  const q1=QUESTIONS[0].options[answers.q1];
+  const q2=QUESTIONS[1].options[answers.q2];
+  const q3=QUESTIONS[2].options[answers.q3];
+  const q4=QUESTIONS[3].options[answers.q4];
+  const q5=QUESTIONS[4].options[answers.q5];
+  let comp = q1.base + q2.add + q3.add;
+  if(comp>100) comp=100;
+  const use = q4.use;
+  return {comp, use, type:q5.type};
+}
+
+function commentFor(comp, use){
+  if(use<=18){
+    return comp>=70
+      ? "相性は高い一方で、まだ業務には十分に活かしきれていない状態です。まずは、日々の業務の中で「AIに任せやすい仕事」を見つけることが第一歩です。"
+      : "本業そのものよりも、発信・問い合わせ対応・求人・マニュアル作成など、周辺業務からAIを活用できる可能性があります。";
+  }
+  if(use<=38) return "すでにAI活用の入口には立っています。次は、単発の利用ではなく、発信・資料作成・事務などの業務フローにどう組み込むかがポイントです。";
+  if(use<=62) return "すでにAIを日常業務に取り入れられている状態です。次のテーマは、個人利用から事業全体の仕組み化・チーム活用への展開です。";
+  return "高い活用段階です。次のテーマは、仕組み化・社内展開・より高度な業務改善です。";
+}
+
+/* =========================================================================
+   4) 結果 即表示（数字は即表示・ゲートしない）
+      下部に主従2つの出口：
+        主CTA = セミナー申込（メール入力なしで直行）
+        従CTA = 7つのAI活用レベル資料（フォーム展開→保存→資料リンク表示）
+   ========================================================================= */
+function renderResult(){
+  const {comp,use,type}=compute();
+  track('shindan_result', {compatibility:comp, usage:use, type:type});
+  showTop(true);
+  back.disabled=true;
+  pBar.style.width="100%";
+  const s=document.createElement('div');
+  s.className='screen result enter';
+  s.innerHTML=`
+    <div class="r-block">
+      <div class="r-label">あなたの会社とAIの相性は</div>
+      <div class="r-score big">${comp}<span style="font-size:.5em;font-weight:700">%</span></div>
+    </div>
+    <div class="r-block">
+      <div class="r-label">現在のAI活用度は</div>
+      <div class="r-score small">${use}<span style="font-size:.55em;font-weight:700">%</span></div>
+    </div>
+
+    <div class="gap-viz">
+      <div class="gap-row">
+        <span class="gap-name">AI相性</span>
+        <span class="gap-track"><span class="gap-fill comp" data-w="${comp}"></span></span>
+        <span class="gap-num" style="color:var(--gold)">${comp}%</span>
+      </div>
+      <div class="gap-row">
+        <span class="gap-name">現在活用度</span>
+        <span class="gap-track"><span class="gap-fill use" data-w="${use}"></span></span>
+        <span class="gap-num" style="color:var(--sage)">${use}%</span>
+      </div>
+    </div>
+
+    <div class="comment">${commentFor(comp,use)}</div>
+    <div class="type-tag">${type}</div>
+
+    <div class="exit">
+      <!-- 主：セミナー申込（強） -->
+      <div class="seminar-mini">
+        <b>〈第15回〉サイバービジネス研究会（無料オンライン）</b><br>
+        2026年7月21日(火) 18:00〜19:30 ／ 主催：サイバーシルクロード八王子
+      </div>
+      <button class="cta" id="seminarBtn"><span>セミナーに申し込む</span><span class="arw">›</span></button>
+
+      <!-- 従：資料請求（弱・展開式） -->
+      <div class="exit-div">または</div>
+      <button class="sub-cta" id="materialToggle" aria-expanded="false">7つのAI活用レベルを知りたい方へ</button>
+      <div class="material-panel" id="materialPanel">
+        <div class="material-inner">
+          <div class="material-lead">下記をご入力いただくと、「7つのAI活用レベル」の資料をこの画面でご覧いただけます。</div>
+          <div class="field" id="f-company">
+            <label for="in-company">会社名・屋号</label>
+            <input id="in-company" type="text" autocomplete="organization" placeholder="〇〇商店">
+            <span class="err">会社名・屋号を入力してください。</span>
+          </div>
+          <div class="field" id="f-name">
+            <label for="in-name">お名前</label>
+            <input id="in-name" type="text" autocomplete="name" placeholder="山田 太郎">
+            <span class="err">お名前を入力してください。</span>
+          </div>
+          <div class="field" id="f-email">
+            <label for="in-email">メールアドレス</label>
+            <input id="in-email" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com">
+            <span class="err">正しいメールアドレスを入力してください。</span>
+          </div>
+          <button class="material-submit" id="materialSubmit">資料を受け取る</button>
+          <div class="material-err" id="materialErr">送信に失敗しました。通信環境をご確認のうえ、もう一度お試しください。</div>
+          <div class="material-note">いただいた情報は本診断・資料のご案内のみに使用します。</div>
+        </div>
+      </div>
+
+      <div class="disclaimer">※この診断は、業務内容・文章作成量・定型業務・現在のAI活用状況をもとにした簡易診断です。</div>
+    </div>`;
+  swap(s);
+  requestAnimationFrame(()=>setTimeout(()=>{
+    s.querySelectorAll('.gap-fill').forEach(f=>f.style.width=f.dataset.w+"%");
+  },120));
+
+  wireSeminar(s, type);
+  wireMaterial(s, type);
+}
+
+/* 主CTA：メール入力なしで直行。別タブで即フォームを開き、記録は裏で送る */
+function wireSeminar(root, type){
+  root.querySelector('#seminarBtn').addEventListener('click', ()=>{
+    track('shindan_seminar_click', {type:type});
+    // 決めている人を待たせない：ユーザー操作の瞬間に別タブを開く（ポップアップブロック回避）
+    const w = window.open(SEMINAR_FORM_URL, '_blank', 'noopener');
+    // seminar_click=true を診断データ付きで記録（keepaliveで確実に送る／応答は待たない）
+    insertLead({seminar_click:true}, {keepalive:true}).catch(()=>{});
+    // 新タブがブロックされた場合は同タブで遷移
+    if(!w){ window.location.href = SEMINAR_FORM_URL; }
+  });
+}
+
+/* 従CTA：展開→保存→保存成功で資料リンクを表示 */
+function wireMaterial(root, type){
+  const toggle = root.querySelector('#materialToggle');
+  const panel  = root.querySelector('#materialPanel');
+  const inner  = panel.querySelector('.material-inner');
+  const companyEl = root.querySelector('#in-company');
+  const nameEl    = root.querySelector('#in-name');
+  const mailEl    = root.querySelector('#in-email');
+  const submit    = root.querySelector('#materialSubmit');
+  const errBox    = root.querySelector('#materialErr');
+
+  toggle.addEventListener('click', ()=>{
+    const open = panel.classList.toggle('open');
+    toggle.classList.toggle('active', open);
+    toggle.setAttribute('aria-expanded', open ? 'true':'false');
+    if(open){
+      track('shindan_material_open', {type:type});
+      setTimeout(()=>{ companyEl.focus(); companyEl.scrollIntoView({block:'center',behavior:'smooth'}); },260);
+    }
+  });
+
+  function clearErr(id){ root.querySelector('#f-'+id).classList.remove('invalid'); }
+  companyEl.addEventListener('input',()=>clearErr('company'));
+  nameEl.addEventListener('input',()=>clearErr('name'));
+  mailEl.addEventListener('input',()=>clearErr('email'));
+
+  submit.addEventListener('click', async ()=>{
+    const company=companyEl.value.trim();
+    const name=nameEl.value.trim();
+    const email=mailEl.value.trim();
+    const emailOk=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    let ok=true;
+    if(!company){ root.querySelector('#f-company').classList.add('invalid'); ok=false; }
+    if(!name){ root.querySelector('#f-name').classList.add('invalid'); ok=false; }
+    if(!emailOk){ root.querySelector('#f-email').classList.add('invalid'); ok=false; }
+    if(!ok) return;
+
+    errBox.classList.remove('show');
+    submit.disabled=true;
+    submit.textContent='送信中…';
+
+    try{
+      const res = await insertLead({name, company, email, material_request:true});
+      if(!res.ok){ throw new Error('insert failed: '+res.status); }
+      track('shindan_material', {type:type});
+      // 保存成功 → 画面に資料リンクを表示（別ページには飛ばさない）
+      inner.innerHTML = `
+        <div class="material-done">
+          <div class="material-done-h">✓ 送信ありがとうございます</div>
+          <div class="material-done-p">「7つのAI活用レベル」の資料をご用意しました。<br>下のボタンから今すぐご覧いただけます。</div>
+          <a class="material-link" href="${MATERIAL_URL}" target="_blank" rel="noopener">7つのAI活用レベルの資料はこちら ›</a>
+        </div>`;
+    }catch(e){
+      submit.disabled=false;
+      submit.textContent='資料を受け取る';
+      errBox.classList.add('show');
+    }
+  });
+}
+
+/* 戻る矢印（診断中のみ有効） */
+back.addEventListener('click',()=>{
+  if(idx>0){ idx--; renderQuestion(idx); }
+});
+
+/* 起動：LPから */
+renderLP();
+</script>
+</body>
+</html>
