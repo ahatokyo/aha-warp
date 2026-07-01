@@ -194,7 +194,7 @@
     width:100%;border:1.5px solid var(--gold-soft);cursor:pointer;
     background:var(--green);color:#fff;font-family:inherit;font-weight:700;
     font-size:16px;padding:16px;border-radius:12px;letter-spacing:.02em;
-    transition:background .15s;
+    transition:background .15s;white-space:nowrap;
   }
   .cta:hover{background:#093D30}
   .cta:disabled{opacity:.55;cursor:default}
@@ -595,7 +595,7 @@ function renderResult(){
   // 伸びしろ＝相性−活用度。マイナス表記はせず前向きに。0以下なら十分活用できている表示。
   const gap = comp - use;
   const growthHtml = gap > 0
-    ? `<div class="r-growth">活かしきれていない伸びしろ <b>${gap}pt</b></div>`
+    ? `<div class="r-growth">AI活用の伸びしろ <b>${gap}pt</b></div>`
     : `<div class="r-growth done">すでに十分に活かせています</div>`;
   const s=document.createElement('div');
   s.className='screen result enter';
@@ -625,7 +625,7 @@ function renderResult(){
         <span class="sbadge full">会場参加枠 満員御礼</span>
         <span class="sbadge online">オンライン参加 受付中</span>
       </div>
-      <button class="cta" id="seminarBtn"><span>セミナーに申し込む</span><span class="arw">›</span></button>
+      <button class="cta" id="seminarBtn"><span>セミナーの詳細を確認する</span><span class="arw">›</span></button>
 
       <!-- 従：資料請求（弱・展開式） -->
       <div class="exit-div">または</div>
