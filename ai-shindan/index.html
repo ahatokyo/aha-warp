@@ -22,31 +22,32 @@
   html,body{height:100%}
   body{
     font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif;
-    background:var(--paper);
+    background:#000;
     color:var(--ink);
     -webkit-font-smoothing:antialiased;
-    display:flex;justify-content:center;align-items:flex-start;
+    display:flex;justify-content:center;align-items:stretch;
     min-height:100%;
-    padding:24px 16px 48px;
+    padding:0;
   }
+  /* 画面いっぱい（余白・角丸なし・全高） */
   .frame{
-    width:100%;max-width:440px;
+    width:100%;max-width:none;
     background:var(--card);
-    border-radius:18px;
-    box-shadow:0 1px 2px rgba(16,41,66,.05),0 12px 40px rgba(11,77,60,.10);
+    border-radius:0;
+    box-shadow:none;
     overflow:hidden;
     position:relative;
-    min-height:560px;
+    min-height:100vh;min-height:100dvh;
     display:flex;flex-direction:column;
   }
 
-  /* 背景動画レイヤー（画面ごとに src 切替） */
-  .bgwrap{
-    position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none;
+  /* 背景動画レイヤー（hero/body の2本を並行プリロード、表示は個別にフェード） */
+  .bgwrap{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+  .bgvid{
+    position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
     opacity:0;transition:opacity .45s ease;
   }
-  .bgwrap.show{opacity:1}
-  .bgwrap video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .bgvid.on{opacity:1}
 
   .top{
     position:relative;z-index:2;
@@ -277,7 +278,8 @@
 <body>
 <div class="frame">
   <div class="bgwrap" id="bgwrap" aria-hidden="true">
-    <video id="bgVideo" muted loop playsinline preload="auto"></video>
+    <video id="bgHero" class="bgvid" muted loop playsinline autoplay preload="auto" src="assets/AI_katsuyo_shindan_hero.mp4"></video>
+    <video id="bgBody" class="bgvid" muted loop playsinline autoplay preload="auto" src="assets/AI_katsuyo_shindan_body.mp4"></video>
   </div>
   <div class="top" id="top">
     <button class="back" id="back" aria-label="前へ戻る">‹</button>
@@ -453,21 +455,17 @@ function insertLead(extra, opts){
    ========================================================================= */
 function showTop(visible){ topbar.classList.toggle('hidden', !visible); }
 
-/* 背景動画の切替：'hero'（LP）／'body'（診断中・結果）／null（質問＝動画なし） */
-const BG_SRC = { hero:"assets/AI_katsuyo_shindan_hero.mp4", body:"assets/AI_katsuyo_shindan_body.mp4" };
-let curBg = null;
+/* 背景動画の切替：'hero'（LP）／'body'（診断中・結果）／null（質問＝動画なし）
+   hero/body は最初から並行プリロード。表示はフェードで切替し、診断中でも即再生される。 */
 function setBg(mode){
-  const wrap = document.getElementById('bgwrap');
-  const v = document.getElementById('bgVideo');
-  if(!mode){ wrap.classList.remove('show'); return; }
-  if(curBg !== mode){
-    curBg = mode;
-    v.muted = true;
-    v.src = BG_SRC[mode];
-    v.load();
-    const p = v.play(); if(p && p.catch) p.catch(()=>{});
-  }
-  wrap.classList.add('show');
+  const hero = document.getElementById('bgHero');
+  const body = document.getElementById('bgBody');
+  hero.muted = true; body.muted = true;
+  hero.classList.toggle('on', mode==='hero');
+  body.classList.toggle('on', mode==='body');
+  const play = (v)=>{ const p=v.play&&v.play(); if(p&&p.catch) p.catch(()=>{}); };
+  if(mode==='hero') play(hero);
+  if(mode==='body') play(body);
 }
 
 function setProgress(i){
