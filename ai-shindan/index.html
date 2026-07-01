@@ -183,6 +183,34 @@
   }
   .sub-cta:hover,.sub-cta.active{border-color:var(--sage);color:var(--green)}
 
+  /* 資料抜粋カルーセル（控えめサイズ・スコアを食わない） */
+  .car-head{font-size:12.5px;font-weight:700;color:var(--ink);text-align:center;margin:2px 0 10px}
+  .car-head span{font-weight:600;color:var(--sub);font-size:11px}
+  .carousel{position:relative}
+  .car-track{
+    display:flex;overflow-x:auto;scroll-snap-type:x mandatory;
+    -webkit-overflow-scrolling:touch;scrollbar-width:none;border-radius:12px;
+  }
+  .car-track::-webkit-scrollbar{display:none}
+  .car-slide{flex:0 0 100%;scroll-snap-align:center;position:relative}
+  .car-slide img{
+    display:block;width:100%;aspect-ratio:16/9;object-fit:cover;
+    border-radius:12px;border:1px solid var(--line);
+    filter:saturate(.9);   /* 黒×金の彩度をわずかに落としTAMAIに馴染ませる */
+  }
+  /* 軽い半透明オーバーレイ（クリーム寄せ） */
+  .car-slide::after{
+    content:"";position:absolute;inset:0;border-radius:12px;pointer-events:none;
+    background:rgba(248,241,225,.12);
+  }
+  .car-dots{display:flex;justify-content:center;gap:6px;margin-top:10px}
+  .car-dots button{
+    width:6px;height:6px;padding:0;border:none;border-radius:50%;
+    background:var(--line);cursor:pointer;transition:background .2s,transform .2s;
+  }
+  .car-dots button.on{background:var(--green);transform:scale(1.35)}
+  .car-more{font-size:12px;font-weight:700;color:var(--sub);text-align:center;margin:12px 0 12px}
+
   /* 従CTA展開パネル */
   .material-panel{max-height:0;overflow:hidden;transition:max-height .32s cubic-bezier(.32,.72,0,1)}
   .material-panel.open{max-height:720px}
@@ -559,6 +587,24 @@ function renderResult(){
 
       <!-- 従：資料請求（弱・展開式） -->
       <div class="exit-div">または</div>
+
+      <!-- 資料抜粋カルーセル（従CTAの手前・押す前から見える位置） -->
+      <div class="car-head">資料の中身を少しだけ<span>（全50枚の一部）</span></div>
+      <div class="carousel">
+        <div class="car-track" id="carTrack">
+          <div class="car-slide"><img src="assets/level_1.jpg" loading="lazy" decoding="async" alt="徹底解説！7つのAI活用レベル（表紙）"></div>
+          <div class="car-slide"><img src="assets/level_2.jpg" loading="lazy" decoding="async" alt="Level 2：AIと会話する"></div>
+          <div class="car-slide"><img src="assets/level_3.jpg" loading="lazy" decoding="async" alt="Level 3：実務にAIを組み込む"></div>
+          <div class="car-slide"><img src="assets/level_4.jpg" loading="lazy" decoding="async" alt="Level 4：AIで資料を作る"></div>
+          <div class="car-slide"><img src="assets/level_5.jpg" loading="lazy" decoding="async" alt="Level 5：AIエージェントが自律実行"></div>
+          <div class="car-slide"><img src="assets/level_6.jpg" loading="lazy" decoding="async" alt="Level 7：自分でAIツールを開発する"></div>
+          <div class="car-slide"><img src="assets/level_7.jpg" loading="lazy" decoding="async" alt="AIツール比較：ChatGPT・Gemini・Claude・Genspark"></div>
+          <div class="car-slide"><img src="assets/level_8.jpg" loading="lazy" decoding="async" alt="まずはChatGPTに聞いてみよう"></div>
+        </div>
+        <div class="car-dots" id="carDots"></div>
+      </div>
+      <div class="car-more">続き（残り40枚以上）は資料で ↓</div>
+
       <button class="sub-cta" id="materialToggle" aria-expanded="false">7つのAI活用レベルを知りたい方へ</button>
       <div class="material-panel" id="materialPanel">
         <div class="material-inner">
@@ -593,6 +639,59 @@ function renderResult(){
 
   wireSeminar(s, type);
   wireMaterial(s, type);
+  wireCarousel(s);
+}
+
+/* 資料抜粋カルーセル：スワイプ＋自動送り（4.5秒）＋ドット */
+function wireCarousel(root){
+  const track = root.querySelector('#carTrack');
+  const dotsWrap = root.querySelector('#carDots');
+  if(!track) return;
+  const slides = track.querySelectorAll('.car-slide');
+  const n = slides.length;
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  let cur = 0, timer = null;
+
+  // ドット生成
+  for(let i=0;i<n;i++){
+    const b = document.createElement('button');
+    b.type='button'; b.setAttribute('aria-label',(i+1)+'枚目');
+    if(i===0) b.className='on';
+    b.addEventListener('click', ()=>{ go(i); restart(); });
+    dotsWrap.appendChild(b);
+  }
+  const dots = dotsWrap.querySelectorAll('button');
+
+  function go(i){
+    cur = (i+n)%n;
+    track.scrollTo({ left: cur*track.clientWidth, behavior: reduce ? 'auto':'smooth' });
+    setDots();
+  }
+  function setDots(){ dots.forEach((d,di)=>d.classList.toggle('on', di===cur)); }
+
+  // スクロール（手動スワイプ）に追従してドット更新
+  let raf=null;
+  track.addEventListener('scroll', ()=>{
+    if(raf) return;
+    raf = requestAnimationFrame(()=>{
+      raf=null;
+      const w = track.clientWidth || 1;
+      const i = Math.round(track.scrollLeft / w);
+      if(i!==cur){ cur=i; setDots(); }
+    });
+  });
+
+  function startAuto(){ if(reduce||timer) return; timer=setInterval(()=>go(cur+1), 4500); }
+  function stopAuto(){ if(timer){ clearInterval(timer); timer=null; } }
+  function restart(){ stopAuto(); startAuto(); }
+
+  // 操作中は自動送りを止め、離れたら再開
+  track.addEventListener('pointerdown', stopAuto);
+  track.addEventListener('pointerup', restart);
+  track.addEventListener('mouseenter', stopAuto);
+  track.addEventListener('mouseleave', restart);
+
+  startAuto();
 }
 
 /* 主CTA：メール入力なしで直行。別タブで即フォームを開き、記録は裏で送る */
