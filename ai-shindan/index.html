@@ -84,10 +84,8 @@
     display:flex;flex-direction:column;
     overflow-y:auto;
   }
-  /* 動画上に重ねる画面は自前の半透明バックドロップを持つ（読みやすさを各画面で最適化） */
+  /* LPのみ hero動画の上に重ねる（白文字の可読性のためのスクリム）。他画面は不透明。 */
   .screen.lp{background:linear-gradient(180deg,rgba(8,20,15,.30),rgba(8,20,15,.58))}
-  .screen.loading{background:rgba(9,20,15,.46)}
-  .screen.result{background:rgba(255,248,236,.82)}   /* クリームを少し透過＝動画がうっすら見える */
   .screen.enter{animation:slideIn .34s cubic-bezier(.32,.72,0,1) both}
   .screen.leave{animation:slideOut .28s cubic-bezier(.4,0,1,1) both}
   @keyframes slideIn{from{opacity:0;transform:translateX(26px)}to{opacity:1;transform:translateX(0)}}
@@ -135,11 +133,11 @@
 
   .loading{align-items:center;justify-content:center;text-align:center}
   .spin{
-    width:34px;height:34px;border:3px solid rgba(255,255,255,.35);border-top-color:var(--gold);
+    width:34px;height:34px;border:3px solid var(--line);border-top-color:var(--green);
     border-radius:50%;animation:spin .8s linear infinite;margin-bottom:18px;
   }
   @keyframes spin{to{transform:rotate(360deg)}}
-  .loading p{font-size:14px;color:#fff;letter-spacing:.04em;text-shadow:0 1px 8px rgba(0,0,0,.5)}
+  .loading p{font-size:14px;color:var(--sub);letter-spacing:.04em}
 
   .result{padding-top:26px}
   .r-label{font-size:13px;color:var(--ink);text-align:center}
@@ -162,7 +160,7 @@
   .gap-num{font-size:12px;font-weight:700;width:34px;text-align:right;font-variant-numeric:tabular-nums}
 
   .comment{
-    background:rgba(243,246,241,.78);border:1px solid var(--line);border-radius:12px;
+    background:#F3F6F1;border:1px solid var(--line);border-radius:12px;
     padding:14px 16px;font-size:13.5px;line-height:1.7;color:var(--ink);margin-bottom:16px;
   }
   .type-tag{
@@ -279,7 +277,6 @@
 <div class="frame">
   <div class="bgwrap" id="bgwrap" aria-hidden="true">
     <video id="bgHero" class="bgvid" muted loop playsinline autoplay preload="auto" src="assets/AI_katsuyo_shindan_hero.mp4"></video>
-    <video id="bgBody" class="bgvid" muted loop playsinline autoplay preload="auto" src="assets/AI_katsuyo_shindan_body.mp4"></video>
   </div>
   <div class="top" id="top">
     <button class="back" id="back" aria-label="前へ戻る">‹</button>
@@ -455,17 +452,12 @@ function insertLead(extra, opts){
    ========================================================================= */
 function showTop(visible){ topbar.classList.toggle('hidden', !visible); }
 
-/* 背景動画の切替：'hero'（LP）／'body'（診断中・結果）／null（質問＝動画なし）
-   hero/body は最初から並行プリロード。表示はフェードで切替し、診断中でも即再生される。 */
+/* 背景動画：hero（LP）のみ。それ以外の画面は不透明背景で動画なし。 */
 function setBg(mode){
   const hero = document.getElementById('bgHero');
-  const body = document.getElementById('bgBody');
-  hero.muted = true; body.muted = true;
+  hero.muted = true;
   hero.classList.toggle('on', mode==='hero');
-  body.classList.toggle('on', mode==='body');
-  const play = (v)=>{ const p=v.play&&v.play(); if(p&&p.catch) p.catch(()=>{}); };
-  if(mode==='hero') play(hero);
-  if(mode==='body') play(body);
+  if(mode==='hero'){ const p=hero.play&&hero.play(); if(p&&p.catch) p.catch(()=>{}); }
 }
 
 function setProgress(i){
@@ -543,7 +535,7 @@ function renderQuestion(i){
 /* 3) 診断中の「間」（1.3秒） */
 function renderLoading(){
   showTop(false);   // 結果算出中：進捗UI（Q番号・N/5・バー）は出さない
-  setBg('body');
+  setBg(null);
   const s=document.createElement('div');
   s.className='screen loading enter';
   s.innerHTML=`<div class="spin"></div><p>あなたの回答を診断しています…</p>`;
@@ -585,7 +577,7 @@ function renderResult(){
   const {comp,use,type}=compute();
   track('shindan_result', {compatibility:comp, usage:use, type:type});
   showTop(false);   // 結果画面は質問ではないので進捗UIを非表示
-  setBg('body');    // 診断中と同じbody動画（src据え置きで再読込なし）
+  setBg(null);      // 結果画面は動画なし・不透明背景
   const s=document.createElement('div');
   s.className='screen result enter';
   s.innerHTML=`
