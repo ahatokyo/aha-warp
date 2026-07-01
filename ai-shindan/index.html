@@ -171,8 +171,15 @@
 
   /* ---------- 出口（主：セミナー ／ 従：資料） ---------- */
   .exit{border-top:1px solid var(--line);padding-top:20px;margin-top:4px}
-  .seminar-mini{font-size:12px;color:var(--sub);line-height:1.75;text-align:center;margin-bottom:13px}
+  .seminar-mini{font-size:12px;color:var(--sub);line-height:1.75;text-align:center;margin-bottom:9px}
   .seminar-mini b{color:var(--ink);font-weight:700}
+  /* 参加枠：社会的証明の一言＋バッジ2つ（煽らず静かに） */
+  .seminar-note{font-size:12px;font-weight:700;color:var(--ink);text-align:center;line-height:1.6;margin-bottom:9px}
+  .seminar-badges{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+  .sbadge{font-size:11px;font-weight:700;padding:5px 11px;border-radius:20px;letter-spacing:.02em;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+  .sbadge.full{color:var(--sage);background:transparent;border:1px solid var(--line)}
+  .sbadge.online{color:#fff;background:var(--green);border:1px solid var(--green)}
+  .sbadge.online::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--gold);flex:0 0 auto}
 
   /* 主CTA：深緑ベタ・大・矢印にゴールドアクセント */
   .cta{
@@ -590,27 +597,19 @@ function renderResult(){
       <div class="r-score small">${use}<span style="font-size:.55em;font-weight:700">%</span></div>
     </div>
 
-    <div class="gap-viz">
-      <div class="gap-row">
-        <span class="gap-name">AI相性</span>
-        <span class="gap-track"><span class="gap-fill comp" data-w="${comp}"></span></span>
-        <span class="gap-num" style="color:var(--gold)">${comp}%</span>
-      </div>
-      <div class="gap-row">
-        <span class="gap-name">現在活用度</span>
-        <span class="gap-track"><span class="gap-fill use" data-w="${use}"></span></span>
-        <span class="gap-num" style="color:var(--sage)">${use}%</span>
-      </div>
-    </div>
-
     <div class="comment">${commentFor(comp,use)}</div>
     <div class="type-tag">${type}</div>
 
     <div class="exit">
       <!-- 主：セミナー申込（強） -->
       <div class="seminar-mini">
-        <b>〈第15回〉サイバービジネス研究会（無料オンライン）</b><br>
+        <b>〈第15回〉サイバービジネス研究会（参加無料）</b><br>
         2026年7月21日(火) 18:00〜19:30 ／ 主催：サイバーシルクロード八王子
+      </div>
+      <div class="seminar-note">申込多数につき会場満席――オンライン枠を追加受付中</div>
+      <div class="seminar-badges">
+        <span class="sbadge full">会場参加枠 満員御礼</span>
+        <span class="sbadge online">オンライン参加 受付中</span>
       </div>
       <button class="cta" id="seminarBtn"><span>セミナーに申し込む</span><span class="arw">›</span></button>
 
@@ -662,9 +661,6 @@ function renderResult(){
       <div class="disclaimer">※この診断は、業務内容・文章作成量・定型業務・現在のAI活用状況をもとにした簡易診断です。</div>
     </div>`;
   swap(s);
-  requestAnimationFrame(()=>setTimeout(()=>{
-    s.querySelectorAll('.gap-fill').forEach(f=>f.style.width=f.dataset.w+"%");
-  },120));
 
   wireSeminar(s, type);
   wireMaterial(s, type);
