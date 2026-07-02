@@ -330,10 +330,17 @@ const SUPABASE_ANON_KEY = "sb_publishable_p93V6Tk3LAn8HjwmPuNbKg_00cs6Z6L";
 const SEMINAR_FORM_URL  = "https://forms.gle/EsWzPhHLcsCANe3n6";
 const MATERIAL_URL      = "https://canva.link/vqrlfcga21heg2x";
 
-/* ----- 計測タグの発火（GA4 / Meta Pixel は既存タグを流用） ----- */
+/* ----- 計測タグの発火（GA4 / Meta Pixel） -----
+   gtag/fbq は「関数として存在するか」で判定する（window.プロパティ参照が
+   環境により falsy になりカスタム送信がスキップされるのを防ぐ）。
+   保険として dataLayer にも直接積む。 */
 function track(event, params){
-  try{ if(window.gtag) gtag('event', event, params||{}); }catch(e){}
-  try{ if(window.fbq) fbq('trackCustom', event, params||{}); }catch(e){}
+  var p = params || {};
+  try{
+    if(typeof gtag === 'function'){ gtag('event', event, p); }
+    else if(window.dataLayer){ window.dataLayer.push(['event', event, p]); }
+  }catch(e){}
+  try{ if(typeof fbq === 'function'){ fbq('trackCustom', event, p); } }catch(e){}
 }
 
 /* =========================================================================
