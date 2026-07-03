@@ -46,9 +46,10 @@ export default async function handler(req, res) {
 
   try {
     // 1. このユーザーが「受領済み・ガチャ未完了」のギフト（最古の1件）
+    //    受領者は既存列 redeemed_by（redeem_gift が受領時に記録）を参照する
     const { data: gifts, error: gErr } = await supabase.from('pecha_gifts')
       .select('token,sender_line_user_id,redeemed_at')
-      .eq('recipient_line_user_id', lineUserId)
+      .eq('redeemed_by', lineUserId)
       .not('redeemed_at', 'is', null)
       .is('gacha_completed_at', null)
       .order('redeemed_at', { ascending: true })

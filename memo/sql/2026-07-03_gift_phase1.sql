@@ -26,14 +26,15 @@ WHERE n.nspname = 'public'
 -- Step 1: pecha_gifts 列追加
 --   gift_type          : 'paid' | 'monitor_free'（券種。受け取り手のUIには出さない）
 --   expires_at         : 有効期限（NULL = 無期限。既存行はNULLのまま）
---   recipient_line_user_id : 受領者（改修②の判定・レポート用。受領時に記録）
 --   opened_at          : リンク開封（初回のみ記録。計測用・参考値）
 --   gacha_completed_at : 受け取り手のガチャ完了（改修②の発火点。Phase 3で使用）
+--   ※受領者は既存列 redeemed_by を流用する（Step 0確認で判明・2026-07-05決定。
+--     新列 recipient_line_user_id は追加しない。参照する既存コードは無く、
+--     過去の受領分との連続性を保つため1列に集約）
 -- ------------------------------------------------------------
 ALTER TABLE public.pecha_gifts
   ADD COLUMN IF NOT EXISTS gift_type text NOT NULL DEFAULT 'paid',
   ADD COLUMN IF NOT EXISTS expires_at timestamptz,
-  ADD COLUMN IF NOT EXISTS recipient_line_user_id text,
   ADD COLUMN IF NOT EXISTS opened_at timestamptz,
   ADD COLUMN IF NOT EXISTS gacha_completed_at timestamptz;
 
@@ -54,8 +55,9 @@ CREATE UNIQUE INDEX IF NOT EXISTS pecha_gifts_monitor_one_per_sender
 
 -- ------------------------------------------------------------
 -- Step 3: redeem_gift 改修
---   追加点: 期限切れチェック（戻り値 -4）/ 受領時に recipient_line_user_id を記録
---   維持点: 自己贈答は全面ブロック（-3）/ 使用済み（-1）/ 不正トークン（-2）
+--   追加点: 期限切れチェック（戻り値 -4）
+--   維持点: 自己贈答は全面ブロック（-3）/ 使用済み（-1）/ 不正トークン（-2）/
+--           受領者記録 redeemed_by = p_line_user_id（現行と同じ列に書き続ける）
 --   ※ CREATE OR REPLACE は既存のGRANT（anonのEXECUTE）を維持する
 -- ------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.redeem_gift(p_token text, p_line_user_id text)
@@ -81,7 +83,7 @@ BEGIN
 
   UPDATE pecha_gifts
      SET redeemed_at = now(),
-         recipient_line_user_id = p_line_user_id
+         redeemed_by = p_line_user_id
    WHERE token = p_token;
 
   -- クレジット付与（既存の add_credits RPC と同一経路・原子的）

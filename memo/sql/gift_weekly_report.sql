@@ -13,7 +13,7 @@ SELECT
   gift_type,                              -- paid / monitor_free
   credits,
   sender_line_user_id,
-  recipient_line_user_id,
+  redeemed_by AS recipient_line_user_id,   -- 受領者（既存列redeemed_byを流用）
   created_at  AT TIME ZONE 'Asia/Tokyo' AS issued_at_jst,
   shared_at   AT TIME ZONE 'Asia/Tokyo' AS shared_at_jst,
   opened_at   AT TIME ZONE 'Asia/Tokyo' AS opened_at_jst,
