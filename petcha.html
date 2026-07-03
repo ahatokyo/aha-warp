@@ -3307,11 +3307,13 @@ function makeThumb(base64, mime, maxEdge = 320, quality = 0.72) {
 // 生成画像を Storage に保存して pecha_illustrations に記録（表示とは非同期）
 async function persistResults(results) {
   if (MOCK_GENERATION || !state.user?.userId) return;
+  let savedAny = false;   // ② おすそわけ通知用（このロールで保存が成功したか）
   for (const r of results) {
     if (!r.b64) continue;
     try {
       const imageUrl = await supabase.uploadImage(state.user.userId, r.b64);
       const saved = await supabase.saveIllustration(state.user.userId, imageUrl, r.style, 'gacha');
+      savedAny = true;
       state.lastIllustrationUrl = imageUrl;   // 結果画面からのグッズ注文の記録用（Storage URL）
       state.lastIllustrationId = (Array.isArray(saved) && saved[0]) ? saved[0].id : null;
       // ⑤ 公開トグルが「掲載しない」なら反映（保存時点ではDB default=true）
@@ -3331,6 +3333,18 @@ async function persistResults(results) {
     } catch (e) {
       console.error('persist (upload/insert) error:', e);
     }
+  }
+  // ② おすそわけ（改修②）: pecha_illustrations への保存が成功した後にサーバーへ通知。
+  //    記録・付与判定はすべてサーバー側（/api/gacha-completed）で行い、
+  //    生成レコードの実在照合もサーバーが行う。失敗しても体験には影響させない
+  if (savedAny) {
+    try {
+      fetch('/api/gacha-completed', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lineUserId: state.user.userId })
+      }).catch(() => {});
+    } catch (e) {}
   }
   loadMypage();   // マイページ＆累計回数を再取得
   loadGallery();  // ⑤ ギャラリー更新
