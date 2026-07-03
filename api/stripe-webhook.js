@@ -22,6 +22,9 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
   apiVersion: '2024-06-20'
 });
 
+// ギフト券（paid）の有効期限（日数・仮置き）。monitor_free の30日は scripts/issue-monitor-gifts.mjs 側で定義
+const PAID_GIFT_EXPIRY_DAYS = 180;
+
 // 書き込みは service role キーで（RLSをバイパス）。anon keyではなくサーバー専用キーを使う。
 const supabase = (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY)
   ? createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
@@ -339,10 +342,15 @@ export default async function handler(req, res) {
         // ② ガチャ券プレゼント購入 → トークンごとに credits=1 のレコードを発行（1枚=1URL）
         const tokens = String(md.tokens || md.token || '').split(',').map(s => s.trim()).filter(Boolean);
         if (tokens.length && supabase) {
+          // 有効期限180日は資金決済法（前払式支払手段は6ヶ月超で規制対象になりうる）を
+          // 踏まえた仮置き。正式ローンチ前に専門家確認のうえ確定させること。
+          const expiresAt = new Date(Date.now() + PAID_GIFT_EXPIRY_DAYS * 24 * 60 * 60 * 1000).toISOString();
           const rows = tokens.map(t => ({
             token: t,
             sender_line_user_id: lineUserId || null,
-            credits: 1
+            credits: 1,
+            gift_type: 'paid',
+            expires_at: expiresAt
           }));
           const { error } = await supabase.from('pecha_gifts').insert(rows);
           if (error) console.error('gift insert error:', error);

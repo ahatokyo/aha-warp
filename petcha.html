@@ -2234,11 +2234,16 @@ const supabase = {
     return this.rpc('redeem_gift', { p_token: token, p_line_user_id: lineUserId });
   },
 
-  // ガチャ券の情報を取得（受取前の表示用）
+  // ガチャ券の情報を取得（受取前の表示用）。expires_at=NULLは無期限（旧発行分）
   async getGift(token) {
     const rows = await this.query('pecha_gifts', 'GET', null,
-      `?token=eq.${encodeURIComponent(token)}&select=token,credits,redeemed_at`);
+      `?token=eq.${encodeURIComponent(token)}&select=token,credits,redeemed_at,expires_at`);
     return (rows && rows.length) ? rows[0] : null;
+  },
+
+  // リンク開封の記録（初回のみ。計測用・失敗しても体験には影響させない）
+  markGiftOpened(token) {
+    return this.rpc('mark_gift_opened', { p_token: token });
   },
 
   // 自分が贈ったガチャ券一覧（マイページ管理用）
@@ -4590,10 +4595,16 @@ async function checkGiftRedeem() {
   history.replaceState({}, '', location.pathname);
   pendingGiftToken = token;
 
+  supabase.markGiftOpened(token).catch(() => {});   // 開封記録（計測用・投げっぱなし）
+
   let credits = null;
+  let expired = false;
   try {
     const g = await supabase.getGift(token);
-    if (g && !g.redeemed_at) credits = g.credits;
+    if (g && !g.redeemed_at) {
+      if (g.expires_at && new Date(g.expires_at) < new Date()) expired = true;
+      else credits = g.credits;
+    }
   } catch (e) {}
 
   const msg = document.getElementById('gift-modal-msg');
@@ -4601,6 +4612,9 @@ async function checkGiftRedeem() {
   if (credits) {
     msg.innerHTML = 'ガチャ券（' + credits + '回分）が届いています🎁<br>受け取りますか？受け取るとあなたのクレジットになります。';
     acceptBtn.style.display = 'block';
+  } else if (expired) {
+    msg.innerHTML = 'このガチャ券は有効期限が切れています。';
+    acceptBtn.style.display = 'none';
   } else {
     msg.innerHTML = 'このガチャ券は使用済みか、無効です。';
     acceptBtn.style.display = 'none';
@@ -4628,6 +4642,7 @@ async function acceptGift() {
       document.getElementById('order').scrollIntoView({ behavior: 'smooth' });
     } else if (r === -1) { petchaAlert('このガチャ券は使用済みです。'); dismissGift(); }
     else if (r === -3)   { petchaAlert('自分が贈ったガチャ券は受け取れません。'); dismissGift(); }
+    else if (r === -4)   { petchaAlert('このガチャ券は有効期限が切れています。'); dismissGift(); }
     else { petchaAlert('このガチャ券は無効です。'); dismissGift(); }
   } catch (e) {
     console.error('redeem error:', e);
