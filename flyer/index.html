@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>〈第15回〉サイバービジネス研究会｜AIを“社員化”する実践法（参加無料・7/21）</title>
+<meta name="description" content="サイバーシルクロード八王子主催 第15回サイバービジネス研究会。AIを“社員化”する実践法を無料オンラインで。2026年7月21日（火）18:00〜。参加費無料。">
+
+<!-- OGP / Twitter Card -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="〈第15回〉サイバービジネス研究会｜AIを“社員化”する実践法（参加無料・7/21）">
+<meta property="og:description" content="サイバーシルクロード八王子主催。AIを“社員化”する実践法を無料オンラインで。2026年7月21日（火）18:00〜。">
+<meta property="og:url" content="https://tamai.aha-tokyo.com/flyer/">
+<meta property="og:image" content="https://tamai.aha-tokyo.com/flyer/cyber15-flyer.png">
+<meta property="og:image:width" content="1414">
+<meta property="og:image:height" content="2000">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="〈第15回〉サイバービジネス研究会｜AIを“社員化”する実践法（参加無料・7/21）">
+<meta name="twitter:description" content="サイバーシルクロード八王子主催。AIを“社員化”する実践法を無料オンラインで。2026年7月21日（火）18:00〜。">
+<meta name="twitter:image" content="https://tamai.aha-tokyo.com/flyer/cyber15-flyer.png">
+
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+
+<!-- Google tag (gtag.js) — TAMAI専用GA4プロパティ（ai-shindanと同一） -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-MS34TLFR2E"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-MS34TLFR2E');
+</script>
+
+<style>
+  :root{
+    --ink:#26201a;
+    --sub:#6b6157;
+    --line:#e6ddce;
+    --paper:#f8f1e1;
+    --apply:#1f6f4a;
+    --apply-press:#185a3c;
+    --pdf-border:#c9bda8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",system-ui,sans-serif;
+    background:var(--paper);color:var(--ink);line-height:1.7;
+    padding:20px 16px calc(28px + env(safe-area-inset-bottom));
+  }
+  .wrap{max-width:640px;margin:0 auto}
+  .flyer{
+    display:block;width:100%;height:auto;border-radius:12px;
+    box-shadow:0 6px 24px rgba(38,32,26,.14);
+  }
+  .actions{display:flex;flex-direction:column;gap:12px;margin-top:20px}
+  .btn{
+    display:flex;align-items:center;justify-content:center;
+    width:100%;min-height:56px;padding:14px 18px;
+    border-radius:12px;font-size:17px;font-weight:700;
+    text-decoration:none;cursor:pointer;transition:.12s;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .btn-apply{background:var(--apply);color:#fff;border:none}
+  .btn-apply:active{background:var(--apply-press);transform:translateY(1px)}
+  .btn-pdf{background:#fff;color:var(--ink);border:1.5px solid var(--pdf-border)}
+  .btn-pdf:active{background:#f1ead9;transform:translateY(1px)}
+  .note{margin-top:16px;text-align:center;font-size:12.5px;color:var(--sub)}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <img class="flyer" src="cyber15-flyer.png" width="1414" height="2000"
+         alt="〈第15回〉サイバービジネス研究会 チラシ｜AIを社員化する実践法・2026年7月21日（火）18:00〜・参加無料・オンライン参加可">
+
+    <div class="actions">
+      <a id="applyBtn" class="btn btn-apply"
+         href="https://forms.gle/EsWzPhHLcsCANe3n6"
+         target="_blank" rel="noopener">参加を申し込む（無料）</a>
+
+      <a id="pdfBtn" class="btn btn-pdf"
+         href="cyber15-flyer.pdf" download="サイバービジネス研究会_チラシ_AHATOKYO.pdf">
+         チラシPDFをダウンロード</a>
+    </div>
+
+    <p class="note">サイバーシルクロード八王子 主催／合同会社AHA TOKYO</p>
+  </div>
+
+<script>
+  /* GA4イベント送信。gtag が関数として存在するかで判定し、保険で dataLayer にも積む */
+  function track(event, params){
+    var p = params || {};
+    try{
+      if(typeof gtag === 'function'){ gtag('event', event, p); }
+      else if(window.dataLayer){ window.dataLayer.push(['event', event, p]); }
+    }catch(e){}
+  }
+  document.getElementById('applyBtn').addEventListener('click', function(){
+    track('flyer_apply_click', { location:'flyer', campaign:'cyber15' });
+  });
+  document.getElementById('pdfBtn').addEventListener('click', function(){
+    track('flyer_pdf_download', { location:'flyer', campaign:'cyber15' });
+  });
+</script>
+</body>
+</html>
