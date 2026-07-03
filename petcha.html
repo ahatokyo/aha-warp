@@ -717,6 +717,30 @@ body {
 .btn-gift-accept { background:linear-gradient(135deg,var(--pink),var(--purple)); color:#2A1A0F; }
 .btn-gift-dismiss { background:transparent; color:#8C7355; }
 
+/* ===== ⑩ ギフト説明セクション（改修③） ===== */
+#gift-guide { padding: 4.5rem 1.5rem; background: linear-gradient(180deg, #FFF6EA 0%, var(--cream) 100%); }
+.gg-inner { max-width: 560px; margin: 0 auto; }
+.gg-flow { display: flex; flex-direction: column; gap: 1.1rem; margin-bottom: 2.25rem; }
+.gg-lane { background: var(--cream); border: 1px solid #F0E2CC; border-radius: 18px; padding: 1.2rem 0.9rem 1rem; box-shadow: 0 6px 20px rgba(58,42,31,0.06); }
+.gg-lane-title { font-family:'Zen Maru Gothic',sans-serif; font-weight:800; color:var(--purple-dark); font-size:0.95rem; margin-bottom:0.85rem; text-align:center; }
+.gg-steps { display:grid; grid-template-columns:repeat(4,1fr); gap:0.45rem; }
+.gg-step { text-align:center; position:relative; }
+.gg-step .st-no { display:inline-flex; align-items:center; justify-content:center; width:1.5rem; height:1.5rem; border-radius:50%; background:linear-gradient(135deg,var(--pink),var(--purple)); color:#fff; font-size:0.72rem; font-weight:800; margin-bottom:0.3rem; }
+.gg-step .st-emoji { font-size:1.4rem; display:block; margin-bottom:0.25rem; }
+.gg-step .st-label { font-size:0.64rem; color:var(--text); font-weight:600; line-height:1.45; display:block; }
+.gg-step + .gg-step::before { content:'▸'; position:absolute; left:-0.42rem; top:1.55rem; color:#E5C89A; font-size:0.7rem; }
+.gg-video { background:#FFF6E8; border:1px dashed #F0CC85; border-radius:18px; padding:2.2rem 1rem; text-align:center; color:#8C7355; font-size:0.8rem; line-height:1.7; margin-bottom:2.25rem; cursor:pointer; }
+.gg-video .gv-icon { font-size:2rem; display:block; margin-bottom:0.4rem; }
+.gg-faq { margin-bottom:2.25rem; }
+.gg-faq details { background:var(--cream); border:1px solid #F0E2CC; border-radius:14px; margin-bottom:0.6rem; overflow:hidden; }
+.gg-faq summary { list-style:none; cursor:pointer; padding:0.9rem 1rem; font-weight:700; font-size:0.85rem; color:var(--text); display:flex; justify-content:space-between; align-items:center; gap:0.5rem; }
+.gg-faq summary::-webkit-details-marker { display:none; }
+.gg-faq summary::after { content:'＋'; color:var(--pink); font-weight:800; flex:0 0 auto; }
+.gg-faq details[open] summary::after { content:'－'; }
+.gg-faq .fa-body { padding:0 1rem 0.9rem; font-size:0.8rem; color:#6B5744; line-height:1.7; }
+.gg-cta { text-align:center; max-width:420px; margin:0 auto; }
+.gg-cta-note { font-size:0.72rem; color:#8C7355; margin-top:0.6rem; }
+
 /* 汎用カスタムモーダル（ネイティブalert/confirm代替・PETCHAブランド） */
 #petcha-modal { display:none; position:fixed; inset:0; z-index:4000; background:rgba(58,42,31,0.88); align-items:center; justify-content:center; padding:1.5rem; }
 #petcha-modal.show { display:flex; }
@@ -1944,6 +1968,67 @@ footer .footer-links a {
       </div>
       <!-- 購入後の受け取りリンク表示 -->
       <div id="gift-result" class="gift-link-box" style="display:none;"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== ⑩ ギフト説明（改修③）。セクション内CTAがギフト購入導線＝説明が導線の直前に来る構成 ===== -->
+<section id="gift-guide">
+  <div class="gg-inner">
+    <div class="fade-up">
+      <p class="section-label">🎁 GIFT</p>
+      <!-- 仮文言: 見出し・リード文はCMO/参謀の供給後に差し替え -->
+      <h2 class="section-title">大切な人に、<br>うちの子ガチャを贈ろう</h2>
+      <p class="section-desc" style="margin-bottom:2.25rem;">ペットと暮らすあの人へ。<br>イラストガチャの体験を、そのままプレゼントできます。</p>
+    </div>
+
+    <!-- かんたん4ステップ（贈る人／もらった人の2レーン。確定フロー準拠） -->
+    <div class="gg-flow fade-up">
+      <div class="gg-lane">
+        <p class="gg-lane-title">🎁 贈る人</p>
+        <div class="gg-steps">
+          <div class="gg-step" data-gg-step="sender_1"><span class="st-no">1</span><span class="st-emoji">🎫</span><span class="st-label">ギフト券を選ぶ</span></div>
+          <div class="gg-step" data-gg-step="sender_2"><span class="st-no">2</span><span class="st-emoji">💳</span><span class="st-label">決済する</span></div>
+          <div class="gg-step" data-gg-step="sender_3"><span class="st-no">3</span><span class="st-emoji">🔗</span><span class="st-label">リンクが発行される</span></div>
+          <div class="gg-step" data-gg-step="sender_4"><span class="st-no">4</span><span class="st-emoji">💬</span><span class="st-label">LINEで相手に送る</span></div>
+        </div>
+      </div>
+      <div class="gg-lane">
+        <p class="gg-lane-title">🐾 もらった人</p>
+        <div class="gg-steps">
+          <div class="gg-step" data-gg-step="receiver_1"><span class="st-no">1</span><span class="st-emoji">🔗</span><span class="st-label">リンクを開く</span></div>
+          <div class="gg-step" data-gg-step="receiver_2"><span class="st-no">2</span><span class="st-emoji">📱</span><span class="st-label">LINEログイン</span></div>
+          <div class="gg-step" data-gg-step="receiver_3"><span class="st-no">3</span><span class="st-emoji">📸</span><span class="st-label">うちの子の写真をアップ</span></div>
+          <div class="gg-step" data-gg-step="receiver_4"><span class="st-no">4</span><span class="st-emoji">🎰</span><span class="st-label">ガチャを回して受け取り</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 説明動画（後日供給。それまでプレースホルダ） -->
+    <div class="gg-video fade-up" id="gg-video" onclick="ggVideoPlay()">
+      <span class="gv-icon">🎬</span>
+      説明動画は準備中です。<br>公開までしばらくお待ちください🐾
+    </div>
+
+    <!-- FAQ 4問（回答は仮文言。CMO供給後に差し替え） -->
+    <div class="gg-faq fade-up" id="gg-faq">
+      <details data-gg-faq="cost"><summary>贈られた側に料金はかかる？</summary>
+        <div class="fa-body"><!-- 仮文言 -->かかりません。受け取りからイラストの完成まで、贈られた方はすべて無料でお楽しみいただけます。</div>
+      </details>
+      <details data-gg-faq="expiry"><summary>有効期限は？</summary>
+        <div class="fa-body"><!-- 仮文言（paid=180日仮置きに整合。確定後に差し替え） -->ギフト券の発行日から180日間です。期限内にお受け取りください。</div>
+      </details>
+      <details data-gg-faq="no_line"><summary>相手がLINEを使っていなかったら？</summary>
+        <div class="fa-body"><!-- 仮文言 -->受け取りにはLINEアカウントが必要です。リンクはメールなど他の方法でも送れますが、受け取りの際にLINEログインをお願いしています。</div>
+      </details>
+      <details data-gg-faq="notify"><summary>贈ったことは相手にいつ伝わる？</summary>
+        <div class="fa-body"><!-- 仮文言 -->PETCHAから相手へ自動で通知することはありません。あなたが受け取りリンクを送ったタイミングで相手に伝わります。</div>
+      </details>
+    </div>
+
+    <div class="gg-cta fade-up">
+      <button class="btn-gacha" id="gg-cta-btn" onclick="ggCtaClick()">🎁 ギフト券を贈る</button>
+      <p class="gg-cta-note">決済はStripeの安全な画面で行います</p>
     </div>
   </div>
 </section>
@@ -4587,6 +4672,48 @@ async function copyMyGift(token) {
   loadMyGifts();   // バッジを「コピー済」に更新
 }
 
+// ===== ⑩ ギフト説明セクション（改修③）: GA4計測とCTA =====
+// イベントは既存規約（gaEventラッパー・snake_case）に準拠。表示系は各初回のみ発火
+function initGiftGuide() {
+  const sec = document.getElementById('gift-guide');
+  if (!sec || !('IntersectionObserver' in window)) return;
+  // セクション表示（初回のみ）
+  const secObs = new IntersectionObserver((es) => {
+    es.forEach(e => { if (e.isIntersecting) { gaEvent('gift_guide_view', {}); secObs.disconnect(); } });
+  }, { threshold: 0.3 });
+  secObs.observe(sec);
+  // フロー図の各ステップ表示（各初回のみ。step: sender_1〜receiver_4）
+  const stepObs = new IntersectionObserver((es) => {
+    es.forEach(e => {
+      if (!e.isIntersecting) return;
+      gaEvent('gift_guide_step_view', { step: e.target.getAttribute('data-gg-step') });
+      stepObs.unobserve(e.target);
+    });
+  }, { threshold: 0.6 });
+  sec.querySelectorAll('[data-gg-step]').forEach(el => stepObs.observe(el));
+  // FAQ開閉（開:1 / 閉:0）
+  sec.querySelectorAll('#gg-faq details').forEach(d => {
+    d.addEventListener('toggle', () => gaEvent('gift_guide_faq_toggle', { faq: d.getAttribute('data-gg-faq'), open: d.open ? 1 : 0 }));
+  });
+}
+
+// 動画プレースホルダのタップ。動画供給後は <video> に差し替え、play イベントで同名を発火させる
+function ggVideoPlay() { gaEvent('gift_guide_video_play', { placeholder: 1 }); }
+
+// ギフト購入CTA: ログイン済みならギフトパネルを開いてスクロール／未ログインはログイン導線へ
+function ggCtaClick() {
+  gaEvent('gift_cta_click', {});
+  const entry = document.getElementById('gift-entry');
+  if (state.user && entry) {
+    entry.style.display = 'block';
+    const panel = document.getElementById('gift-panel');
+    if (panel) panel.style.display = 'block';
+    entry.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  } else {
+    document.getElementById('order').scrollIntoView({ behavior: 'smooth' });
+  }
+}
+
 // 受け取り側：?gift=TOKEN を検出してモーダル表示
 let pendingGiftToken = null;
 async function checkGiftRedeem() {
@@ -4892,6 +5019,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initSampleSwipe();       // ④⑤ 見本カルーセルのスワイプ
   bindHeroCtaTracking();   // 計測①: HERO CTAクリック click_see_gallery
   initScrollDepth();       // 計測②: スクロール深度 25/50/75/90%
+  initGiftGuide();         // ⑩ ギフト説明セクションの計測（改修③）
 });
 </script>
 
