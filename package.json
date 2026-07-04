@@ -6,6 +6,7 @@
   "description": "PECHA Stripe Checkout / Webhook (Vercel serverless functions)",
   "dependencies": {
     "stripe": "^16.12.0",
-    "@supabase/supabase-js": "^2.45.4"
+    "@supabase/supabase-js": "^2.45.4",
+    "googleapis": "^140.0.0"
   }
 }
