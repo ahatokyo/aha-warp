@@ -2838,6 +2838,9 @@ function applyUserStatus(s) {
   // ギフト導線はログイン後つねに表示
   giftEntry.style.display = 'block';
 
+  // ② おすそわけ完了記録の取りこぼし回収（ログイン後セッション1回だけ・冪等）
+  reconcileGiftCompletion();
+
   // ② メニューバーの「マイページ」を有効化（ログイン後）
   const navMy = document.getElementById('nav-mypage');
   if (navMy && state.user) navMy.classList.remove('disabled');
@@ -3304,6 +3307,30 @@ function makeThumb(base64, mime, maxEdge = 320, quality = 0.72) {
   });
 }
 
+// ② おすそわけの完了通知。判定・記録はすべてサーバー側（冪等なので何度呼んでも安全）。
+//    keepalive: ページ離脱・バックグラウンド移行の直後でもリクエスト送信を完了させる
+//    （モバイルで結果画面表示後すぐ閉じると通常のfetchは破棄されるため）
+function notifyGachaCompleted() {
+  if (!state.user?.userId) return;
+  try {
+    fetch('/api/gacha-completed', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lineUserId: state.user.userId }),
+      keepalive: true
+    }).catch(() => {});
+  } catch (e) {}
+}
+
+// ログイン後に1回だけ呼ぶ取りこぼし回収（リコンサイル）。
+// ガチャ直後の通知が届かなかった場合でも、次の訪問時にサーバーが照合して完了記録を埋める
+let giftCompletionReconciled = false;
+function reconcileGiftCompletion() {
+  if (giftCompletionReconciled || !state.user?.userId) return;
+  giftCompletionReconciled = true;
+  notifyGachaCompleted();
+}
+
 // 生成画像を Storage に保存して pecha_illustrations に記録（表示とは非同期）
 async function persistResults(results) {
   if (MOCK_GENERATION || !state.user?.userId) return;
@@ -3337,15 +3364,7 @@ async function persistResults(results) {
   // ② おすそわけ（改修②）: pecha_illustrations への保存が成功した後にサーバーへ通知。
   //    記録・付与判定はすべてサーバー側（/api/gacha-completed）で行い、
   //    生成レコードの実在照合もサーバーが行う。失敗しても体験には影響させない
-  if (savedAny) {
-    try {
-      fetch('/api/gacha-completed', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ lineUserId: state.user.userId })
-      }).catch(() => {});
-    } catch (e) {}
-  }
+  if (savedAny) notifyGachaCompleted();
   loadMypage();   // マイページ＆累計回数を再取得
   loadGallery();  // ⑤ ギャラリー更新
 }

@@ -76,6 +76,8 @@ export default async function handler(req, res) {
       .select('token');
     if (cErr) throw cErr;
     if (!claimed || !claimed.length) { res.status(200).json({ completed: true, incentive: 'already_processed' }); return; }
+    // 完了記録ログ（フラグOFF期間の稼働確認・障害調査用）
+    console.log('gacha completion recorded:', { gift_token: gift.token, recipient: lineUserId });
 
     // 4. インセンティブ付与判定
     if (!INCENTIVE_ENABLED) { res.status(200).json({ completed: true, incentive: 'disabled' }); return; }
