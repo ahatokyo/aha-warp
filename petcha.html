@@ -318,7 +318,7 @@ body {
   inset: 0;
   z-index: 1100;               /* #gacha-modal(1000) より上 */
   background: rgba(58,42,31,0.9);
-  align-items: center;
+  align-items: flex-start;     /* 縦に溢れたとき上が切れないようにする（centerだと切れる） */
   justify-content: center;
   padding: 1.25rem;
   overflow-y: auto;
@@ -329,6 +329,7 @@ body {
   position: relative;
   width: 100%;
   max-width: 420px;
+  margin: auto;                /* 収まるときは中央、溢れるときは上詰め */
   background: var(--cream);
   border-radius: 24px;
   padding: 1.75rem 1.35rem 1.5rem;
@@ -367,26 +368,37 @@ body {
   margin-bottom: 0.75rem;
 }
 
-/* サンプルは縦長（約3:5）。幅いっぱいに出すとCTAがスマホの画面外へ落ちるので、
-   高さを抑えて「画像＋CTA」が1画面に収まるようにする。トリミングはしない。 */
+/* サンプルは縦長（6枚中5枚が941x1672＝アスペクト0.563）。
+   ブルちゃんを大きく・全身のまま見せたいのでトリミングはしない。
+   その結果カードは縦に溢れるが、CTAは .demo-actions で画面下に貼り付けて常時見える状態を保つ。 */
 .demo-img-wrap {
   position: relative;
   display: inline-block;      /* 画像の実寸に追従させ、作風タグを画像の角に固定する */
-  margin-bottom: 1.1rem;
+  margin-bottom: 1rem;
   max-width: 100%;
 }
 .demo-img-wrap img {
   display: block;
   width: auto;
   max-width: 100%;
-  max-height: 44vh;
+  max-height: 58vh;
   border-radius: 16px;
   box-shadow: 0 10px 30px rgba(58,42,31,0.18);
 }
+
+/* CTAは画面下に貼り付ける。画像を大きく出すとカードが1画面に収まらないため、
+   スクロール位置に関わらず「初回¥500」への導線が常に見えているようにする。 */
+.demo-actions {
+  position: sticky;
+  bottom: -0.5rem;
+  padding: 0.85rem 0 0.35rem;
+  background: linear-gradient(180deg, rgba(255,253,248,0) 0%, var(--cream) 26%);
+}
+/* 画像の上端に置く。下端だと、画面の短い端末で画面下のCTAに隠れて作風が伝わらない。 */
 .demo-style-tag {
   position: absolute;
   left: 0.6rem;
-  bottom: 0.6rem;
+  top: 0.6rem;
   padding: 0.32rem 0.7rem;
   border-radius: 100px;
   font-size: 0.75rem;
@@ -402,21 +414,14 @@ body {
   font-size: 1.12rem;
   line-height: 1.6;
   color: var(--purple-dark);
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.9rem;
 }
 .demo-dog-name { color: var(--pink); }
 
-.demo-desc {
-  font-size: 0.85rem;
-  line-height: 1.6;
-  color: #8C7355;
-  margin-bottom: 1.15rem;
-}
-
 .btn-demo-again {
   width: 100%;
-  margin-top: 0.65rem;
-  padding: 0.85rem;
+  margin-top: 0.55rem;
+  padding: 0.72rem;
   border-radius: 100px;
   border: 2px solid var(--gold);
   background: transparent;
@@ -2229,20 +2234,24 @@ footer .footer-links a {
     <button class="demo-close" onclick="closeDemoResult()" aria-label="閉じる">×</button>
 
     <p class="demo-label">🎉 お試しガチャ結果</p>
+
+    <!-- 見出しは画像の上に置く。下に置くと、画面下に貼り付けたCTAが
+         「あなたのうちの子なら？」に被って読めなくなるため。 -->
+    <h3 class="demo-title" id="demo-result-title">
+      これは看板犬の<span class="demo-dog-name">ブルちゃん</span>です。<br>あなたのうちの子なら？
+    </h3>
+
     <div class="demo-img-wrap">
       <img id="demo-result-img" alt="お試しガチャで当たったイラスト">
       <div class="demo-style-tag" id="demo-style-tag"></div>
     </div>
 
-    <h3 class="demo-title" id="demo-result-title">
-      これは看板犬の<span class="demo-dog-name">ブルちゃん</span>です。<br>あなたのうちの子なら？
-    </h3>
-    <p class="demo-desc">写真を1枚アップするだけで、うちの子が同じ6作風のイラストになります。</p>
-
-    <button class="btn-gacha" id="demo-cta-btn" onclick="demoToUpload()">
-      📸 写真をアップして、うちの子で回す（初回¥500）
-    </button>
-    <button class="btn-demo-again" onclick="runDemoGacha('again')">🎰 もう一回まわす</button>
+    <div class="demo-actions">
+      <button class="btn-gacha" id="demo-cta-btn" onclick="demoToUpload()">
+        📸 うちの子で回す（初回¥500）
+      </button>
+      <button class="btn-demo-again" onclick="runDemoGacha('again')">🎰 もう一回まわす</button>
+    </div>
   </div>
 </div>
 
