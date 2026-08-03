@@ -2687,13 +2687,23 @@ const LINE_CLIENT_ID = '2010266562'; // ← 要設定
 //   token交換時 redirect_uri」と1文字単位で完全一致が必須（3つ揃わないとログインが壊れる）。
 const REDIRECT_URI = encodeURIComponent('https://petcha.aha-tokyo.com/petcha.html');
 
-function loginWithLINE() {
+// ギフトリンク（?gift=TOKEN）から未ログインで受け取りに進んだ場合、ログイン往復の間だけ
+// トークンを保持する変数。storageに置かないのは、下のコメントのとおりLINE内ブラウザが
+// 認可往復でstorage/cookieを丸ごと失うため。stateに載せてURLで持ち帰る（checkLineCallbackで復元）。
+let giftTokenFromState = null;
+
+function loginWithLINE(giftToken) {
   // stateはCSRF対策の慣習として認可URLに付与するが、戻り時の照合には使わない（保存もしない）。
   // 理由: LINE内ブラウザは認可往復で実行コンテキストがリセットされ、storage(local/session)も
   //       cookieも往復をまたいで保持されないことが診断で確定した。そのため「開始時に保存→戻り時に照合」
   //       というクライアント側のstateバインディングが原理的に不可能（保存しても1回目は必ず消えるだけ）。
   //       → 保存処理は撤去。根本対応はLIFFへの移行で別途行う（後続タスク）。
-  const state_param = Math.random().toString(36).substring(2);
+  // ギフト受け取り中のログインなら、トークンを state の末尾に連結して往復させる。
+  // 書式は下の checkLineCallback のサニティチェック /^[A-Za-z0-9._-]{1,128}$/ に収まる
+  // （ランダム部11文字 + ".g." + トークン20文字程度）。stateは保存値と照合していないため
+  // 中身を変えても既存のログイン挙動は変わらない。redirect_uri/scope/client_idは不変。
+  const rand_part = Math.random().toString(36).substring(2);
+  const state_param = giftToken ? `${rand_part}.g.${giftToken}` : rand_part;
   const url = `https://access.line.me/oauth2/v2.1/authorize`
     + `?response_type=code`
     + `&client_id=${LINE_CLIENT_ID}`
@@ -2724,6 +2734,10 @@ function checkLineCallback() {
   // のため、コードのリプレイは実質的に防がれる。残存リスクはログインCSRFだが、PETCHAはアカウントに
   // 決済情報を持たず（StripeはCheckoutで都度収集）影響は限定的。根本対応はLIFF移行（後続タスク）で行う。
   if (!lineState || !/^[A-Za-z0-9._-]{1,128}$/.test(lineState)) return;
+  // ギフトリンク経由のログインなら state からトークンを復元する。
+  // sessionStorage は LINE内ブラウザで往復をまたげないため、こちらが本経路。
+  const giftMatch = lineState.match(/\.g\.([A-Za-z0-9_-]+)$/);
+  if (giftMatch) giftTokenFromState = giftMatch[1];
   exchangeLineToken(code);
   window.history.replaceState({}, '', window.location.pathname);  // URLから code/state を掃除
 }
@@ -2790,6 +2804,12 @@ async function setUser(user) {
   // マイページを表示
   document.getElementById('mypage').classList.add('show');
   loadMypage();
+
+  // ギフト受け取りの再開は「ログインが確定したこの時点」で行う。
+  // 以前は DOMContentLoaded 側で最大6秒ポーリングしていたが、認証はmakeのWebhook往復を
+  // 挟むため6秒を超えることがあり、超えると取りこぼしていた（しかも待つ前にstorageを
+  // 消していたため復旧不能だった）。イベント駆動にして時間依存をなくす。
+  resumePendingGift();
 }
 
 // 空の状態オブジェクト
@@ -4836,7 +4856,7 @@ async function acceptGift() {
     // pending_gift は保存済みなので、外部ブラウザで開き直してログインすれば自動で受け取りが再開される。
     if (window.InAppGuard && window.InAppGuard.isInApp()) { window.InAppGuard.open(); return; }
     await petchaAlert('受け取りにはLINEログインが必要です。ログイン後、自動で受け取ります。');
-    loginWithLINE();
+    loginWithLINE(pendingGiftToken);   // stateに載せて往復させる（storageが消える環境の保険）
     return;
   }
   try {
@@ -4863,11 +4883,18 @@ function dismissGift() {
 
 // ログイン後にギフト受け取りを再開（LINEログイン経由）
 function resumePendingGift() {
-  const t = sessionStorage.getItem('pecha_pending_gift');
+  // 取得元は2系統。state経由（LINE内ブラウザでも消えない）を優先し、
+  // sessionStorageは外部ブラウザ向けのフォールバックとして残す。
+  const t = giftTokenFromState || sessionStorage.getItem('pecha_pending_gift');
   if (!t) return;
-  sessionStorage.removeItem('pecha_pending_gift');
+  // ログイン前に呼ばれた場合は何も消費しない。ログイン確定時に setUser から再度呼ばれる。
+  if (!state.user) return;
+  giftTokenFromState = null;
   pendingGiftToken = t;
-  waitForUserThen(() => { if (state.user) acceptGift(); });
+  // 受け取りを試みたあとに退避分を破棄する。先に消すと、失敗時に手がかりが無くなる。
+  Promise.resolve(acceptGift()).finally(() => {
+    sessionStorage.removeItem('pecha_pending_gift');
+  });
 }
 
 // ===================================================================
